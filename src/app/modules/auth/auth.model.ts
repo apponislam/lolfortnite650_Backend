@@ -114,7 +114,7 @@ const UserSchema = new Schema<User>(
                 delete ret.emailVerificationToken;
                 delete ret.emailVerificationExpiry;
                 delete ret.pendingEmail;
-
+                delete ret.availabilityLocation;
                 return ret;
             },
         },
