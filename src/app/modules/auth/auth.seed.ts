@@ -4,9 +4,11 @@ import config from "../../config";
 
 export const seedManager = async () => {
     try {
+        console.log("🔍 Checking for existing manager...");
         const managerExists = await UserModel.findOne({ role: "MANAGER" });
 
         if (!managerExists) {
+            console.log("📝 No manager found, creating one...");
             const hashedPassword = await bcrypt.hash(config.superAdminPassword as string, Number(config.bcrypt_salt_rounds));
 
             const manager = {
@@ -23,8 +25,10 @@ export const seedManager = async () => {
 
             await UserModel.create(manager);
             console.log("✅ Manager created:", config.superAdminEmail);
+        } else {
+            console.log("✅ Manager already exists, skipping creation");
         }
     } catch (error) {
-        console.error("Error seeding manager:", error);
+        console.error("❌ Error seeding manager:", error);
     }
 };

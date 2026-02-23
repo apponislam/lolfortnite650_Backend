@@ -37,13 +37,20 @@ const shutdown = (error?: any, exitCode = 1, signal?: string) => {
     if (error) console.error(`❌ ${signal || "Error"} detected:`, error);
     else if (signal) console.log(`⚠️ ${signal} received. Shutting down gracefully...`);
 
-    if (server) {
+    if (server && server.listening) {
         server.close(async () => {
             console.log("✅ Server closed.");
-            await mongoose.disconnect();
-            console.log("✅ MongoDB disconnected.");
+            if (mongoose.connection.readyState === 1) {
+                await mongoose.disconnect();
+                console.log("✅ MongoDB disconnected.");
+            }
             process.exit(exitCode);
         });
+
+        setTimeout(() => {
+            console.error("⚠️ Forcefully exiting");
+            process.exit(exitCode);
+        }, 5000);
     } else {
         process.exit(exitCode);
     }
