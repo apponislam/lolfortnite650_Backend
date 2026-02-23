@@ -8,6 +8,7 @@ let io: Server;
 | Initialize Socket Server
 |--------------------------------------------------------------------------
 */
+
 export const initSocket = (server: http.Server) => {
     io = new Server(server, {
         cors: {
@@ -19,6 +20,13 @@ export const initSocket = (server: http.Server) => {
 
     io.on("connection", (socket: Socket) => {
         console.log("🔌 Socket connected:", socket.id);
+
+        const userId = socket.handshake.auth?._id;
+
+        if (userId) {
+            socket.join(`user_${userId}`);
+            console.log("User joined room:", userId);
+        }
 
         /*
         ------------------------------------------------
@@ -43,6 +51,7 @@ export const initSocket = (server: http.Server) => {
 | Get Socket Instance Anywhere
 |--------------------------------------------------------------------------
 */
+
 export const getSocket = () => {
     if (!io) {
         throw new Error("Socket not initialized");
