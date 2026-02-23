@@ -32,14 +32,13 @@ const registerUser = async (data: any) => {
     const createdUser = await UserModel.create(userData);
 
     const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${createdUser.email}`;
-    sendVerificationEmail(createdUser.email as string, createdUser.firstName as string, verificationUrl);
-    sendWelcomeEmail(createdUser.email as string, createdUser.firstName as string);
+    sendVerificationEmail(createdUser.email as string, createdUser.name as string, verificationUrl);
+    sendWelcomeEmail(createdUser.email as string, createdUser.name as string);
 
     // Generate tokens
     const jwtPayload = {
         _id: createdUser._id,
-        firstName: createdUser.firstName,
-        lastName: createdUser.lastName,
+        name: createdUser.name,
         email: createdUser.email,
         role: createdUser.role,
     };
@@ -77,8 +76,7 @@ const loginUser = async (data: { email: string; password: string }) => {
     // Generate tokens
     const jwtPayload = {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        name: user.name,
         email: user.email,
         role: user.role,
     };
@@ -126,7 +124,7 @@ const resendVerificationEmail = async (email: string) => {
 
     // Send verification email
     const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${user.email}`;
-    sendVerificationEmail(user.email as string, user.firstName as string, verificationUrl);
+    sendVerificationEmail(user.email as string, user.name as string, verificationUrl);
 
     return { message: "Verification email sent" };
 };
@@ -148,8 +146,7 @@ const refreshAccessToken = async (refreshToken: string) => {
 
         const jwtPayload = {
             _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            name: user.name,
             email: user.email,
             role: user.role,
         };
@@ -175,7 +172,7 @@ const requestPasswordReset = async (email: string) => {
     await user.save();
 
     // Send OTP email
-    sendOtpEmail(email, otp, user.firstName as string);
+    sendOtpEmail(email, otp, user.name as string);
 
     return { message: "OTP sent" };
 };
@@ -223,7 +220,7 @@ const resendOtp = async (email: string) => {
     await user.save();
 
     // Send email
-    sendOtpEmail(email, otp, user.firstName as string);
+    sendOtpEmail(email, otp, user.name as string);
 
     return { message: "OTP resent" };
 };
@@ -286,7 +283,7 @@ const updateEmail = async (userId: string, newEmail: string, password: string) =
 
     // Send verification email
     const verificationUrl = `${config.client_url}/verify-new-email?token=${verificationToken}&email=${newEmail}`;
-    sendEmailUpdateVerification(newEmail, user.firstName as string, verificationUrl);
+    sendEmailUpdateVerification(newEmail, user.name as string, verificationUrl);
 };
 
 const resendEmailUpdate = async (userId: string, password: string) => {
@@ -310,7 +307,7 @@ const resendEmailUpdate = async (userId: string, password: string) => {
 
     // Send verification email
     const verificationUrl = `${config.client_url}/verify-new-email?token=${verificationToken}&email=${user.pendingEmail}`;
-    sendEmailUpdateVerification(user.pendingEmail as string, user.firstName as string, verificationUrl);
+    sendEmailUpdateVerification(user.pendingEmail as string, user.name as string, verificationUrl);
 
     return { message: "Verification email resent" };
 };

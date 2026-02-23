@@ -3,7 +3,7 @@ import app from "./app";
 import mongoose from "mongoose";
 import http from "http";
 import config from "./app/config";
-import { seedManager } from "./app/modules/auth/auth.seed";
+import { seedSuperAdmin } from "./app/modules/auth/auth.seed";
 // import { testEmail } from "./utils/testemail";
 
 let server: Server;
@@ -16,7 +16,7 @@ async function main() {
 
         // initSocket(server);
 
-        seedManager();
+        seedSuperAdmin();
         // createBotAdmin();
 
         // reviewReminderCron.start();

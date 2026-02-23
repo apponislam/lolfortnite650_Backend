@@ -1,14 +1,16 @@
-export type UserRole = "VENDOR" | "BUYER" | "DRIVER" | "INVENTORY_MANAGER" | "PRICER" | "TREASURER" | "MANAGER" | "CLIENT" | "SALES_AGENT";
+export type UserRole = "SUPER_ADMIN" | "TEACHER" | "STUDENT" | "ADMIN" | "GUEST";
 
 export interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
+    name: string;
     email: string;
     password: string;
     role: UserRole;
     phone?: string;
-    location?: string;
+    location?: {
+        fullAddress?: string;
+        lat?: number;
+        lng?: number;
+    };
     isActive: boolean;
     isEmailVerified: boolean;
     lastLogin?: Date;

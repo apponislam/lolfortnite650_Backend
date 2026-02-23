@@ -2,33 +2,41 @@ import bcrypt from "bcrypt";
 import { UserModel } from "./auth.model";
 import config from "../../config";
 
-export const seedManager = async () => {
+export const seedSuperAdmin = async () => {
     try {
-        console.log("🔍 Checking for existing manager...");
-        const managerExists = await UserModel.findOne({ role: "MANAGER" });
+        console.log("🔍 Checking for existing super admin...");
 
-        if (!managerExists) {
-            console.log("📝 No manager found, creating one...");
+        const adminExists = await UserModel.findOne({
+            role: "SUPER_ADMIN",
+        });
+
+        if (!adminExists) {
+            console.log("📝 No super admin found, creating one...");
+
             const hashedPassword = await bcrypt.hash(config.superAdminPassword as string, Number(config.bcrypt_salt_rounds));
 
-            const manager = {
-                firstName: "Super",
-                lastName: "Admin",
+            const superAdmin = {
+                name: "Super Admin",
                 email: config.superAdminEmail,
                 password: hashedPassword,
-                role: "MANAGER",
+                role: "SUPER_ADMIN",
                 phone: "0000000000",
-                location: "Headquarters",
+
+                location: {
+                    fullAddress: "Headquarters",
+                },
+
                 isActive: true,
                 isEmailVerified: true,
             };
 
-            await UserModel.create(manager);
-            console.log("✅ Manager created:", config.superAdminEmail);
+            await UserModel.create(superAdmin);
+
+            console.log("✅ Super admin created:", config.superAdminEmail);
         } else {
-            console.log("✅ Manager already exists, skipping creation");
+            console.log("✅ Super admin already exists, skipping creation");
         }
     } catch (error) {
-        console.error("❌ Error seeding manager:", error);
+        console.error("❌ Error seeding super admin:", error);
     }
 };
