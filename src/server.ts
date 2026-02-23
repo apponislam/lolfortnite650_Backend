@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import http from "http";
 import config from "./app/config";
 import { seedSuperAdmin } from "./app/modules/auth/auth.seed";
+import { initSocket } from "./app/socket/socket";
 // import { testEmail } from "./utils/testemail";
 
 let server: Server;
@@ -14,7 +15,7 @@ async function main() {
         server = http.createServer(app);
         // testEmail();
 
-        // initSocket(server);
+        initSocket(server);
 
         seedSuperAdmin();
         // createBotAdmin();
