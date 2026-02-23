@@ -17,7 +17,7 @@ const registerUser = async (data: any) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // Create user
     const userData = {
@@ -28,6 +28,10 @@ const registerUser = async (data: any) => {
         verificationToken,
         verificationExpiry,
     };
+
+    if (userData.role === "TEACHER") {
+        userData.teacherApprovalStatus = "PENDING";
+    }
 
     const createdUser = await UserModel.create(userData);
 

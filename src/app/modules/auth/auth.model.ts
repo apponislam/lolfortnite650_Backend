@@ -34,9 +34,20 @@ const UserSchema = new Schema<User>(
         },
 
         location: {
-            fullAddress: { type: String },
             lat: { type: Number },
             lng: { type: Number },
+        },
+
+        language: {
+            type: String,
+        },
+
+        address: {
+            street: String,
+            city: String,
+            state: String,
+            zipCode: String,
+            country: String,
         },
 
         isActive: {
@@ -50,6 +61,21 @@ const UserSchema = new Schema<User>(
         },
 
         lastLogin: {
+            type: Date,
+        },
+
+        // Teacher approval workflow
+        teacherApprovalStatus: {
+            type: String,
+            enum: ["PENDING", "APPROVED", "REJECTED", "BLOCKED"],
+        },
+
+        approvedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
+
+        approvalDate: {
             type: Date,
         },
 

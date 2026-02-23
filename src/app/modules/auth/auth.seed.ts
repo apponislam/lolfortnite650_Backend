@@ -22,9 +22,9 @@ export const seedSuperAdmin = async () => {
                 role: "SUPER_ADMIN",
                 phone: "0000000000",
 
-                location: {
-                    fullAddress: "Headquarters",
-                },
+                // location: {
+                //     fullAddress: "Headquarters",
+                // },
 
                 isActive: true,
                 isEmailVerified: true,
