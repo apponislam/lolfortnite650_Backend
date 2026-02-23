@@ -4,7 +4,7 @@ import config from "../app/config";
 const transporter = nodemailer.createTransport({
     host: config.mail.smtp_host,
     port: Number(config.mail.smtp_port),
-    secure: config.mail.smtp_secure,
+    secure: config.mail.smtp_secure === "true",
     auth: {
         user: config.mail.smtp_user,
         pass: config.mail.smtp_pass,

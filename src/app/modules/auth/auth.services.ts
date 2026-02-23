@@ -65,13 +65,12 @@ const loginUser = async (data: { email: string; password: string }) => {
     if (!user.isActive) throw new ApiError(httpStatus.FORBIDDEN, "Account is deactivated");
 
     // Check if email verified
-    if (!user.isEmailVerified) {
-        throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first");
-    }
+    // if (!user.isEmailVerified) {
+    //     throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first");
+    // }
 
     // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    await UserModel.updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
 
     // Generate tokens
     const jwtPayload = {
