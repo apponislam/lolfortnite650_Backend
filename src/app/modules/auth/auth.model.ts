@@ -79,6 +79,13 @@ const UserSchema = new Schema<User>(
             type: Date,
         },
 
+        availabilityLocation: {
+            address: String,
+            lat: Number,
+            lng: Number,
+            radiusKm: Number,
+        },
+
         resetPasswordOtp: String,
         resetPasswordOtpExpiry: Date,
         resetPasswordToken: String,

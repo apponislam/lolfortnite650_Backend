@@ -29,6 +29,12 @@ export interface User {
     teacherApprovalStatus?: TeacherApprovalStatus;
     approvedBy?: mongoose.Types.ObjectId;
     approvalDate?: Date;
+    availabilityLocation?: {
+        address?: string;
+        lat?: number;
+        lng?: number;
+        radiusKm?: number;
+    };
 
     // Password reset fields
     resetPasswordOtp?: string;
