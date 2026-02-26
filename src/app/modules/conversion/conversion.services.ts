@@ -249,3 +249,9 @@ export const markConversationAsRead = async (conversationId: string, userId: str
 
     return { success: true };
 };
+
+export const conversationService = {
+    createConversation,
+    getUserConversations,
+    getConversationById,
+};
