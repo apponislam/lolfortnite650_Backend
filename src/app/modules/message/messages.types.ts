@@ -1,83 +1,59 @@
-export type ConversationType = "PRIVATE" | "GROUP";
+import { Types } from "mongoose";
 
+export type ConversationType = "PRIVATE" | "GROUP";
 export interface Conversation {
     _id: string;
-
     type: ConversationType;
-
-    // Users inside this chat
-    participantIds: string[];
-
-    // For group only
+    participantIds: Types.ObjectId[];
     name?: string;
     avatar?: string;
-    adminIds?: string[];
-
-    // Last message reference (for chat list preview)
-    lastMessage?: {
-        _id: string;
-        text?: string;
-        senderId: string;
-        createdAt: Date;
-    };
-
-    // Unread count per user (fast performance for sidebar)
-    unreadCount: {
-        userId: string;
+    adminIds?: Types.ObjectId[];
+    lastMessage?: Types.ObjectId;
+    unreadCounts: {
+        userId: Types.ObjectId;
         count: number;
     }[];
-
     createdAt: Date;
     updatedAt: Date;
 }
 
-export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE" | "SYSTEM";
-
+export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE" | "SYSTEM" | "MEETING";
 export interface MessageFile {
     url: string;
     fileName: string;
-    fileSize: number; // in bytes
+    fileSize: number;
     mimeType: string;
-    thumbnailUrl?: string; // optional for images/videos
+    thumbnailUrl?: string;
 }
-
 export interface MessageSeen {
-    userId: string;
+    userId: Types.ObjectId;
     seenAt: Date;
 }
-
+export interface MessageDelivery {
+    userId: Types.ObjectId;
+    deliveredAt: Date;
+}
 export interface Message {
     _id: string;
-
-    conversationId: string;
-
-    senderId: string;
-
+    conversationId: Types.ObjectId;
+    senderId: Types.ObjectId;
     type: MessageType;
-
-    // Content
     text?: string;
     files?: MessageFile[];
-
-    // Seen tracking (empty = unseen by everyone except sender)
+    meeting?: {
+        provider: "ZOOM";
+        meetingId: string;
+        meetingLink: string;
+        recordingLink?: string;
+        scheduledAt?: Date;
+    };
     seenBy: MessageSeen[];
-
-    // Delivery tracking (optional but recommended)
-    deliveredTo: {
-        userId: string;
-        deliveredAt: Date;
-    }[];
-
-    // Status
+    deliveredTo: MessageDelivery[];
+    replyTo?: string;
     isEdited: boolean;
     editedAt?: Date;
-
     isDeleted: boolean;
     deletedAt?: Date;
-
-    // Reply support (important for modern chat)
-    replyToMessageId?: string;
-
     createdAt: Date;
     updatedAt: Date;
 }
