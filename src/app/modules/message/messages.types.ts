@@ -2,7 +2,6 @@ import { Types } from "mongoose";
 
 export type ConversationType = "PRIVATE" | "GROUP";
 export interface Conversation {
-    _id: string;
     type: ConversationType;
     participantIds: Types.ObjectId[];
     name?: string;
@@ -34,7 +33,6 @@ export interface MessageDelivery {
     deliveredAt: Date;
 }
 export interface Message {
-    _id: string;
     conversationId: Types.ObjectId;
     senderId: Types.ObjectId;
     type: MessageType;
