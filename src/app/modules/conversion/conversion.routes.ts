@@ -1,17 +1,18 @@
 import express from "express";
+import { ConversationControllers } from "./conversion.controllers";
+import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
 // All routes require authentication
-router.use(auth());
 
 // Conversation routes
-router.post("/", conversationController.createConversation);
-router.get("/", conversationController.getUserConversations);
-router.get("/:conversationId", conversationController.getConversationById);
-router.patch("/:conversationId", conversationController.updateGroupConversation);
-router.post("/:conversationId/participants", conversationController.addParticipantsToGroup);
-router.delete("/:conversationId/participants/:participantId", conversationController.removeParticipantFromGroup);
-router.post("/:conversationId/read", conversationController.markConversationAsRead);
+router.post("/", auth, ConversationControllers.createConversation);
+router.get("/", auth, ConversationControllers.getUserConversations);
+router.get("/:conversationId", auth, ConversationControllers.getConversationById);
+router.patch("/:conversationId", auth, ConversationControllers.updateGroupConversation);
+router.post("/:conversationId/participants", auth, ConversationControllers.addParticipantsToGroup);
+router.delete("/:conversationId/participants/:participantId", auth, ConversationControllers.removeParticipantFromGroup);
+router.post("/:conversationId/read", auth, ConversationControllers.markConversationAsRead);
 
 export const ConversationRoutes = router;
