@@ -4,6 +4,7 @@ import { ClassRoutes } from "../modules/class/class.routes";
 import { publicRoutes } from "../modules/public/public.routes";
 import { bankDetailsRoutes } from "../modules/bankDetails/bankDetails.routes";
 import { faqRoutes } from "../modules/faq/faq.routes";
+import { contactRoutes } from "../modules/contact/contact.routes";
 
 const router = express.Router();
 
@@ -27,6 +28,10 @@ const moduleRoutes = [
     {
         path: "/faqs",
         route: faqRoutes,
+    },
+    {
+        path: "/contact",
+        route: contactRoutes,
     },
 ];
 
