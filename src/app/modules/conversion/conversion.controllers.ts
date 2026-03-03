@@ -5,7 +5,7 @@ import sendResponse from "../../../utils/sendResponse";
 import { conversationService } from "./conversion.services";
 
 // Create new conversation
-export const createConversation = catchAsync(async (req: Request, res: Response) => {
+const createConversation = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id; // assume auth middleware sets req.user
     const result = await conversationService.createConversation(userId, req.body);
 
@@ -18,7 +18,7 @@ export const createConversation = catchAsync(async (req: Request, res: Response)
 });
 
 // Get all conversations for current user
-export const getUserConversations = catchAsync(async (req: Request, res: Response) => {
+const getUserConversations = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const result = await conversationService.getUserConversations(userId);
 
@@ -31,10 +31,10 @@ export const getUserConversations = catchAsync(async (req: Request, res: Respons
 });
 
 // Get single conversation by ID
-export const getConversationById = catchAsync(async (req: Request, res: Response) => {
+const getConversationById = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const { conversationId } = req.params;
-    const result = await conversationService.getConversationById(conversationId, userId);
+    const result = await conversationService.getConversationById(conversationId as string, userId);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -45,10 +45,10 @@ export const getConversationById = catchAsync(async (req: Request, res: Response
 });
 
 // Update group conversation
-export const updateGroupConversation = catchAsync(async (req: Request, res: Response) => {
+const updateGroupConversation = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const { conversationId } = req.params;
-    const result = await conversationService.updateGroupConversation(conversationId, userId, req.body);
+    const result = await conversationService.updateGroupConversation(conversationId as string, userId, req.body);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -59,12 +59,12 @@ export const updateGroupConversation = catchAsync(async (req: Request, res: Resp
 });
 
 // Add participants to group
-export const addParticipantsToGroup = catchAsync(async (req: Request, res: Response) => {
+const addParticipantsToGroup = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const { conversationId } = req.params;
     const { participantIds } = req.body;
 
-    const result = await conversationService.addParticipantsToGroup(conversationId, userId, participantIds);
+    const result = await conversationService.addParticipantsToGroup(conversationId as string, userId, participantIds);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -75,11 +75,11 @@ export const addParticipantsToGroup = catchAsync(async (req: Request, res: Respo
 });
 
 // Remove participant from group
-export const removeParticipantFromGroup = catchAsync(async (req: Request, res: Response) => {
+const removeParticipantFromGroup = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const { conversationId, participantId } = req.params;
 
-    const result = await conversationService.removeParticipantFromGroup(conversationId, userId, participantId);
+    const result = await conversationService.removeParticipantFromGroup(conversationId as string, userId, participantId as string);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -90,11 +90,11 @@ export const removeParticipantFromGroup = catchAsync(async (req: Request, res: R
 });
 
 // Mark conversation as read
-export const markConversationAsRead = catchAsync(async (req: Request, res: Response) => {
+const markConversationAsRead = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     const { conversationId } = req.params;
 
-    const result = await conversationService.markConversationAsRead(conversationId, userId);
+    const result = await conversationService.markConversationAsRead(conversationId as string, userId);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -103,3 +103,13 @@ export const markConversationAsRead = catchAsync(async (req: Request, res: Respo
         data: result,
     });
 });
+
+export const ConversationControllers = {
+    createConversation,
+    getUserConversations,
+    getConversationById,
+    updateGroupConversation,
+    addParticipantsToGroup,
+    removeParticipantFromGroup,
+    markConversationAsRead,
+};

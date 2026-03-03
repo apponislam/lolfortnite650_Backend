@@ -254,4 +254,8 @@ export const conversationService = {
     createConversation,
     getUserConversations,
     getConversationById,
+    updateGroupConversation,
+    addParticipantsToGroup,
+    removeParticipantFromGroup,
+    markConversationAsRead,
 };
