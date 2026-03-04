@@ -23,6 +23,13 @@ export default {
         smtp_user: process.env.SMTP_USER,
         smtp_pass: process.env.SMTP_PASS,
     },
+    zoom: {
+        account_id: process.env.ZOOM_ACCOUNT_ID,
+        client_id: process.env.ZOOM_CLIENT_ID,
+        client_secret: process.env.ZOOM_CLIENT_SECRET,
+        webhook_secret: process.env.ZOOM_WEBHOOK_SECRET_TOKEN,
+    },
+
     superAdminPassword: process.env.SUPERADMINPASSWORD,
     superAdminEmail: process.env.SUPERADMINEMAIL,
     // stripe_publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
