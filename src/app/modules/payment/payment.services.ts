@@ -90,7 +90,7 @@ const getPaymentStatus = async (paymentId: string) => {
 
 const makeRefund = async (invoiceId: string, amount: number) => {
     try {
-        console.log("Making refund for:", { invoiceId, amount });
+        // console.log("Making refund for:", { invoiceId, amount });
 
         const response = await axios.post(
             `${MF_BASE_URL}/v2/MakeRefund`,
@@ -111,7 +111,7 @@ const makeRefund = async (invoiceId: string, amount: number) => {
         );
 
         const data = response.data;
-        console.log("MyFatoorah response:", data);
+        // console.log("MyFatoorah response:", data);
 
         if (data.IsSuccess) {
             const payment = await PaymentModel.findOne({ invoiceId });
@@ -123,7 +123,7 @@ const makeRefund = async (invoiceId: string, amount: number) => {
         } else {
             // Log the actual validation error
             if (data.ValidationErrors && data.ValidationErrors.length > 0) {
-                console.error("Validation Error Details:", JSON.stringify(data.ValidationErrors, null, 2));
+                // console.error("Validation Error Details:", JSON.stringify(data.ValidationErrors, null, 2));
                 throw new ApiError(httpStatus.BAD_REQUEST, data.ValidationErrors[0].Error || data.Message);
             }
             throw new ApiError(httpStatus.BAD_REQUEST, data.Message || "Failed to make refund");
@@ -134,11 +134,11 @@ const makeRefund = async (invoiceId: string, amount: number) => {
             throw error;
         }
 
-        console.error("Full error:", {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-        });
+        // console.error("Full error:", {
+        //     message: error.message,
+        //     response: error.response?.data,
+        //     status: error.response?.status,
+        // });
 
         // Handle validation errors from axios error
         if (error.response?.data?.ValidationErrors) {

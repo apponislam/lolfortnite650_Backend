@@ -1,0 +1,8 @@
+src/app/modules/card/card.controllers.ts(50,58): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/app/modules/card/card.controllers.ts(64,62): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/app/modules/card/card.services.ts(14,52): error TS2300: Duplicate identifier 'payload'.
+src/app/modules/card/card.services.ts(67,11): error TS2300: Duplicate identifier 'payload'.
+src/app/modules/card/card.services.ts(79,30): error TS2339: Property 'mobile' does not exist on type 'Document<unknown, {}, User, {}, DefaultSchemaOptions> & User & { _id: ObjectId; } & { __v: number; } & { id: string; }'.
+src/app/modules/card/card.validations.ts(9,21): error TS2554: Expected 2-3 arguments, but got 1.
