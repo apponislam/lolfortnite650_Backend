@@ -77,6 +77,7 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
         UserDefinedField: saveCard ? `CK-${userId}` : "", // For saving card
         MobileCountryCode: "+965",
         CustomerMobile: user.phone || "12345678",
+        SaveToken: saveCard || false,
     };
 
     const response = await axios.post(`${MF_BASE_URL}/v2/SendPayment`, mfPayload, {
@@ -105,6 +106,8 @@ const saveCardFromPayment = async (userId: string, paymentId: string) => {
     const payment = await PaymentModel.findOne({ _id: paymentId, user: userId });
     if (!payment) throw new ApiError(httpStatus.NOT_FOUND, "Payment not found");
 
+    const user = await UserModel.findById(userId);
+
     // Get payment status from MyFatoorah
     const response = await axios.post(
         `${MF_BASE_URL}/v2/GetPaymentStatus`,
@@ -122,23 +125,45 @@ const saveCardFromPayment = async (userId: string, paymentId: string) => {
 
     const data = response.data.Data;
 
+    // Token could be in CardDetails, or inside InvoiceTransactions depending on MF version/endpoint
+    let token = data.CardDetails?.Token;
+    let cardLastFour = data.CardDetails?.CardNumber?.slice(-4);
+    let cardBrand = data.CardDetails?.CardBrand;
+    let cardExpiryMonth = data.CardDetails?.ExpiryMonth;
+    let cardExpiryYear = data.CardDetails?.ExpiryYear;
+    let cardHolderName = data.CardDetails?.CardHolderName;
+
+    // If not found in CardDetails, search in InvoiceTransactions
+    if (!token && data.InvoiceTransactions && data.InvoiceTransactions.length > 0) {
+        const successfulTransaction = data.InvoiceTransactions.find((t: any) => t.TransactionStatus === "Succss" || t.TransactionStatus === "SUCCESS");
+        if (successfulTransaction && successfulTransaction.Token) {
+            token = successfulTransaction.Token;
+            cardLastFour = successfulTransaction.CardNumber?.slice(-4);
+            cardBrand = successfulTransaction.PaymentGateway;
+            // The transaction might not return expiry/name for security reasons in standard flow
+            cardExpiryMonth = "XX";
+            cardExpiryYear = "XX";
+            cardHolderName = user?.name || "Cardholder";
+        }
+    }
+
     // Check if card token exists
-    if (data.CardDetails?.Token) {
+    if (token) {
         // Check if card already exists
         const existingCard = await CardModel.findOne({
             user: userId,
-            myfatoorahToken: data.CardDetails.Token,
+            myfatoorahToken: token,
         });
 
         if (!existingCard) {
             const card = await CardModel.create({
                 user: userId,
-                myfatoorahToken: data.CardDetails.Token,
-                cardLastFour: data.CardDetails.CardNumber?.slice(-4),
-                cardBrand: data.CardDetails.CardBrand,
-                cardExpiryMonth: data.CardDetails.ExpiryMonth,
-                cardExpiryYear: data.CardDetails.ExpiryYear,
-                cardHolderName: data.CardDetails.CardHolderName,
+                myfatoorahToken: token,
+                cardLastFour: cardLastFour || "XXXX",
+                cardBrand: cardBrand || "Unknown",
+                cardExpiryMonth: cardExpiryMonth,
+                cardExpiryYear: cardExpiryYear,
+                cardHolderName: cardHolderName,
                 isDefault: (await CardModel.countDocuments({ user: userId })) === 0,
             });
 
