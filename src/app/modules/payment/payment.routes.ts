@@ -26,6 +26,6 @@ router.post(
 
 // MyFatoorah Webhook endpoint
 // MyFatoorah will send POST requests here when the status of an invoice changes.
-router.post("/webhook", paymentControllers.webhook);
+// router.post("/webhook", paymentControllers.webhook);
 
 export const paymentRoutes = router;

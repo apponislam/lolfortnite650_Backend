@@ -32,7 +32,7 @@ const paymentSchema = new Schema<IPayment>(
             type: String,
         },
         paymentMethod: {
-            type: String, // e.g., 'Card'
+            type: String,
         },
         paymentUrl: {
             type: String,
