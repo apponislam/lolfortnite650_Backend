@@ -33,6 +33,7 @@ export default {
     myfatoorah: {
         api_key: process.env.MYFATOORAH_API_KEY,
         base_url: process.env.MYFATOORAH_BASE_URL,
+        webhook_secret: process.env.MYFATOORAH_WEBHOOK_SECRET,
     },
 
     superAdminPassword: process.env.SUPERADMINPASSWORD,
