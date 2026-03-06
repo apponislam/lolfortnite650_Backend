@@ -30,6 +30,11 @@ export default {
         webhook_secret: process.env.ZOOM_WEBHOOK_SECRET_TOKEN,
     },
 
+    myfatoorah: {
+        api_key: process.env.MYFATOORAH_API_KEY,
+        base_url: process.env.MYFATOORAH_BASE_URL,
+    },
+
     superAdminPassword: process.env.SUPERADMINPASSWORD,
     superAdminEmail: process.env.SUPERADMINEMAIL,
     // stripe_publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
