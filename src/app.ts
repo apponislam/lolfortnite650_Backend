@@ -10,7 +10,6 @@ import { paymentWebhook } from "./app/modules/payment/payment.webhook";
 
 const app: Application = express();
 
-// app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), paymentControllers.webhook);
 app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), paymentWebhook);
 
 const corsOptions = {

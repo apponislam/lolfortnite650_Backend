@@ -22,47 +22,6 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const webhook = catchAsync(async (req: Request, res: Response) => {
-    console.log("Webhook received");
-
-    let body = req.body;
-
-    if (Buffer.isBuffer(req.body)) {
-        try {
-            body = JSON.parse(req.body.toString());
-        } catch (error) {
-            console.error("Failed to parse webhook body:", error);
-            // Still return 200 to acknowledge receipt
-            return sendResponse(res, {
-                statusCode: httpStatus.OK,
-                success: true,
-                message: "Webhook acknowledged",
-                data: { received: true },
-            });
-        }
-    }
-
-    try {
-        const result = await paymentServices.handleWebhook(req.headers, body);
-
-        sendResponse(res, {
-            statusCode: httpStatus.OK,
-            success: true,
-            message: "Webhook processed successfully",
-            data: result,
-        });
-    } catch (error) {
-        console.error("Error processing webhook:", error);
-        // Always return 200 to prevent retries
-        sendResponse(res, {
-            statusCode: httpStatus.OK,
-            success: true,
-            message: "Webhook acknowledged",
-            data: { received: true },
-        });
-    }
-});
-
 const makeRefund = catchAsync(async (req: Request, res: Response) => {
     const { invoiceId, amount } = req.body;
 
@@ -78,6 +37,6 @@ const makeRefund = catchAsync(async (req: Request, res: Response) => {
 
 export const paymentControllers = {
     initiatePayment,
-    webhook,
+
     makeRefund,
 };
