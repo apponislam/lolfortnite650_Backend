@@ -8,7 +8,6 @@ import ApiError from "../../../errors/ApiError";
 
 const MF_BASE_URL = config.myfatoorah.base_url;
 const MF_API_KEY = config.myfatoorah.api_key;
-const MF_WEBHOOK_SECRET = config.myfatoorah.webhook_secret;
 
 const initiatePayment = async (userId: string, amount: number, currency: string = "KWD", metadata?: any) => {
     const user = await UserModel.findById(userId);
