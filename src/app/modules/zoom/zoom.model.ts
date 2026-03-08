@@ -50,6 +50,7 @@ const ZoomMeetingSchema = new Schema<IZoomMeeting>(
     },
     {
         timestamps: true,
+        versionKey: false,
     },
 );
 
@@ -110,6 +111,7 @@ const ZoomRecordingSchema = new Schema<IZoomRecording>(
     },
     {
         timestamps: true,
+        versionKey: false,
     },
 );
 
