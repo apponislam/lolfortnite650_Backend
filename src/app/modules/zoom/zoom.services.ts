@@ -1,6 +1,7 @@
 import axios from "axios";
 import { IZoomAccessToken, IZoomMeetingCreate, IZoomMeetingResponse, IZoomRecordingResponse } from "./zoom.interface";
 import { ZoomMeeting, ZoomRecording } from "./zoom.model";
+
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID!;
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID!;
 const ZOOM_CLIENT_SECRET = process.env.ZOOM_CLIENT_SECRET!;
