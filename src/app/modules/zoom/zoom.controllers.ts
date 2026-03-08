@@ -5,11 +5,13 @@ import { Request, Response } from "express";
 import { ZoomService } from "./zoom.services";
 import { IZoomMeetingCreate } from "./zoom.interface";
 import crypto from "crypto";
+import { ZoomMeeting, ZoomRecording } from "./zoom.model";
 
 const createMeeting = catchAsync(async (req: Request, res: Response) => {
     const meetingData: IZoomMeetingCreate = req.body;
+    const userId = req.user._id;
 
-    const result = await ZoomService.createMeeting(meetingData);
+    const result = await ZoomService.createMeeting(meetingData, userId);
 
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -54,8 +56,19 @@ const handleWebhook = catchAsync(async (req: Request, res: Response) => {
 
     if (event === "recording.completed") {
         // Handle recording completed event
-        console.log("Recording completed:", req.body.payload);
-        // You can store the recording details in DB or send notification
+        const recordingData = req.body.payload.object;
+        console.log("Recording completed:", recordingData);
+
+        // Find the meeting in DB
+        const meeting = await ZoomMeeting.findOne({ id: recordingData.id });
+        if (meeting) {
+            // Save recording to DB
+            const recording = new ZoomRecording({
+                ...recordingData,
+                meeting: meeting._id,
+            });
+            await recording.save();
+        }
     }
 
     sendResponse(res, {
@@ -66,8 +79,36 @@ const handleWebhook = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getUserMeetings = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user._id;
+
+    const result = await ZoomService.getUserMeetings(userId);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Meetings retrieved successfully",
+        data: result,
+    });
+});
+
+const getUserRecordings = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user._id;
+
+    const result = await ZoomService.getUserRecordings(userId);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Recordings retrieved successfully",
+        data: result,
+    });
+});
+
 export const ZoomController = {
     createMeeting,
     getMeetingRecordings,
     handleWebhook,
+    getUserMeetings,
+    getUserRecordings,
 };

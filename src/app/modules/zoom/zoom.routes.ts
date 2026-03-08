@@ -11,6 +11,10 @@ router.post("/create-meeting", auth, validateRequest(zoomValidations.createMeeti
 
 router.get("/recordings/:meetingId", auth, ZoomController.getMeetingRecordings);
 
+// Get user's meetings and recordings
+router.get("/meetings", auth, ZoomController.getUserMeetings);
+router.get("/recordings", auth, ZoomController.getUserRecordings);
+
 // Webhook route (no auth, as it's from Zoom)
 router.post("/webhook", ZoomController.handleWebhook);
 
