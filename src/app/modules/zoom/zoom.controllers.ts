@@ -34,50 +34,50 @@ const getMeetingRecordings = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const handleWebhook = catchAsync(async (req: Request, res: Response) => {
-    const signature = req.headers["x-zm-signature"] as string;
-    const secretToken = process.env.ZOOM_WEBHOOK_SECRET_TOKEN!;
+// const handleWebhook = catchAsync(async (req: Request, res: Response) => {
+//     const signature = req.headers["x-zm-signature"] as string;
+//     const secretToken = process.env.ZOOM_WEBHOOK_SECRET_TOKEN!;
 
-    // Verify webhook signature
-    const message = `v0:${req.headers["x-zm-request-timestamp"]}:${JSON.stringify(req.body)}`;
-    const hash = crypto.createHmac("sha256", secretToken).update(message).digest("hex");
-    const expectedSignature = `v0=${hash}`;
+//     // Verify webhook signature
+//     const message = `v0:${req.headers["x-zm-request-timestamp"]}:${JSON.stringify(req.body)}`;
+//     const hash = crypto.createHmac("sha256", secretToken).update(message).digest("hex");
+//     const expectedSignature = `v0=${hash}`;
 
-    if (signature !== expectedSignature) {
-        return sendResponse(res, {
-            statusCode: httpStatus.UNAUTHORIZED,
-            success: false,
-            message: "Invalid signature",
-            data: null,
-        });
-    }
+//     if (signature !== expectedSignature) {
+//         return sendResponse(res, {
+//             statusCode: httpStatus.UNAUTHORIZED,
+//             success: false,
+//             message: "Invalid signature",
+//             data: null,
+//         });
+//     }
 
-    const event = req.body.event;
+//     const event = req.body.event;
 
-    if (event === "recording.completed") {
-        // Handle recording completed event
-        const recordingData = req.body.payload.object;
-        console.log("Recording completed:", recordingData);
+//     if (event === "recording.completed") {
+//         // Handle recording completed event
+//         const recordingData = req.body.payload.object;
+//         console.log("Recording completed:", recordingData);
 
-        // Find the meeting in DB
-        const meeting = await ZoomMeeting.findOne({ id: recordingData.id });
-        if (meeting) {
-            // Save recording to DB
-            const recording = new ZoomRecording({
-                ...recordingData,
-                meeting: meeting._id,
-            });
-            await recording.save();
-        }
-    }
+//         // Find the meeting in DB
+//         const meeting = await ZoomMeeting.findOne({ id: recordingData.id });
+//         if (meeting) {
+//             // Save recording to DB
+//             const recording = new ZoomRecording({
+//                 ...recordingData,
+//                 meeting: meeting._id,
+//             });
+//             await recording.save();
+//         }
+//     }
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Webhook received",
-        data: null,
-    });
-});
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "Webhook received",
+//         data: null,
+//     });
+// });
 
 const getUserMeetings = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user._id;
@@ -108,7 +108,7 @@ const getUserRecordings = catchAsync(async (req: Request, res: Response) => {
 export const ZoomController = {
     createMeeting,
     getMeetingRecordings,
-    handleWebhook,
+    // handleWebhook,
     getUserMeetings,
     getUserRecordings,
 };

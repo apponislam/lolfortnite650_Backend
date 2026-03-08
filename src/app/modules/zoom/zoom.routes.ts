@@ -16,6 +16,6 @@ router.get("/meetings", auth, ZoomController.getUserMeetings);
 router.get("/recordings", auth, ZoomController.getUserRecordings);
 
 // Webhook route (no auth, as it's from Zoom)
-router.post("/webhook", ZoomController.handleWebhook);
+// router.post("/webhook", ZoomController.handleWebhook);
 
 export const zoomRoutes = router;

@@ -5,12 +5,13 @@ import path from "path";
 import notFound from "./errors/notFound";
 import globalErrorHandler from "./errors/globalErrorhandler";
 import router from "./app/routes";
-import { paymentControllers } from "./app/modules/payment/payment.controllers";
 import { paymentWebhook } from "./app/modules/payment/payment.webhook";
+import { ZoomWebhook } from "./app/modules/zoom/zoom.webhook";
 
 const app: Application = express();
 
 app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), paymentWebhook);
+app.post("/api/v1/zoom/webhook", express.raw({ type: "application/json" }), ZoomWebhook);
 
 const corsOptions = {
     origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],

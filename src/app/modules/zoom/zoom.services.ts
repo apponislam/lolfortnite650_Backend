@@ -1,26 +1,23 @@
 import axios from "axios";
 import { IZoomAccessToken, IZoomMeetingCreate, IZoomMeetingResponse, IZoomRecordingResponse } from "./zoom.interface";
 import { ZoomMeeting, ZoomRecording } from "./zoom.model";
-
-const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID!;
-const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID!;
-const ZOOM_CLIENT_SECRET = process.env.ZOOM_CLIENT_SECRET!;
-
-let accessToken: string | null = null;
-let tokenExpiry: number | null = null;
+import config from "../../config";
 
 const getAccessToken = async (): Promise<string> => {
+    let accessToken: string | null = null;
+    let tokenExpiry: number | null = null;
+
     if (accessToken && tokenExpiry && Date.now() < tokenExpiry) {
         return accessToken;
     }
 
-    const auth = Buffer.from(`${ZOOM_CLIENT_ID}:${ZOOM_CLIENT_SECRET}`).toString("base64");
+    const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
 
     const response = await axios.post<IZoomAccessToken>(
         "https://zoom.us/oauth/token",
         new URLSearchParams({
             grant_type: "account_credentials",
-            account_id: ZOOM_ACCOUNT_ID,
+            account_id: config.zoom.account_id!,
         }),
         {
             headers: {
