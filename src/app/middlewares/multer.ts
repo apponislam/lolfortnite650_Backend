@@ -49,7 +49,6 @@ export const uploadProfileImage = (req: Request, res: Response, next: NextFuncti
             // Convert to webp
             await sharp(file.buffer).webp({ quality: 80 }).toFile(outputPath);
 
-            // Update req.file so controller can save it to DB
             file.filename = newName;
             file.path = outputPath;
             file.mimetype = "image/webp";

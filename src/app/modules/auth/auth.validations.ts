@@ -17,6 +17,8 @@ export const registerSchema = z.object({
 
     phone: z.string().optional(),
 
+    profileImage: z.string().optional(),
+
     location: locationSchema.optional(),
 });
 
@@ -37,6 +39,7 @@ export const resendVerificationSchema = z.object({
 export const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
     phone: z.string().optional(),
+    profileImage: z.string().optional(),
     location: locationSchema.optional(),
 });
 

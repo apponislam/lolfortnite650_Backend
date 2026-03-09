@@ -6,7 +6,18 @@ import { Request, Response } from "express";
 import { authServices } from "./auth.services";
 
 const register = catchAsync(async (req: Request, res: Response) => {
-    const result = await authServices.registerUser(req.body);
+    // Handle profile image if uploaded
+    let profileImageUrl = undefined;
+    if (req.file) {
+        profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
+    }
+
+    const userData = {
+        ...req.body,
+        ...(profileImageUrl && { profileImage: profileImageUrl }),
+    };
+
+    const result = await authServices.registerUser(userData);
 
     res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
@@ -149,7 +160,18 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
-    const updatedUser = await authServices.updateProfile(req.user._id, req.body);
+    // Handle profile image if uploaded
+    let profileImageUrl = undefined;
+    if (req.file) {
+        profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
+    }
+
+    const updateData = {
+        ...req.body,
+        ...(profileImageUrl && { profileImage: profileImageUrl }),
+    };
+
+    const updatedUser = await authServices.updateProfile(req.user._id, updateData);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

@@ -33,6 +33,10 @@ const UserSchema = new Schema<User>(
             type: String,
         },
 
+        profileImage: {
+            type: String,
+        },
+
         location: {
             lat: { type: Number },
             lng: { type: Number },
