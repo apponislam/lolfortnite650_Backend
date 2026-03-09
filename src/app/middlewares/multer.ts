@@ -34,28 +34,29 @@ const generateFileName = (originalName: string) => {
 
 // Middleware for single profile image upload
 export const uploadProfileImage = (req: Request, res: Response, next: NextFunction) => {
-    const singleUpload = upload.single("profileImage");
+    const uploadSingle = upload.single("profileImage");
 
-    singleUpload(req, res, async (err) => {
+    uploadSingle(req, res, async (err) => {
         if (err) return next(err);
 
-        if (!req.file) return next(); // No file uploaded
+        // Process profileImage file if uploaded
+        if (req.file) {
+            try {
+                const file = req.file;
+                const newName = generateFileName(file.originalname);
+                const outputPath = path.join(profileImageDir, newName);
 
-        try {
-            const file = req.file;
-            const newName = generateFileName(file.originalname);
-            const outputPath = path.join(profileImageDir, newName);
+                // Convert to webp
+                await sharp(file.buffer).webp({ quality: 80 }).toFile(outputPath);
 
-            // Convert to webp
-            await sharp(file.buffer).webp({ quality: 80 }).toFile(outputPath);
-
-            file.filename = newName;
-            file.path = outputPath;
-            file.mimetype = "image/webp";
-
-            next();
-        } catch (error) {
-            next(error);
+                file.filename = newName;
+                file.path = outputPath;
+                file.mimetype = "image/webp";
+            } catch (error) {
+                return next(error);
+            }
         }
+
+        next();
     });
 };

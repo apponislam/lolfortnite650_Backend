@@ -1,4 +1,5 @@
 import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiError";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import config from "../../config";
@@ -12,10 +13,29 @@ const register = catchAsync(async (req: Request, res: Response) => {
         profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
     }
 
-    const userData = {
-        ...req.body,
+    // Parse the body field if it's a string
+    let data: any = {};
+    if (req.body.body && typeof req.body.body === "string") {
+        data = JSON.parse(req.body.body);
+    }
+
+    // Parse JSON fields
+    const userData: any = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        phone: data.phone,
         ...(profileImageUrl && { profileImage: profileImageUrl }),
     };
+
+    // Basic validation
+    if (!userData.name || !userData.email || !userData.password) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Name, email, and password are required");
+    }
+
+    // Location is already parsed
+    if (data.location) userData.location = data.location;
 
     const result = await authServices.registerUser(userData);
 
@@ -166,10 +186,25 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
         profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
     }
 
-    const updateData = {
-        ...req.body,
+    // Parse the body field if it's a string
+    let data: any = {};
+    if (req.body.body && typeof req.body.body === "string") {
+        // Wrap in {} and parse as JSON
+        const bodyStr = `{${req.body.body}}`;
+        data = JSON.parse(bodyStr);
+    } else {
+        data = req.body;
+    }
+
+    // Parse JSON fields
+    const updateData: any = {
+        ...(data.name && { name: data.name }),
+        ...(data.phone && { phone: data.phone }),
         ...(profileImageUrl && { profileImage: profileImageUrl }),
     };
+
+    // Location is already parsed
+    if (data.location) updateData.location = data.location;
 
     const updatedUser = await authServices.updateProfile(req.user._id, updateData);
 
