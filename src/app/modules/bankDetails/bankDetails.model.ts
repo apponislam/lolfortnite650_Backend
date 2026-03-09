@@ -18,10 +18,11 @@ const BankAccountSchema = new Schema<BankAccountDocument>(
         iban: { type: String, trim: true },
         country: { type: String, trim: true },
 
+        bankAddress: { type: String, trim: true },
+        beneficiaryAddress: { type: String, trim: true },
+
         isVerified: { type: Boolean, default: false },
         isDefault: { type: Boolean, default: false },
-
-        addedAt: { type: Date, default: Date.now },
     },
     {
         timestamps: true,

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export interface IBankAccount {
+    _id?: Types.ObjectId;
     userId: Types.ObjectId;
 
     accountHolderName: string;
@@ -20,6 +21,6 @@ export interface IBankAccount {
     isVerified: boolean;
     isDefault: boolean;
 
-    addedAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
 }

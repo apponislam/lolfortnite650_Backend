@@ -4,9 +4,14 @@ import ApiError from "../../../errors/ApiError";
 import { BankAccountModel } from "./bankDetails.model";
 
 const addBankAccount = async (userId: string, payload: any) => {
-    // If this is the first account, make it default automatically
+    // enforce maximum of 5 accounts per user
     const existingCount = await BankAccountModel.countDocuments({ userId });
-    const isDefault = existingCount === 0 ? true : payload.isDefault ?? false;
+    if (existingCount >= 5) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "You can only have up to 5 bank accounts");
+    }
+
+    // If this is the first account, make it default automatically
+    const isDefault = existingCount === 0 ? true : (payload.isDefault ?? false);
 
     // If new account is being set as default, unset others
     if (isDefault) {
@@ -18,14 +23,13 @@ const addBankAccount = async (userId: string, payload: any) => {
         userId: new Types.ObjectId(userId),
         isDefault,
         isVerified: false,
-        addedAt: new Date(),
     });
 
     return account;
 };
 
 const getBankAccountsByUser = async (userId: string) => {
-    const accounts = await BankAccountModel.find({ userId }).sort({ isDefault: -1, addedAt: -1 });
+    const accounts = await BankAccountModel.find({ userId }).sort({ isDefault: -1, createdAt: -1 });
     return accounts;
 };
 
@@ -44,6 +48,7 @@ const updateBankAccount = async (accountId: string, userId: string, payload: any
         await BankAccountModel.updateMany({ userId }, { $set: { isDefault: false } });
     }
 
+    // only allow update of allowed fields; payload may contain new address props too
     Object.assign(account, payload);
     await account.save();
     return account;
@@ -68,7 +73,7 @@ const deleteBankAccount = async (accountId: string, userId: string) => {
 
     // If it was the default, promote the most recently added account
     if (wasDefault) {
-        const next = await BankAccountModel.findOne({ userId }).sort({ addedAt: -1 });
+        const next = await BankAccountModel.findOne({ userId }).sort({ createdAt: -1 });
         if (next) {
             next.isDefault = true;
             await next.save();
@@ -78,11 +83,7 @@ const deleteBankAccount = async (accountId: string, userId: string) => {
 
 // Admin: verify a bank account
 const verifyBankAccount = async (accountId: string) => {
-    const account = await BankAccountModel.findByIdAndUpdate(
-        accountId,
-        { $set: { isVerified: true } },
-        { new: true },
-    );
+    const account = await BankAccountModel.findByIdAndUpdate(accountId, { $set: { isVerified: true } }, { new: true });
     if (!account) throw new ApiError(httpStatus.NOT_FOUND, "Bank account not found");
     return account;
 };
