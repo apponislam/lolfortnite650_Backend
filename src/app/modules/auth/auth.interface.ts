@@ -9,6 +9,7 @@ export interface User {
     password: string;
     role: UserRole;
     phone?: string;
+    profileImage?: string;
     location?: {
         lat?: number;
         lng?: number;
