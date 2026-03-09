@@ -27,6 +27,7 @@ const register = catchAsync(async (req: Request, res: Response) => {
         role: data.role,
         phone: data.phone,
         ...(profileImageUrl && { profileImage: profileImageUrl }),
+        ...(data.preferences && { preferences: data.preferences }),
     };
 
     // Basic validation
@@ -201,6 +202,7 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
         ...(data.name && { name: data.name }),
         ...(data.phone && { phone: data.phone }),
         ...(profileImageUrl && { profileImage: profileImageUrl }),
+        ...(data.preferences && { preferences: data.preferences }),
     };
 
     // Location is already parsed

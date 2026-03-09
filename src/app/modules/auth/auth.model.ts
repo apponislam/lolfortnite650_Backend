@@ -90,6 +90,13 @@ const UserSchema = new Schema<User>(
             radiusKm: Number,
         },
 
+        preferences: {
+            subjects: [String],
+            curriculum: [String],
+            teacherGender: { type: String, enum: ["Male", "Female", "Any"], default: "Any" },
+            languages: [String],
+        },
+
         resetPasswordOtp: String,
         resetPasswordOtpExpiry: Date,
         resetPasswordToken: String,

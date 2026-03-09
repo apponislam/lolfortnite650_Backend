@@ -36,6 +36,13 @@ export interface User {
         radiusKm?: number;
     };
 
+    preferences?: {
+        subjects?: string[];
+        curriculum?: string[];
+        teacherGender?: "Male" | "Female" | "Any";
+        languages?: string[];
+    };
+
     // Password reset fields
     resetPasswordOtp?: string;
     resetPasswordOtpExpiry?: Date;
