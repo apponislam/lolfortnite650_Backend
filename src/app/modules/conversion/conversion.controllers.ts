@@ -6,7 +6,10 @@ import { conversationService } from "./conversion.services";
 
 // Create new conversation
 const createConversation = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.user?._id; // assume auth middleware sets req.user
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const result = await conversationService.createConversation(userId, req.body);
 
     sendResponse(res, {
@@ -20,6 +23,9 @@ const createConversation = catchAsync(async (req: Request, res: Response) => {
 // Get all conversations for current user
 const getUserConversations = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const result = await conversationService.getUserConversations(userId);
 
     sendResponse(res, {
@@ -33,6 +39,9 @@ const getUserConversations = catchAsync(async (req: Request, res: Response) => {
 // Get single conversation by ID
 const getConversationById = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const { conversationId } = req.params;
     const result = await conversationService.getConversationById(conversationId as string, userId);
 
@@ -47,6 +56,9 @@ const getConversationById = catchAsync(async (req: Request, res: Response) => {
 // Update group conversation
 const updateGroupConversation = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const { conversationId } = req.params;
     const result = await conversationService.updateGroupConversation(conversationId as string, userId, req.body);
 
@@ -61,6 +73,9 @@ const updateGroupConversation = catchAsync(async (req: Request, res: Response) =
 // Add participants to group
 const addParticipantsToGroup = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const { conversationId } = req.params;
     const { participantIds } = req.body;
 
@@ -77,6 +92,9 @@ const addParticipantsToGroup = catchAsync(async (req: Request, res: Response) =>
 // Remove participant from group
 const removeParticipantFromGroup = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const { conversationId, participantId } = req.params;
 
     const result = await conversationService.removeParticipantFromGroup(conversationId as string, userId, participantId as string);
@@ -92,6 +110,9 @@ const removeParticipantFromGroup = catchAsync(async (req: Request, res: Response
 // Mark conversation as read
 const markConversationAsRead = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
     const { conversationId } = req.params;
 
     const result = await conversationService.markConversationAsRead(conversationId as string, userId);

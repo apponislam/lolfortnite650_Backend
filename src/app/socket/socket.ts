@@ -19,7 +19,7 @@ export const initSocket = (server: http.Server) => {
     });
 
     io.on("connection", (socket: Socket) => {
-        console.log(socket);
+        // console.log(socket);
         console.log("🔌 Socket connected:", socket.id);
 
         const userId = socket.handshake.auth?._id;
