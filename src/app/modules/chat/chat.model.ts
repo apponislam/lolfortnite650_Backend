@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { Message } from "./chat.interfce";
+import { Message } from "./chat.interface";
 
 export interface MessageDocument extends Message, Document {}
 

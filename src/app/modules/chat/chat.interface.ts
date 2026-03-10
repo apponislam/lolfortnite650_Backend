@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE" | "SYSTEM" | "MEETING";
+
 export interface MessageFile {
     url: string;
     fileName: string;
@@ -8,14 +9,17 @@ export interface MessageFile {
     mimeType: string;
     thumbnailUrl?: string;
 }
+
 export interface MessageSeen {
     userId: Types.ObjectId;
     seenAt: Date;
 }
+
 export interface MessageDelivery {
     userId: Types.ObjectId;
     deliveredAt: Date;
 }
+
 export interface Message {
     conversationId: Types.ObjectId;
     senderId: Types.ObjectId;
