@@ -10,7 +10,7 @@ const router = Router();
 router.post("/register", uploadProfileImage, authControllers.register);
 router.post("/login", validateRequest(loginSchema), authControllers.login);
 router.get("/verify-email", authControllers.verifyEmail);
-router.post("/resend-verification", auth, authControllers.resendVerificationEmail);
+router.post("/resend-verification", authControllers.resendVerificationEmail);
 router.post("/refresh-token", authControllers.refreshAccessToken);
 router.post("/forgot-password", authControllers.requestPasswordReset);
 router.post("/verify-otp", authControllers.verifyOtp);

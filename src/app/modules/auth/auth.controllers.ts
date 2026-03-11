@@ -80,8 +80,15 @@ const login = catchAsync(async (req: Request, res: Response) => {
 });
 
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
-    const { token, email } = req.query;
-    await authServices.verifyEmail(token as string, email as string);
+    const token = req.query.token as string | undefined;
+    const otp = req.query.otp as string | undefined;
+    const email = req.query.email as string;
+
+    if (!email) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Email is required");
+    }
+
+    await authServices.verifyEmail(email, token, otp);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -92,7 +99,8 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
 });
 
 const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
-    await authServices.resendVerificationEmail(req.user.email);
+    const { email } = req.body;
+    await authServices.resendVerificationEmail(email);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

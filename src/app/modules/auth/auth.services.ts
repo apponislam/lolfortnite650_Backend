@@ -92,17 +92,32 @@ const loginUser = async (data: { email: string; password: string }) => {
     return { user: userWithoutPassword, accessToken, refreshToken };
 };
 
-const verifyEmail = async (token: string, email: string) => {
+const verifyEmail = async (email: string, token?: string, otp?: string) => {
     const user = await UserModel.findOne({
         email,
-        verificationToken: token,
         verificationExpiry: { $gt: new Date() },
     });
 
-    if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired verification token");
+    if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
 
+    if (token) {
+        if (user.verificationToken !== token) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Verification token is invalid or expired");
+        }
+    } else if (otp) {
+        if (user.verificationCode !== otp) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Verification code (OTP) is invalid or expired");
+        }
+    } else {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Token or OTP is required");
+    }
+
+    // Mark email verified
     user.isEmailVerified = true;
     user.verificationToken = undefined;
+    user.verificationCode = undefined;
     user.verificationExpiry = undefined;
     await user.save();
 
