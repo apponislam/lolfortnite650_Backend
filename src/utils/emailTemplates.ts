@@ -1,6 +1,6 @@
 import { sendMail } from "./nodemailer";
 
-export const sendVerificationEmail = (email: string, name: string, verificationUrl: string) => {
+export const sendVerificationEmail = (email: string, name: string, verificationUrl: string, otp?: string) => {
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
             <h2 style="color: #333;">Hello ${name},</h2>
@@ -9,6 +9,12 @@ export const sendVerificationEmail = (email: string, name: string, verificationU
                 <a href="${verificationUrl}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email</a>
             </div>
             <p style="color: #999; font-size: 12px;">Or copy this link: ${verificationUrl}</p>
+            ${
+                otp
+                    ? `<p style="color: #666; font-size: 16px; text-align: center; margin-top: 20px;">Or enter this 6-digit code in the app: <strong>${otp}</strong></p>
+                       <p style="color: #999; font-size: 12px; text-align: center;">OTP expires in 10 minutes.</p>`
+                    : ""
+            }
             <p style="color: #999; font-size: 12px;">This link expires in 24 hours.</p>
         </div>
     `;

@@ -17,6 +17,7 @@ const registerUser = async (data: any) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // Create user
@@ -26,6 +27,7 @@ const registerUser = async (data: any) => {
         isActive: true,
         isEmailVerified: false,
         verificationToken,
+        verificationCode,
         verificationExpiry,
     };
 
@@ -36,7 +38,7 @@ const registerUser = async (data: any) => {
     const createdUser = await UserModel.create(userData);
 
     const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${createdUser.email}`;
-    sendVerificationEmail(createdUser.email as string, createdUser.name as string, verificationUrl);
+    sendVerificationEmail(createdUser.email as string, createdUser.name as string, verificationUrl, verificationCode);
     sendWelcomeEmail(createdUser.email as string, createdUser.name as string);
 
     // Generate tokens
