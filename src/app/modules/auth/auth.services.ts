@@ -136,15 +136,17 @@ const resendVerificationEmail = async (email: string) => {
 
     // Generate new verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.verificationToken = verificationToken;
+    user.verificationCode = verificationCode;
     user.verificationExpiry = verificationExpiry;
     await user.save();
 
     // Send verification email
     const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${user.email}`;
-    sendVerificationEmail(user.email as string, user.name as string, verificationUrl);
+    sendVerificationEmail(user.email as string, user.name as string, verificationUrl, verificationCode);
 
     return { message: "Verification email sent" };
 };
