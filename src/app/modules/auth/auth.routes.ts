@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authControllers } from "./auth.controllers";
 import validateRequest from "../../middlewares/validateRequest";
-import { changePasswordSchema, loginSchema, registerSchema, resendEmailUpdateSchema, resendVerificationSchema, updateEmailSchema, updateProfileSchema } from "./auth.validations";
+import { changePasswordSchema, loginSchema, resendEmailUpdateSchema, updateEmailSchema } from "./auth.validations";
 import auth from "../../middlewares/auth";
 import { uploadProfileImage } from "../../middlewares/multer";
 const router = Router();

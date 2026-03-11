@@ -31,9 +31,9 @@ export const verifyEmailSchema = z.object({
     email: z.string().email(),
 });
 
-export const resendVerificationSchema = z.object({
-    email: z.string().email(),
-});
+// export const resendVerificationSchema = z.object({
+//     email: z.string().email(),
+// });
 
 export const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),

@@ -103,6 +103,7 @@ const UserSchema = new Schema<User>(
         resetPasswordTokenExpiry: Date,
 
         verificationToken: String,
+        verificationCode: String,
         verificationExpiry: Date,
 
         pendingEmail: String,
@@ -121,6 +122,7 @@ const UserSchema = new Schema<User>(
                 delete ret.resetPasswordToken;
                 delete ret.resetPasswordTokenExpiry;
                 delete ret.verificationToken;
+                delete ret.verificationCode;
                 delete ret.verificationExpiry;
                 delete ret.emailVerificationToken;
                 delete ret.emailVerificationExpiry;

@@ -49,8 +49,9 @@ export interface User {
     resetPasswordToken?: string;
     resetPasswordTokenExpiry?: Date;
 
-    // Email verification fields (new)
+    // Email verification fields
     verificationToken?: string;
+    verificationCode?: string;
     verificationExpiry?: Date;
 
     // Email update fields
