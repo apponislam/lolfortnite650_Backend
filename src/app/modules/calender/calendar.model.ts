@@ -86,7 +86,6 @@ const slotSchema = new Schema(
         date: {
             type: Date,
             required: true,
-            index: true,
         },
         startTime: {
             type: String,
@@ -178,8 +177,8 @@ const bookingSchema = new Schema(
         },
         expiresAt: {
             type: Date,
-            default: () => new Date(+new Date() + 15 * 60 * 1000), // 15 minutes
-            index: { expires: 0 }, // Auto-delete expired pending bookings
+            default: () => new Date(+new Date() + 15 * 60 * 1000),
+            index: { expires: 0 },
         },
         paymentIntentId: {
             type: String,

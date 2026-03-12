@@ -5,6 +5,7 @@ import http from "http";
 import config from "./app/config";
 import { seedSuperAdmin } from "./app/modules/auth/auth.seed";
 import { initSocket } from "./app/socket/socket";
+import { CalendarJobs } from "./app/modules/calender/calendar.jobs";
 // import { testEmail } from "./utils/testemail";
 
 let server: Server;
@@ -21,6 +22,7 @@ async function main() {
         // createBotAdmin();
 
         // reviewReminderCron.start();
+        CalendarJobs.initializeAllJobs();
 
         // await verifyMailConnection();
 
