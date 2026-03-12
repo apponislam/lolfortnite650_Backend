@@ -88,6 +88,7 @@ const slotSchema = new Schema(
     },
     {
         timestamps: true,
+        versionKey: false,
     },
 );
 
@@ -155,7 +156,10 @@ const bookingSchema = new Schema(
             default: new Map(),
         },
     },
-    { timestamps: true },
+    {
+        timestamps: true,
+        versionKey: false,
+    },
 );
 
 // Indexes
