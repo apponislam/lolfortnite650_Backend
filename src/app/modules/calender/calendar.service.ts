@@ -6,6 +6,27 @@ export class CalendarService {
     private readonly DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     private readonly LOCK_DURATION_MINUTES = 15;
 
+    async setTeacherAvailability(teacherId: string, availability: any[]): Promise<any> {
+        // teacherId comes from auth, not from client
+        const existing = await TeacherAvailability.findOne({ teacher: teacherId });
+
+        if (existing) {
+            existing.availability = availability;
+            await existing.save();
+            return { message: "Availability updated successfully", isNew: false };
+        } else {
+            await TeacherAvailability.create({
+                teacher: teacherId,
+                availability,
+            });
+
+            // Generate slots immediately
+            await this.generateSlotsForTeacher(teacherId);
+
+            return { message: "Availability set successfully", isNew: true };
+        }
+    }
+
     // ==================== SLOT GENERATION (AUTOMATED) ====================
     async generateSlotsForTeacher(teacherId: string): Promise<{
         generated: number;

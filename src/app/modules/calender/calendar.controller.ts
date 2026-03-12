@@ -4,6 +4,33 @@ import { CalendarService } from "./calendar.service";
 const calendarService = new CalendarService();
 
 export class CalendarController {
+    async setTeacherAvailability(req: Request, res: Response): Promise<void> {
+        try {
+            const teacherId = req.user._id;
+            const { availability } = req.body;
+
+            if (!availability) {
+                res.status(400).json({
+                    success: false,
+                    message: "availability is required",
+                });
+                return;
+            }
+
+            const result = await calendarService.setTeacherAvailability(teacherId, availability);
+
+            res.status(result.isNew ? 201 : 200).json({
+                success: true,
+                message: result.message,
+            });
+        } catch (error: any) {
+            res.status(400).json({
+                success: false,
+                message: error.message,
+            });
+        }
+    }
+
     // ==================== USER ACTIONS (LOCK/UNLOCK) ====================
 
     /**

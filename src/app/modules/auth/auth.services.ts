@@ -53,7 +53,7 @@ const registerUser = async (data: any) => {
     const refreshToken = jwtHelper.generateToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expire as string);
 
     const userObject = createdUser.toObject();
-    const { password: pwd, verificationToken: vToken, verificationExpiry: vExpiry, ...userWithoutSensitive } = userObject;
+    const { password: pwd, verificationToken: vToken, verificationExpiry: vExpiry, verificationCode: vCode, ...userWithoutSensitive } = userObject;
 
     return { user: userWithoutSensitive, accessToken, refreshToken };
 };
