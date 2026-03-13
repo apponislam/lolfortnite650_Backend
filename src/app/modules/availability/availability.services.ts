@@ -50,16 +50,23 @@ const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: 
 
     while (currentDate <= endDate) {
         const dayOfWeek = DAYS_OF_WEEK[currentDate.getDay()];
-
         const dayAvailability = teacherAvailability.availability.find((a: any) => a.day === dayOfWeek);
 
         if (dayAvailability && dayAvailability.slots.length > 0) {
             for (const slot of dayAvailability.slots) {
+                // Calculate hours (always round up)
+                const [startH, startM] = slot.startTime.split(":").map(Number);
+                const [endH, endM] = slot.endTime.split(":").map(Number);
+
+                let durationHours = endH - startH + (endM - startM) / 60;
+                durationHours = Math.ceil(durationHours); // round up
+
                 slotsToCreate.push({
                     teacher: new Types.ObjectId(teacherId),
                     date: new Date(currentDate),
                     startTime: slot.startTime,
                     endTime: slot.endTime,
+                    hours: durationHours,
                     status: SlotStatus.AVAILABLE,
                     lockedBy: null,
                     lockedUntil: null,

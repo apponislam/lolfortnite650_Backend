@@ -1,6 +1,7 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth";
 import authorize from "../../middlewares/authorized";
+import { slotControllers } from "./slot.controllers";
 
 const router = Router();
 // const calendarController = new CalendarController();
@@ -8,7 +9,7 @@ const router = Router();
 // ==================== SLOT ROUTES ====================
 
 // Public routes (anyone can view)
-// router.get("/slots/available/:teacherId", calendarController.getAvailableSlots);
+router.get("/slots/available/:teacherId", slotControllers.getAvailableSlots);
 // router.get("/slots/:slotId/status", calendarController.getSlotStatus);
 
 // Teacher routes
