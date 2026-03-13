@@ -1,4 +1,5 @@
-import { Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
+import { ITeacherAvailability } from "./availability.interface";
 
 const availabilitySlotSchema = new Schema(
     {
@@ -15,7 +16,6 @@ const dayAvailabilitySchema = new Schema(
             enum: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
             required: true,
         },
-
         slots: [availabilitySlotSchema],
     },
     { _id: false },
@@ -30,10 +30,9 @@ const teacherAvailabilitySchema = new Schema(
             unique: true,
             index: true,
         },
-
         availability: [dayAvailabilitySchema],
     },
     { timestamps: true },
 );
 
-export const TeacherAvailability = model("TeacherAvailability", teacherAvailabilitySchema);
+export const TeacherAvailability = model<ITeacherAvailability>("TeacherAvailability", teacherAvailabilitySchema);
