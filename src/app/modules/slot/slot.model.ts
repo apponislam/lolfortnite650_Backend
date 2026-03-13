@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { ISlot, SlotStatus } from "./slot.interface";
 
 const slotSchema = new Schema(
     {
@@ -8,62 +9,66 @@ const slotSchema = new Schema(
             required: true,
             index: true,
         },
-
         date: {
             type: Date,
             required: true,
-            index: true,
         },
-
         startTime: {
             type: String,
             required: true,
         },
-
         endTime: {
             type: String,
             required: true,
         },
-
-        isBooked: {
-            type: Boolean,
-            default: false,
+        hours: {
+            type: Number,
+            required: true,
+            default: 1,
+        },
+        status: {
+            type: String,
+            enum: Object.values(SlotStatus),
+            default: SlotStatus.AVAILABLE,
             index: true,
         },
-
+        lockedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+            index: true,
+        },
+        lockedUntil: {
+            type: Date,
+            default: null,
+            index: true,
+        },
         booking: {
             type: Schema.Types.ObjectId,
             ref: "Booking",
             default: null,
         },
+        version: {
+            type: Number,
+            default: 0,
+        },
     },
-    { timestamps: true },
-);
-
-/*
-Prevent duplicate slots
-*/
-slotSchema.index(
     {
-        teacher: 1,
-        date: 1,
-        startTime: 1,
+        timestamps: true,
+        versionKey: false,
     },
-    { unique: true },
 );
 
-/*
-Fast slot lookup for students
-*/
-slotSchema.index({
-    teacher: 1,
-    date: 1,
-    isBooked: 1,
-});
+// Indexes
+slotSchema.index({ teacher: 1, date: 1, startTime: 1 }, { unique: true });
+slotSchema.index({ teacher: 1, date: 1, status: 1 });
+slotSchema.index({ status: 1, lockedUntil: 1 });
+slotSchema.index(
+    { date: 1 },
+    {
+        expireAfterSeconds: 0,
+        partialFilterExpression: { status: { $in: [SlotStatus.AVAILABLE, SlotStatus.UNAVAILABLE] } },
+    },
+);
 
-/*
-TTL delete past slots
-*/
-slotSchema.index({ date: 1 }, { expireAfterSeconds: 0 });
-
-export const Slot = model("Slot", slotSchema);
+export const Slot = model<ISlot>("Slot", slotSchema);

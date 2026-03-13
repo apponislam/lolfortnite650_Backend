@@ -5,7 +5,7 @@ import { availabilityController } from "./availability.controllers";
 
 const router = Router();
 
-// router.get("/availability/:teacherId", availabilityController.getTeacherAvailability);
+router.get("/availability/:teacherId", availabilityController.getTeacherAvailability);
 
 // ==================== TEACHER ONLY ROUTES ====================
 router.post("/availability", auth, authorize(["TEACHER"]), availabilityController.setTeacherAvailability);

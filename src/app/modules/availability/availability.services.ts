@@ -96,7 +96,11 @@ const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: 
     };
 };
 
+const getTeacherAvailability = async (teacherId: string): Promise<any> => {
+    return await TeacherAvailability.findOne({ teacher: teacherId }).lean();
+};
+
 export const availabilityService = {
     setTeacherAvailability,
-    generateSlotsForTeacher,
+    getTeacherAvailability,
 };
