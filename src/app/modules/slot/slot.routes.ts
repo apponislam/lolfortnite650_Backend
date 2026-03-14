@@ -13,13 +13,13 @@ router.get("/slots/available/:teacherId", slotControllers.getAvailableSlots);
 // router.get("/slots/:slotId/status", calendarController.getSlotStatus);
 
 // Teacher routes
-// router.get("/slots/teacher/:teacherId", auth, authorize(["TEACHER"]), calendarController.getTeacherSlots);
+// router.get("/slots/teacher/:teacherId", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
 
 // Student routes
-// router.post("/slots/:slotId/lock", auth, authorize(["STUDENT"]), calendarController.lockSlot);
-// router.delete("/slots/:slotId/lock", auth, authorize(["STUDENT"]), calendarController.releaseLock);
+// router.post("/slots/:slotId/lock", auth, authorize(["STUDENT"]), slotControllers.lockSlot);
+// router.delete("/slots/:slotId/lock", auth, authorize(["STUDENT"]), slotControllers.releaseLock);
 
 // Admin routes
-// router.get("/admin/slots/teacher/:teacherId", auth, authorize(["ADMIN", "SUPER_ADMIN"]), calendarController.getTeacherSlots);
+// router.get("/admin/slots/teacher/:teacherId", auth, authorize(["ADMIN", "SUPER_ADMIN"]), slotControllers.getTeacherSlots);
 
 export const slotRouter = router;
