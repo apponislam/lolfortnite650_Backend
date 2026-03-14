@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { ISlot, SlotStatus } from "./slot.interface";
 import { Slot } from "./slot.model";
+import { Types } from "mongoose";
 
 const getAvailableSlots = async (teacherId: string, date: Date) => {
     if (!date) return [];
@@ -88,8 +89,32 @@ const getTeacherSlots = async (teacherId: string, date?: Date): Promise<ISlot[]>
     return slots;
 };
 
+const updateSlotStatus = async (slotId: string, status: SlotStatus): Promise<ISlot> => {
+    // Validate slotId
+    if (!Types.ObjectId.isValid(slotId)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Invalid slot ID");
+    }
+
+    const slot = await Slot.findById(slotId);
+
+    if (!slot) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Slot not found");
+    }
+
+    // Prevent changing booked slot to unavailable
+    if (slot.status === SlotStatus.BOOKED && status === SlotStatus.UNAVAILABLE) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Cannot mark a booked slot as unavailable");
+    }
+
+    slot.status = status;
+    await slot.save();
+
+    return slot.toObject() as ISlot;
+};
+
 export const slotServices = {
     getAvailableSlots,
     getSlotStatus,
     getTeacherSlots,
+    updateSlotStatus,
 };

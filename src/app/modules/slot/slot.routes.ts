@@ -13,14 +13,16 @@ router.get("/slots/available/:teacherId", slotControllers.getAvailableSlots);
 router.get("/slots/:slotId/status", slotControllers.getSlotStatus);
 
 // Teacher routes
-// router.get("/slots/teacher/:teacherId", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
 router.get("/slots/teacher", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
 
 // Student routes
 // router.post("/slots/:slotId/lock", auth, authorize(["STUDENT"]), slotControllers.lockSlot);
 // router.delete("/slots/:slotId/lock", auth, authorize(["STUDENT"]), slotControllers.releaseLock);
 
+// Admin or Teacher can mark slots unavailable or update status
+router.patch("/slots/:slotId/status", auth, authorize(["TEACHER", "ADMIN", "SUPER_ADMIN"]), slotControllers.updateSlotStatusController);
+
 // Admin routes
-// router.get("/admin/slots/teacher/:teacherId", auth, authorize(["ADMIN", "SUPER_ADMIN"]), slotControllers.getTeacherSlots);
+router.get("/admin/slots/teacher/:teacherId", auth, authorize(["ADMIN", "SUPER_ADMIN"]), slotControllers.getTeacherSlotsAdmin);
 
 export const slotRouter = router;

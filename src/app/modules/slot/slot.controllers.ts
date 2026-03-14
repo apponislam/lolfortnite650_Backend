@@ -4,6 +4,7 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import ApiError from "../../../errors/ApiError";
 import { slotServices } from "./slot.services";
+import { SlotStatus } from "./slot.interface";
 
 const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
     const { teacherId } = req.params;
@@ -56,8 +57,51 @@ const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateSlotStatusController = catchAsync(async (req: Request, res: Response) => {
+    const { slotId } = req.params;
+    const { status } = req.body;
+
+    if (!status || !Object.values(SlotStatus).includes(status)) {
+        return sendResponse(res, {
+            statusCode: httpStatus.BAD_REQUEST,
+            success: false,
+            message: "Invalid slot status",
+            data: null,
+        });
+    }
+
+    const slot = await slotServices.updateSlotStatus(slotId as string, status as SlotStatus);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `Slot status updated to ${status}`,
+        data: slot,
+    });
+});
+
+const getTeacherSlotsAdmin = catchAsync(async (req: Request, res: Response) => {
+    const { teacherId } = req.params;
+    const { date } = req.query;
+
+    if (!teacherId) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Teacher ID is required");
+    }
+
+    const slots = await slotServices.getTeacherSlots(teacherId as string, date ? new Date(date as string) : undefined);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher slots retrieved successfully",
+        data: slots,
+    });
+});
+
 export const slotControllers = {
     getAvailableSlots,
     getSlotStatus,
     getTeacherSlots,
+    updateSlotStatusController,
+    getTeacherSlotsAdmin,
 };
