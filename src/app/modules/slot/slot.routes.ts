@@ -14,6 +14,7 @@ router.get("/slots/:slotId/status", slotControllers.getSlotStatus);
 
 // Teacher routes
 // router.get("/slots/teacher/:teacherId", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
+router.get("/slots/teacher", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
 
 // Student routes
 // router.post("/slots/:slotId/lock", auth, authorize(["STUDENT"]), slotControllers.lockSlot);

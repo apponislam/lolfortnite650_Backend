@@ -68,7 +68,28 @@ const getSlotStatus = async (
     };
 };
 
+const getTeacherSlots = async (teacherId: string, date?: Date): Promise<ISlot[]> => {
+    const targetDate = date ? new Date(date) : new Date();
+
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const slots = await Slot.find({
+        teacher: teacherId,
+        date: { $gte: startOfDay, $lte: endOfDay },
+    })
+        .populate("booking")
+        .sort({ startTime: 1 })
+        .lean<ISlot[]>();
+
+    return slots;
+};
+
 export const slotServices = {
     getAvailableSlots,
     getSlotStatus,
+    getTeacherSlots,
 };

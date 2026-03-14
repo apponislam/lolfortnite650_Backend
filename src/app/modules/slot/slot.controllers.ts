@@ -42,7 +42,22 @@ const getSlotStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
+    const teacherId = req.user._id;
+    const { date } = req.query;
+
+    const slots = await slotServices.getTeacherSlots(teacherId, date ? new Date(date as string) : undefined);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher slots retrieved successfully",
+        data: slots,
+    });
+});
+
 export const slotControllers = {
     getAvailableSlots,
     getSlotStatus,
+    getTeacherSlots,
 };
