@@ -43,16 +43,6 @@ export class CalendarJobs {
             { timezone: "UTC" },
         );
 
-        // 4. DAILY at 3 AM - Clean up old completed bookings (older than 3 months)
-        // cron.schedule(
-        //     "0 3 * * *",
-        //     async () => {
-        //         console.log("📦 Archiving old bookings...");
-        //         await this.cleanupOldBookings();
-        //     },
-        //     { timezone: "UTC" },
-        // );
-
         // 5. RUN ON STARTUP (after 10 seconds to ensure DB connection)
         setTimeout(async () => {
             console.log("🚀 Running startup slot generation...");
@@ -124,23 +114,4 @@ export class CalendarJobs {
             console.error("❌ Lock cleanup failed:", error);
         }
     }
-
-    // private static async cleanupOldBookings() {
-    //     try {
-    //         const threeMonthsAgo = new Date();
-    //         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-    //         // Delete old completed/cancelled slots
-    //         const result = await Slot.deleteMany({
-    //             date: { $lt: threeMonthsAgo },
-    //             status: { $in: ["booked", "cancelled", "completed"] },
-    //         });
-
-    //         if (result.deletedCount > 0) {
-    //             console.log(`📦 Archived ${result.deletedCount} old slots`);
-    //         }
-    //     } catch (error) {
-    //         console.error("❌ Archival failed:", error);
-    //     }
-    // }
 }

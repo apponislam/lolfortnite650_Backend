@@ -54,10 +54,10 @@ const moduleRoutes = [
         path: "/calendar",
         route: calendarRouter,
     },
-    {
-        path: "/availability",
-        route: availabilityRoutes,
-    },
+    // {
+    //     path: "/availability",
+    //     route: availabilityRoutes,
+    // },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
