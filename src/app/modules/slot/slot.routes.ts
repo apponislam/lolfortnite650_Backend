@@ -10,7 +10,7 @@ const router = Router();
 
 // Public routes (anyone can view)
 router.get("/slots/available/:teacherId", slotControllers.getAvailableSlots);
-// router.get("/slots/:slotId/status", calendarController.getSlotStatus);
+router.get("/slots/:slotId/status", slotControllers.getSlotStatus);
 
 // Teacher routes
 // router.get("/slots/teacher/:teacherId", auth, authorize(["TEACHER"]), slotControllers.getTeacherSlots);
