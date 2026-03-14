@@ -42,6 +42,37 @@ export class CalendarJobs {
             { timezone: "UTC" },
         );
 
+        // 4. DAILY at 3 AM - Delete old slots and generate +1 day
+        cron.schedule(
+            "0 3 * * *",
+            async () => {
+                console.log("🗑️ Cleaning old slots before today...");
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                try {
+                    // Delete old AVAILABLE, LOCKED, UNAVAILABLE slots
+                    const result = await Slot.deleteMany({
+                        date: { $lt: today },
+                        status: { $in: ["available", "locked", "unavailable"] },
+                    });
+                    console.log(`🗑️ Deleted ${result.deletedCount} old slots`);
+
+                    // Generate new slots for +1 day for all teachers
+                    console.log("📅 Generating new slots for +1 day...");
+                    const teachers = await TeacherAvailability.find({}).distinct("teacher");
+
+                    for (const teacherId of teachers) {
+                        await slotServices.generateSlotsForTeacher(teacherId.toString());
+                    }
+                    console.log("✅ Slot generation completed");
+                } catch (err) {
+                    console.error("❌ Failed to cleanup old slots or generate new slots:", err);
+                }
+            },
+            { timezone: "UTC" },
+        );
+
         // 5. RUN ON STARTUP (after 10 seconds to ensure DB connection)
         setTimeout(async () => {
             console.log("🚀 Running startup slot generation...");

@@ -182,50 +182,43 @@ const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: 
         throw new Error("Teacher availability not found");
     }
 
-    const startDate = new Date();
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
-    endDate.setHours(23, 59, 59, 999);
+    // Only generate slots for tomorrow
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 1);
+    targetDate.setHours(0, 0, 0, 0);
 
     const slotsToCreate: ISlot[] = [];
-    const currentDate = new Date(startDate);
-
     const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = DAYS_OF_WEEK[targetDate.getDay()];
 
-    while (currentDate <= endDate) {
-        const dayOfWeek = DAYS_OF_WEEK[currentDate.getDay()];
-        const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
+    const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
 
-        if (dayAvailability && dayAvailability.slots.length > 0) {
-            for (const slot of dayAvailability.slots) {
-                const [startH, startM] = slot.startTime.split(":").map(Number);
-                const [endH, endM] = slot.endTime.split(":").map(Number);
+    if (dayAvailability && dayAvailability.slots.length > 0) {
+        for (const slot of dayAvailability.slots) {
+            const [startH, startM] = slot.startTime.split(":").map(Number);
+            const [endH, endM] = slot.endTime.split(":").map(Number);
 
-                if (startH * 60 + startM >= endH * 60 + endM) {
-                    console.warn(`Invalid slot for teacher ${teacherId} on ${dayOfWeek}:`, slot);
-                    continue;
-                }
-
-                const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
-                const hours = Math.ceil(durationMinutes / 60);
-
-                slotsToCreate.push({
-                    teacher: new Types.ObjectId(teacherId),
-                    date: new Date(currentDate),
-                    startTime: slot.startTime,
-                    endTime: slot.endTime,
-                    hours,
-                    status: SlotStatus.AVAILABLE,
-                    lockedBy: null,
-                    lockedUntil: null,
-                    booking: null,
-                    version: 0,
-                });
+            if (startH * 60 + startM >= endH * 60 + endM) {
+                console.warn(`Invalid slot for teacher ${teacherId} on ${dayOfWeek}:`, slot);
+                continue;
             }
-        }
 
-        currentDate.setDate(currentDate.getDate() + 1);
+            const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+            const hours = Math.ceil(durationMinutes / 60);
+
+            slotsToCreate.push({
+                teacher: new Types.ObjectId(teacherId),
+                date: new Date(targetDate),
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                hours,
+                status: SlotStatus.AVAILABLE,
+                lockedBy: null,
+                lockedUntil: null,
+                booking: null,
+                version: 0,
+            });
+        }
     }
 
     if (slotsToCreate.length === 0) return { generated: 0, skipped: 0 };
@@ -234,11 +227,12 @@ const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: 
         updateOne: {
             filter: { teacher: slot.teacher, date: slot.date, startTime: slot.startTime },
             update: { $setOnInsert: slot },
-            upsert: true,
+            upsert: true, // insert only if slot doesn't exist
         },
     }));
 
     const result = await Slot.bulkWrite(bulkOps);
+
     return {
         generated: result.upsertedCount,
         skipped: slotsToCreate.length - result.upsertedCount,
