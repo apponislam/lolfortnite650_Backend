@@ -3,7 +3,7 @@ import { TeacherAvailability } from "../availability/availability.model";
 import { Slot } from "./slot.model";
 import { slotServices } from "./slot.services";
 
-export class CalendarJobs {
+export class SlotJobs {
     private static isInitialized = false;
 
     static initializeAllJobs() {
@@ -20,7 +20,7 @@ export class CalendarJobs {
                 console.log("📅 Running daily slot generation for all teachers...");
                 await this.generateSlotsForAllTeachers();
             },
-            { timezone: "UTC" },
+            { timezone: "Asia/Dhaka" },
         );
 
         // 2. EVERY 5 MINUTES - Release expired locks (fast cleanup)
@@ -29,7 +29,7 @@ export class CalendarJobs {
             async () => {
                 await this.cleanupExpiredLocks();
             },
-            { timezone: "UTC" },
+            { timezone: "Asia/Dhaka" },
         );
 
         // 3. EVERY HOUR - Full cleanup of locks AND pending bookings
@@ -39,7 +39,7 @@ export class CalendarJobs {
                 console.log("🧹 Running hourly full cleanup...");
                 await slotServices.cleanupExpiredLocksAndBookings();
             },
-            { timezone: "UTC" },
+            { timezone: "Asia/Dhaka" },
         );
 
         // 4. DAILY at 3 AM - Delete old slots and generate +1 day
@@ -70,7 +70,7 @@ export class CalendarJobs {
                     console.error("❌ Failed to cleanup old slots or generate new slots:", err);
                 }
             },
-            { timezone: "UTC" },
+            { timezone: "Asia/Dhaka" },
         );
 
         // 5. RUN ON STARTUP (after 10 seconds to ensure DB connection)
@@ -104,7 +104,7 @@ export class CalendarJobs {
 
             for (const teacherId of teachers) {
                 try {
-                    const result = await slotServices.generateSlotsForTeacher(teacherId.toString());
+                    const result = await slotServices.generateSlotsForTeacher(teacherId.toString(), 30);
                     totalGenerated += result.generated;
                     totalSkipped += result.skipped;
 

@@ -176,32 +176,36 @@ const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
     }
 };
 
-const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: number; skipped: number }> => {
+const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Promise<{ generated: number; skipped: number }> => {
     const teacherAvailability = await TeacherAvailability.findOne({ teacher: teacherId });
+
     if (!teacherAvailability) {
         throw new Error("Teacher availability not found");
     }
 
-    // Only generate slots for tomorrow
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 1);
-    targetDate.setHours(0, 0, 0, 0);
-
-    const slotsToCreate: ISlot[] = [];
     const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const dayOfWeek = DAYS_OF_WEEK[targetDate.getDay()];
 
-    const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
+    let totalGenerated = 0;
+    let totalSkipped = 0;
 
-    if (dayAvailability && dayAvailability.slots.length > 0) {
+    for (let i = 1; i <= days; i++) {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + i);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const dayOfWeek = DAYS_OF_WEEK[targetDate.getDay()];
+
+        const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
+
+        if (!dayAvailability || dayAvailability.slots.length === 0) continue;
+
+        const slotsToCreate: ISlot[] = [];
+
         for (const slot of dayAvailability.slots) {
             const [startH, startM] = slot.startTime.split(":").map(Number);
             const [endH, endM] = slot.endTime.split(":").map(Number);
 
-            if (startH * 60 + startM >= endH * 60 + endM) {
-                console.warn(`Invalid slot for teacher ${teacherId} on ${dayOfWeek}:`, slot);
-                continue;
-            }
+            if (startH * 60 + startM >= endH * 60 + endM) continue;
 
             const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
             const hours = Math.ceil(durationMinutes / 60);
@@ -219,23 +223,30 @@ const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: 
                 version: 0,
             });
         }
+
+        const bulkOps = slotsToCreate.map((slot) => ({
+            updateOne: {
+                filter: {
+                    teacher: slot.teacher,
+                    date: slot.date,
+                    startTime: slot.startTime,
+                },
+                update: { $setOnInsert: slot },
+                upsert: true,
+            },
+        }));
+
+        if (bulkOps.length > 0) {
+            const result = await Slot.bulkWrite(bulkOps);
+
+            totalGenerated += result.upsertedCount;
+            totalSkipped += slotsToCreate.length - result.upsertedCount;
+        }
     }
 
-    if (slotsToCreate.length === 0) return { generated: 0, skipped: 0 };
-
-    const bulkOps = slotsToCreate.map((slot) => ({
-        updateOne: {
-            filter: { teacher: slot.teacher, date: slot.date, startTime: slot.startTime },
-            update: { $setOnInsert: slot },
-            upsert: true, // insert only if slot doesn't exist
-        },
-    }));
-
-    const result = await Slot.bulkWrite(bulkOps);
-
     return {
-        generated: result.upsertedCount,
-        skipped: slotsToCreate.length - result.upsertedCount,
+        generated: totalGenerated,
+        skipped: totalSkipped,
     };
 };
 
