@@ -8,8 +8,9 @@ import { contactRoutes } from "../modules/contact/contact.routes";
 import { paymentRoutes } from "../modules/payment/payment.routes";
 import { cardRoutes } from "../modules/card/card.routes";
 import { zoomRoutes } from "../modules/zoom/zoom.routes";
-import { calendarRouter } from "../modules/calender/calendar.routes";
+// import { calendarRouter } from "../modules/calender/calendar.routes";
 import { availabilityRoutes } from "../modules/availability/availability.routes";
+import { slotRouter } from "../modules/slot/slot.routes";
 
 const router = express.Router();
 
@@ -50,14 +51,18 @@ const moduleRoutes = [
         path: "/zoom",
         route: zoomRoutes,
     },
-    {
-        path: "/calendar",
-        route: calendarRouter,
-    },
     // {
-    //     path: "/availability",
-    //     route: availabilityRoutes,
+    //     path: "/calendar",
+    //     route: calendarRouter,
     // },
+    {
+        path: "/availability",
+        route: availabilityRoutes,
+    },
+    {
+        path: "/slots",
+        route: slotRouter,
+    },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
