@@ -146,7 +146,22 @@ const getTeacherSlotsAdmin = catchAsync(async (req: Request, res: Response) => {
         throw new ApiError(httpStatus.BAD_REQUEST, "Teacher ID is required");
     }
 
-    const slots = await slotServices.getTeacherSlots(teacherId as string, date ? new Date(date as string) : undefined);
+    let requestedDate: Date;
+    if (!date) {
+        requestedDate = new Date();
+    } else if (typeof date === "string") {
+        requestedDate = new Date(date);
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
+    } else {
+        requestedDate = new Date(String(date));
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
+    }
+
+    const slots = await slotServices.getTeacherSlots(teacherId as string, requestedDate);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

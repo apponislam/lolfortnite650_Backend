@@ -109,9 +109,14 @@ const updateSlotStatus = async (slotId: string, status: SlotStatus): Promise<ISl
         throw new ApiError(httpStatus.NOT_FOUND, "Slot not found");
     }
 
-    // Prevent changing booked slot to unavailable
-    if (slot.status === SlotStatus.BOOKED && status === SlotStatus.UNAVAILABLE) {
-        throw new ApiError(httpStatus.BAD_REQUEST, "Cannot mark a booked slot as unavailable");
+    // Prevent any direct change to BOOKED
+    if (status === SlotStatus.BOOKED) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Slots cannot be marked as booked directly. Use the booking flow.");
+    }
+
+    // Prevent changing already booked slot
+    if (slot.status === SlotStatus.BOOKED) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "This slot is already booked and cannot be changed.");
     }
 
     slot.status = status;
