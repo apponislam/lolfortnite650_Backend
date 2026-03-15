@@ -45,7 +45,7 @@ const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
         }
     }
 
-    console.log(teacherId, requestedDate);
+    // console.log(teacherId, requestedDate);
 
     const slots = await slotServices.getAvailableSlots(teacherId as string, requestedDate);
 
@@ -70,11 +70,42 @@ const getSlotStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
+//     const teacherId = req.user._id;
+//     const { date } = req.query;
+
+//     const slots = await slotServices.getTeacherSlots(teacherId, date ? new Date(date as string) : undefined);
+
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "Teacher slots retrieved successfully",
+//         data: slots,
+//     });
+// });
 const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
     const teacherId = req.user._id;
     const { date } = req.query;
 
-    const slots = await slotServices.getTeacherSlots(teacherId, date ? new Date(date as string) : undefined);
+    // Pass undefined if no date (fetch all future slots)
+    // Parse date safely
+    let requestedDate: Date;
+    if (!date) {
+        requestedDate = new Date();
+    } else if (typeof date === "string") {
+        requestedDate = new Date(date);
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
+    } else {
+        // query param is array or ParsedQs
+        requestedDate = new Date(String(date));
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
+    }
+
+    const slots = await slotServices.getTeacherSlots(teacherId, requestedDate);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

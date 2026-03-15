@@ -5,40 +5,6 @@ import { Slot } from "./slot.model";
 import { ClientSession, Types } from "mongoose";
 import { TeacherAvailability } from "../availability/availability.model";
 
-// const getAvailableSlots = async (teacherId: string, date: Date) => {
-//     if (!date) return [];
-
-//     const now = new Date();
-//     const startOfDay = new Date(date);
-//     startOfDay.setHours(0, 0, 0, 0);
-//     const endOfDay = new Date(date);
-//     endOfDay.setHours(23, 59, 59, 999);
-
-//     const query: any = {
-//         teacher: teacherId,
-//         status: SlotStatus.AVAILABLE,
-//         date: { $gte: startOfDay, $lte: endOfDay },
-//         $or: [{ lockedUntil: null }, { lockedUntil: { $lt: now } }],
-//     };
-//     console.log(query);
-
-//     const slots = await Slot.find(query).sort({ date: 1, startTime: 1 }).lean();
-
-//     // Filter out past times if the requested date is today
-//     const filteredSlots = slots.filter((slot) => {
-//         if (date.toDateString() !== now.toDateString()) return true;
-
-//         const slotDateTime = new Date(slot.date);
-//         const [hours, minutes] = slot.startTime.split(":").map(Number);
-//         slotDateTime.setHours(hours, minutes, 0, 0);
-
-//         return slotDateTime >= now;
-//     });
-
-//     console.log(filteredSlots);
-
-//     return filteredSlots;
-// };
 const getAvailableSlots = async (teacherId: string, date?: Date) => {
     const now = new Date();
     const targetDate = date ? new Date(date) : now;
@@ -101,22 +67,32 @@ const getSlotStatus = async (
     };
 };
 
-const getTeacherSlots = async (teacherId: string, date?: Date): Promise<ISlot[]> => {
-    const targetDate = date ? new Date(date) : new Date();
+const getTeacherSlots = async (teacherId: string, date?: string | Date): Promise<ISlot[]> => {
+    const now = new Date();
 
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
+    let targetDate: Date;
+    if (!date) {
+        targetDate = now;
+    } else if (typeof date === "string") {
+        targetDate = new Date(date);
+        if (isNaN(targetDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date");
+        }
+    } else {
+        targetDate = date;
+    }
 
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    // UTC start/end of day
+    const startOfDayUTC = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0));
+    const endOfDayUTC = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999));
 
-    const slots = await Slot.find({
+    const query: any = {
         teacher: teacherId,
-        date: { $gte: startOfDay, $lte: endOfDay },
-    })
-        .populate("booking")
-        .sort({ startTime: 1 })
-        .lean<ISlot[]>();
+        date: { $gte: startOfDayUTC, $lte: endOfDayUTC },
+        $or: [{ lockedUntil: null }, { lockedUntil: { $lt: now } }],
+    };
+
+    const slots = await Slot.find(query).sort({ date: 1, startTime: 1 }).lean<ISlot[]>();
 
     return slots;
 };
