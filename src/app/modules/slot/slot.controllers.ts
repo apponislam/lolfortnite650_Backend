@@ -6,24 +6,6 @@ import ApiError from "../../../errors/ApiError";
 import { slotServices } from "./slot.services";
 import { SlotStatus } from "./slot.interface";
 
-// const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
-//     const { teacherId } = req.params;
-//     const { date } = req.query;
-
-//     // If no date provided, default to today
-//     const requestedDate = date ? new Date(date as string) : new Date();
-//     console.log(teacherId, requestedDate);
-
-//     const slots = await slotServices.getAvailableSlots(teacherId as string, requestedDate);
-//     console.log(slots);
-
-//     sendResponse(res, {
-//         statusCode: httpStatus.OK,
-//         success: true,
-//         message: "Available slots retrieved successfully",
-//         data: slots,
-//     });
-// });
 const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
     const { teacherId } = req.params;
     const { date } = req.query;
@@ -70,19 +52,6 @@ const getSlotStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
-//     const teacherId = req.user._id;
-//     const { date } = req.query;
-
-//     const slots = await slotServices.getTeacherSlots(teacherId, date ? new Date(date as string) : undefined);
-
-//     sendResponse(res, {
-//         statusCode: httpStatus.OK,
-//         success: true,
-//         message: "Teacher slots retrieved successfully",
-//         data: slots,
-//     });
-// });
 const getTeacherSlots = catchAsync(async (req: Request, res: Response) => {
     const teacherId = req.user._id;
     const { date } = req.query;
