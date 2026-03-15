@@ -6,21 +6,48 @@ import ApiError from "../../../errors/ApiError";
 import { slotServices } from "./slot.services";
 import { SlotStatus } from "./slot.interface";
 
+// const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
+//     const { teacherId } = req.params;
+//     const { date } = req.query;
+
+//     // If no date provided, default to today
+//     const requestedDate = date ? new Date(date as string) : new Date();
+//     console.log(teacherId, requestedDate);
+
+//     const slots = await slotServices.getAvailableSlots(teacherId as string, requestedDate);
+//     console.log(slots);
+
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "Available slots retrieved successfully",
+//         data: slots,
+//     });
+// });
 const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
     const { teacherId } = req.params;
     const { date } = req.query;
 
+    // Parse date safely
+    let requestedDate: Date;
     if (!date) {
-        throw new ApiError(httpStatus.BAD_REQUEST, "Date is required");
+        requestedDate = new Date();
+    } else if (typeof date === "string") {
+        requestedDate = new Date(date);
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
+    } else {
+        // query param is array or ParsedQs
+        requestedDate = new Date(String(date));
+        if (isNaN(requestedDate.getTime())) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid date format");
+        }
     }
 
-    const requestedDate = new Date(date as string);
+    console.log(teacherId, requestedDate);
 
     const slots = await slotServices.getAvailableSlots(teacherId as string, requestedDate);
-
-    if (!slots || slots.length === 0) {
-        throw new ApiError(httpStatus.NOT_FOUND, "No available slots found for this date");
-    }
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
