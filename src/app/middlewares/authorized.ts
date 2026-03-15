@@ -5,12 +5,12 @@ import httpStatus from "http-status";
 const authorize = (allowedRoles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         if (!req.user) {
-            return next(new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized"));
+            return next(new ApiError(httpStatus.UNAUTHORIZED, "You must be logged in to access this resource."));
         }
 
         const userRole = req.user.role;
         if (!userRole || !allowedRoles.includes(userRole)) {
-            return next(new ApiError(httpStatus.FORBIDDEN, "Forbidden"));
+            return next(new ApiError(httpStatus.FORBIDDEN, "You are not authorized to access this resource."));
         }
 
         next();
