@@ -16,17 +16,18 @@ const setTeacherAvailability = async (teacherId: string, availability: any[]): P
         };
     }
 
-    await TeacherAvailability.create({
+    const result = await TeacherAvailability.create({
         teacher: teacherId,
         availability,
     });
 
     await slotServices.generateSlotsForTeacher(teacherId, 30);
+    return result;
 
-    return {
-        message: "Availability set successfully",
-        isNew: true,
-    };
+    // return {
+    //     message: "Availability set successfully",
+    //     isNew: true,
+    // };
 };
 
 const getTeacherAvailability = async (teacherId: string): Promise<any> => {
