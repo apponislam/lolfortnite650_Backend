@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { TeacherAvailability } from "./availability.model";
 import { Slot } from "../slot/slot.model";
 import { SlotStatus } from "../slot/slot.interface";
