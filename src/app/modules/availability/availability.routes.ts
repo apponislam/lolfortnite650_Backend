@@ -5,9 +5,18 @@ import { availabilityController } from "./availability.controllers";
 
 const router = Router();
 
-router.get("/availability/:teacherId", availabilityController.getTeacherAvailability);
-
 // ==================== TEACHER ONLY ROUTES ====================
-router.post("/availability", auth, authorize(["TEACHER"]), availabilityController.setTeacherAvailability);
+
+// Get teacher availability
+router.get("/", auth, authorize(["TEACHER"]), availabilityController.getTeacherAvailability);
+
+// Create availability
+router.post("/", auth, authorize(["TEACHER"]), availabilityController.setTeacherAvailability);
+
+// Update availability
+router.put("/", auth, authorize(["TEACHER"]), availabilityController.updateTeacherAvailability);
+
+// Delete availability
+router.delete("/", auth, authorize(["TEACHER"]), availabilityController.deleteTeacherAvailability);
 
 export const availabilityRoutes = router;

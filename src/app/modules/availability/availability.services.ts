@@ -1,7 +1,8 @@
 import { Types } from "mongoose";
 import { TeacherAvailability } from "./availability.model";
 import { Slot } from "../slot/slot.model";
-import { SlotStatus } from "../calender/calendar.interface";
+import { SlotStatus } from "../slot/slot.interface";
+import { slotServices } from "../slot/slot.services";
 
 const setTeacherAvailability = async (teacherId: string, availability: any[]): Promise<any> => {
     const existing = await TeacherAvailability.findOne({ teacher: teacherId });
@@ -21,7 +22,7 @@ const setTeacherAvailability = async (teacherId: string, availability: any[]): P
         availability,
     });
 
-    await generateSlotsForTeacher(teacherId);
+    await slotServices.generateSlotsForTeacher(teacherId, 30);
 
     return {
         message: "Availability set successfully",
@@ -29,85 +30,36 @@ const setTeacherAvailability = async (teacherId: string, availability: any[]): P
     };
 };
 
-const generateSlotsForTeacher = async (teacherId: string): Promise<{ generated: number; skipped: number }> => {
-    const teacherAvailability = await TeacherAvailability.findOne({ teacher: teacherId });
-
-    if (!teacherAvailability) {
-        throw new Error("Teacher availability not found");
-    }
-
-    const startDate = new Date();
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
-    endDate.setHours(23, 59, 59, 999);
-
-    const slotsToCreate: any[] = [];
-    const currentDate = new Date(startDate);
-
-    const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-    while (currentDate <= endDate) {
-        const dayOfWeek = DAYS_OF_WEEK[currentDate.getDay()];
-        const dayAvailability = teacherAvailability.availability.find((a: any) => a.day === dayOfWeek);
-
-        if (dayAvailability && dayAvailability.slots.length > 0) {
-            for (const slot of dayAvailability.slots) {
-                // Calculate hours (always round up)
-                const [startH, startM] = slot.startTime.split(":").map(Number);
-                const [endH, endM] = slot.endTime.split(":").map(Number);
-
-                let durationHours = endH - startH + (endM - startM) / 60;
-                durationHours = Math.ceil(durationHours); // round up
-
-                slotsToCreate.push({
-                    teacher: new Types.ObjectId(teacherId),
-                    date: new Date(currentDate),
-                    startTime: slot.startTime,
-                    endTime: slot.endTime,
-                    hours: durationHours,
-                    status: SlotStatus.AVAILABLE,
-                    lockedBy: null,
-                    lockedUntil: null,
-                    booking: null,
-                    version: 0,
-                });
-            }
-        }
-
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    if (slotsToCreate.length === 0) {
-        return { generated: 0, skipped: 0 };
-    }
-
-    const bulkOps = slotsToCreate.map((slot) => ({
-        updateOne: {
-            filter: {
-                teacher: slot.teacher,
-                date: slot.date,
-                startTime: slot.startTime,
-            },
-            update: { $setOnInsert: slot },
-            upsert: true,
-        },
-    }));
-
-    const result = await Slot.bulkWrite(bulkOps);
-
-    return {
-        generated: result.upsertedCount,
-        skipped: slotsToCreate.length - result.upsertedCount,
-    };
-};
-
 const getTeacherAvailability = async (teacherId: string): Promise<any> => {
     return await TeacherAvailability.findOne({ teacher: teacherId }).lean();
+};
+
+const updateTeacherAvailability = async (teacherId: string, availability: any[]) => {
+    const existing = await TeacherAvailability.findOne({ teacher: teacherId });
+
+    if (!existing) {
+        throw new Error("Availability not found");
+    }
+
+    existing.availability = availability;
+    await existing.save();
+
+    return existing;
+};
+
+const deleteTeacherAvailability = async (teacherId: string) => {
+    await TeacherAvailability.deleteOne({ teacher: teacherId });
+
+    // optional: remove future slots
+    await Slot.deleteMany({
+        teacher: teacherId,
+        status: { $in: [SlotStatus.AVAILABLE, SlotStatus.UNAVAILABLE] },
+    });
 };
 
 export const availabilityService = {
     setTeacherAvailability,
     getTeacherAvailability,
+    updateTeacherAvailability,
+    deleteTeacherAvailability,
 };
