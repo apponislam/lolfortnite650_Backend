@@ -1,9 +1,21 @@
+import httpStatus from "http-status";
 import { TeacherAvailability } from "./availability.model";
 import { Slot } from "../slot/slot.model";
 import { SlotStatus } from "../slot/slot.interface";
 import { slotServices } from "../slot/slot.services";
+import { hasOverlap } from "../../../utils/availability";
+import ApiError from "../../../errors/ApiError";
 
 const setTeacherAvailability = async (teacherId: string, availability: any[]): Promise<any> => {
+    for (const day of availability) {
+        const result = hasOverlap(day.slots);
+        if (result.overlap) {
+            // Detailed message including all overlapping slot pairs
+            const detailMsg = result.details?.join(", ");
+            throw new ApiError(httpStatus.BAD_REQUEST, `Overlapping availability detected for ${day.day}: ${detailMsg}`);
+        }
+    }
+
     const existing = await TeacherAvailability.findOne({ teacher: teacherId });
 
     if (existing) {
@@ -12,7 +24,7 @@ const setTeacherAvailability = async (teacherId: string, availability: any[]): P
 
         return {
             message: "Availability updated successfully",
-            isNew: false,
+            data: existing,
         };
     }
 
@@ -22,29 +34,15 @@ const setTeacherAvailability = async (teacherId: string, availability: any[]): P
     });
 
     await slotServices.generateSlotsForTeacher(teacherId, 30);
-    return result;
 
-    // return {
-    //     message: "Availability set successfully",
-    //     isNew: true,
-    // };
+    return {
+        message: "Availability set successfully",
+        data: result,
+    };
 };
 
 const getTeacherAvailability = async (teacherId: string): Promise<any> => {
     return await TeacherAvailability.findOne({ teacher: teacherId }).lean();
-};
-
-const updateTeacherAvailability = async (teacherId: string, availability: any[]) => {
-    const existing = await TeacherAvailability.findOne({ teacher: teacherId });
-
-    if (!existing) {
-        throw new Error("Availability not found");
-    }
-
-    existing.availability = availability;
-    await existing.save();
-
-    return existing;
 };
 
 const deleteTeacherAvailability = async (teacherId: string) => {
@@ -60,6 +58,6 @@ const deleteTeacherAvailability = async (teacherId: string) => {
 export const availabilityService = {
     setTeacherAvailability,
     getTeacherAvailability,
-    updateTeacherAvailability,
+
     deleteTeacherAvailability,
 };

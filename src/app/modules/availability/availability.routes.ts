@@ -10,11 +10,8 @@ const router = Router();
 // Get teacher availability
 router.get("/", auth, authorize(["TEACHER"]), availabilityController.getTeacherAvailability);
 
-// Create availability
+// Create/Update availability
 router.post("/", auth, authorize(["TEACHER"]), availabilityController.setTeacherAvailability);
-
-// Update availability
-router.put("/", auth, authorize(["TEACHER"]), availabilityController.updateTeacherAvailability);
 
 // Delete availability
 router.delete("/", auth, authorize(["TEACHER"]), availabilityController.deleteTeacherAvailability);

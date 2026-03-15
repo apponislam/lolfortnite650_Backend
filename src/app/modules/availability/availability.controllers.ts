@@ -40,24 +40,6 @@ const getTeacherAvailability = catchAsync(async (req: Request, res: Response) =>
     });
 });
 
-const updateTeacherAvailability = catchAsync(async (req: Request, res: Response) => {
-    const teacherId = req.user._id;
-    const { availability } = req.body;
-
-    if (!availability || !Array.isArray(availability)) {
-        throw new ApiError(httpStatus.BAD_REQUEST, "Availability must be an array");
-    }
-
-    const result = await availabilityService.updateTeacherAvailability(teacherId, availability);
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Availability updated successfully",
-        data: result,
-    });
-});
-
 const deleteTeacherAvailability = catchAsync(async (req: Request, res: Response) => {
     const teacherId = req.user._id;
 
@@ -74,6 +56,6 @@ const deleteTeacherAvailability = catchAsync(async (req: Request, res: Response)
 export const availabilityController = {
     setTeacherAvailability,
     getTeacherAvailability,
-    updateTeacherAvailability,
+
     deleteTeacherAvailability,
 };
