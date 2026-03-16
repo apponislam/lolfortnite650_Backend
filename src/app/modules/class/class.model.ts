@@ -52,12 +52,17 @@ const ClassSchema = new Schema<ClassDocument>(
             required: [true, "Class type is required"],
         },
 
-        thumbnailUrl: { type: String, trim: true },
+        // thumbnailUrl: { type: String, trim: true },
+        images: {
+            type: [String],
+            trim: true,
+            default: [],
+        },
 
         status: {
             type: String,
-            enum: ["DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED"],
-            default: "DRAFT",
+            enum: ["DRAFT", "PENDING", "APPROVED", "REJECTED"],
+            default: "PENDING",
             required: true,
         },
 

@@ -6,13 +6,13 @@ export const createClassSchema = z.object({
     language: z.string().optional(),
     curriculum: z.string().optional(),
     price: z.number().nonnegative(),
-    tutorGender: z.enum(["MALE", "FEMALE", "ANY"]).optional(),
+    tutorGender: z.enum(["MALE", "FEMALE"]),
     maxStudents: z.number().int().positive().optional(),
     whatsappGroupLink: z.string().url().optional(),
     description: z.string().optional(),
     youtubeVideoLink: z.string().url().optional(),
     classType: z.enum(["GROUP", "ONE_TO_ONE"]),
-    thumbnailUrl: z.string().url().optional(),
+    images: z.array(z.string().url()).optional(),
 });
 
 export const updateClassSchema = z.object({
@@ -21,13 +21,13 @@ export const updateClassSchema = z.object({
     language: z.string().optional(),
     curriculum: z.string().optional(),
     price: z.number().nonnegative().optional(),
-    tutorGender: z.enum(["MALE", "FEMALE", "ANY"]).optional(),
+    tutorGender: z.enum(["MALE", "FEMALE"]).optional(),
     maxStudents: z.number().int().positive().optional(),
     whatsappGroupLink: z.string().url().optional(),
     description: z.string().optional(),
     youtubeVideoLink: z.string().url().optional(),
     classType: z.enum(["GROUP", "ONE_TO_ONE"]).optional(),
-    thumbnailUrl: z.string().url().optional(),
+    images: z.array(z.string().url()).optional(),
 });
 
 export const setClassStatusSchema = z.object({
