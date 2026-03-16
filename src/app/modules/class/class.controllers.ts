@@ -46,7 +46,12 @@ export const getClassById = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateClass = catchAsync(async (req: Request, res: Response) => {
-    const result = await classServices.updateClass(req.params.classId as string, req.user._id, req.body);
+    const payload = req.body.data ? JSON.parse(req.body.data) : {};
+    if ((req as any).savedClassImages) {
+        payload.images = (req as any).savedClassImages;
+    }
+
+    const result = await classServices.updateClass(req.params.classId as string, req.user._id, payload);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

@@ -4,7 +4,7 @@ import ApiError from "../../../errors/ApiError";
 import { ClassModel } from "./class.model";
 import { ClassStatus } from "./class.interface";
 
- const createClass = async (userId: string, payload: any) => {
+const createClass = async (userId: string, payload: any) => {
     const data = {
         ...payload,
         createdBy: new Types.ObjectId(userId),
@@ -15,7 +15,7 @@ import { ClassStatus } from "./class.interface";
     return result;
 };
 
- const getClasses = async (query: any = {}) => {
+const getClasses = async (query: any = {}) => {
     const filter: any = {};
     if (query.status) filter.status = query.status;
     if (query.classType) filter.classType = query.classType;
@@ -25,13 +25,13 @@ import { ClassStatus } from "./class.interface";
     return result;
 };
 
- const getClassById = async (classId: string) => {
+const getClassById = async (classId: string) => {
     const result = await ClassModel.findById(classId);
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
     return result;
 };
 
- const updateClass = async (classId: string, userId: string, payload: any) => {
+const updateClass = async (classId: string, userId: string, payload: any) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -39,12 +39,26 @@ import { ClassStatus } from "./class.interface";
         throw new ApiError(httpStatus.FORBIDDEN, "Only the creator can update this class");
     }
 
+    // Remove images if requested
+    if (payload.imagesToRemove && Array.isArray(payload.imagesToRemove)) {
+        cls.images = cls.images.filter((img) => !payload.imagesToRemove.includes(img));
+    }
+
+    // Add new images from upload middleware
+    if (payload.images && Array.isArray(payload.images)) {
+        cls.images.push(...payload.images);
+    }
+
+    // Remove imagesToRemove from payload so Object.assign doesn't overwrite
+    delete payload.images;
+    delete payload.imagesToRemove;
+
     Object.assign(cls, payload);
     await cls.save();
     return cls;
 };
 
- const deleteClass = async (classId: string, userId: string, role?: string) => {
+const deleteClass = async (classId: string, userId: string, role?: string) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -56,7 +70,7 @@ import { ClassStatus } from "./class.interface";
     return;
 };
 
- const submitForReview = async (classId: string, userId: string) => {
+const submitForReview = async (classId: string, userId: string) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -69,7 +83,7 @@ import { ClassStatus } from "./class.interface";
     return cls;
 };
 
- const setClassStatus = async (classId: string, status: ClassStatus) => {
+const setClassStatus = async (classId: string, status: ClassStatus) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
