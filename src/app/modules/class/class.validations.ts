@@ -12,7 +12,7 @@ export const createClassSchema = z.object({
     description: z.string().optional(),
     youtubeVideoLink: z.string().url().optional(),
     classType: z.enum(["GROUP", "ONE_TO_ONE"]),
-    images: z.array(z.string().url()).optional(),
+    images: z.array(z.string().url()).min(1, "At least one image is required"),
 });
 
 export const updateClassSchema = z.object({

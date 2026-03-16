@@ -41,7 +41,7 @@ export interface Class {
     description?: string;
     youtubeVideoLink?: string;
     classType: ClassType;
-    images?: string[];
+    images: string[];
     status: ClassStatus;
     createdBy: Types.ObjectId;
 }

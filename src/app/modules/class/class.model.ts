@@ -55,8 +55,13 @@ const ClassSchema = new Schema<ClassDocument>(
         // thumbnailUrl: { type: String, trim: true },
         images: {
             type: [String],
-            trim: true,
-            default: [],
+            required: [true, "At least one image is required"],
+            validate: {
+                validator: function (v: string[]) {
+                    return v.length > 0;
+                },
+                message: "At least one image is required",
+            },
         },
 
         status: {
