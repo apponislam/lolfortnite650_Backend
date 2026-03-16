@@ -5,10 +5,18 @@ import { Request, Response } from "express";
 import { classServices } from "./class.services";
 
 export const createClass = catchAsync(async (req: Request, res: Response) => {
-    const result = await classServices.createClass(req.user._id, req.body);
+    // Parse JSON from "data" key
+    const payload = JSON.parse(req.body.data);
+
+    // Attach uploaded images
+    if ((req as any).savedClassImages) {
+        payload.images = (req as any).savedClassImages;
+    }
+
+    const result = await classServices.createClass(req.user._id, payload);
 
     sendResponse(res, {
-        statusCode: httpStatus.CREATED,
+        statusCode: 201,
         success: true,
         message: "Class created successfully",
         data: result,

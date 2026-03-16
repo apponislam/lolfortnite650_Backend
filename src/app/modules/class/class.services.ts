@@ -4,7 +4,7 @@ import ApiError from "../../../errors/ApiError";
 import { ClassModel } from "./class.model";
 import { ClassStatus } from "./class.interface";
 
-export const createClass = async (userId: string, payload: any) => {
+ const createClass = async (userId: string, payload: any) => {
     const data = {
         ...payload,
         createdBy: new Types.ObjectId(userId),
@@ -15,7 +15,7 @@ export const createClass = async (userId: string, payload: any) => {
     return result;
 };
 
-export const getClasses = async (query: any = {}) => {
+ const getClasses = async (query: any = {}) => {
     const filter: any = {};
     if (query.status) filter.status = query.status;
     if (query.classType) filter.classType = query.classType;
@@ -25,13 +25,13 @@ export const getClasses = async (query: any = {}) => {
     return result;
 };
 
-export const getClassById = async (classId: string) => {
+ const getClassById = async (classId: string) => {
     const result = await ClassModel.findById(classId);
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
     return result;
 };
 
-export const updateClass = async (classId: string, userId: string, payload: any) => {
+ const updateClass = async (classId: string, userId: string, payload: any) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -44,7 +44,7 @@ export const updateClass = async (classId: string, userId: string, payload: any)
     return cls;
 };
 
-export const deleteClass = async (classId: string, userId: string, role?: string) => {
+ const deleteClass = async (classId: string, userId: string, role?: string) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -56,7 +56,7 @@ export const deleteClass = async (classId: string, userId: string, role?: string
     return;
 };
 
-export const submitForReview = async (classId: string, userId: string) => {
+ const submitForReview = async (classId: string, userId: string) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
@@ -64,12 +64,12 @@ export const submitForReview = async (classId: string, userId: string) => {
         throw new ApiError(httpStatus.FORBIDDEN, "Only the creator can submit for review");
     }
 
-    cls.status = "PENDING_REVIEW";
+    cls.status = "PENDING";
     await cls.save();
     return cls;
 };
 
-export const setClassStatus = async (classId: string, status: ClassStatus) => {
+ const setClassStatus = async (classId: string, status: ClassStatus) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
