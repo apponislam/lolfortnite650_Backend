@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
 export type ClassType = "GROUP" | "ONE_TO_ONE";
-export type TutorGender = "MALE" | "FEMALE" | "ANY";
+export type TutorGender = "MALE" | "FEMALE";
 export type ClassStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED";
 
 export interface Class {
