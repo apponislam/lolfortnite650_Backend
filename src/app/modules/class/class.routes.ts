@@ -1,9 +1,7 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth";
 import authorize from "../../middlewares/authorized";
-import validateRequest from "../../middlewares/validateRequest";
 import { classControllers } from "./class.controllers";
-// import { createClassSchema, updateClassSchema, setClassStatusSchema } from "./class.validations";
 import { uploadClassImages } from "../../middlewares/uploadClassImages";
 
 const router = Router();
