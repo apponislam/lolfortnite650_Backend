@@ -1,7 +1,6 @@
 import { Types } from "mongoose";
 
 export enum FAQAudienceEnum {
-    ALL = "all",
     STUDENT = "student",
     TEACHER = "teacher",
 }

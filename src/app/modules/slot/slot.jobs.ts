@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { TeacherAvailability } from "../availability/availability.model";
+import { ISlot, SlotStatus } from "./slot.interface";
 import { Slot } from "./slot.model";
 import { slotServices } from "./slot.services";
 
@@ -47,17 +48,9 @@ export class SlotJobs {
             "0 3 * * *",
             async () => {
                 console.log("🗑️ Cleaning old slots before today...");
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                await this.cleanupOldSlots();
 
                 try {
-                    // Delete old AVAILABLE, LOCKED, UNAVAILABLE slots
-                    const result = await Slot.deleteMany({
-                        date: { $lt: today },
-                        status: { $in: ["available", "locked", "unavailable"] },
-                    });
-                    console.log(`🗑️ Deleted ${result.deletedCount} old slots`);
-
                     // Generate new slots for +1 day for all teachers
                     console.log("📅 Generating new slots for +1 day...");
                     const teachers = await TeacherAvailability.find({}).distinct("teacher");
@@ -67,7 +60,7 @@ export class SlotJobs {
                     }
                     console.log("✅ Slot generation completed");
                 } catch (err) {
-                    console.error("❌ Failed to cleanup old slots or generate new slots:", err);
+                    console.error("❌ Failed to generate new slots:", err);
                 }
             },
             { timezone: "Asia/Dhaka" },
@@ -78,6 +71,7 @@ export class SlotJobs {
             console.log("🚀 Running startup slot generation...");
             await this.generateSlotsForAllTeachers();
             console.log("🧹 Running startup cleanup...");
+            await this.cleanupOldSlots();
             await slotServices.cleanupExpiredLocksAndBookings();
         }, 10000);
 
@@ -87,6 +81,24 @@ export class SlotJobs {
         console.log("   - Lock cleanup every 5 minutes");
         console.log("   - Full cleanup every hour");
         console.log("   - Old booking archival at 3 AM");
+    }
+
+    private static async cleanupOldSlots() {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Delete old AVAILABLE, LOCKED, UNAVAILABLE slots (not BOOKED)
+            const result = await Slot.deleteMany({
+                date: { $lt: today },
+                status: {
+                    $in: [SlotStatus.AVAILABLE, SlotStatus.LOCKED, SlotStatus.UNAVAILABLE],
+                },
+            });
+            console.log(`🗑️ Deleted ${result.deletedCount} old slots`);
+        } catch (error) {
+            console.error("❌ Failed to cleanup old slots:", error);
+        }
     }
 
     private static async generateSlotsForAllTeachers() {

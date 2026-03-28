@@ -24,7 +24,7 @@ const getAllFAQs = async (query: any = {}) => {
 const getActiveFAQs = async (audience?: FAQAudienceEnum) => {
     const filter: any = { isActive: true };
     if (audience) {
-        filter.audience = { $in: [audience, FAQAudienceEnum.ALL] };
+        filter.audience = audience;
     }
     const faqs = await FAQModel.find(filter).sort({ createdAt: -1 });
     return faqs;

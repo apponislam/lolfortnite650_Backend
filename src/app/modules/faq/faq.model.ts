@@ -10,7 +10,6 @@ const FAQSchema = new Schema<FAQDocument>(
         audience: {
             type: String,
             enum: Object.values(FAQAudienceEnum),
-            default: FAQAudienceEnum.ALL,
             required: true,
         },
         createdBy: { type: Schema.Types.ObjectId, ref: "User" },

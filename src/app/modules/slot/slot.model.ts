@@ -67,7 +67,9 @@ slotSchema.index(
     { date: 1 },
     {
         expireAfterSeconds: 0,
-        partialFilterExpression: { status: { $in: [SlotStatus.AVAILABLE, SlotStatus.UNAVAILABLE] } },
+        partialFilterExpression: {
+            status: { $in: [SlotStatus.AVAILABLE, SlotStatus.UNAVAILABLE, SlotStatus.LOCKED] },
+        },
     },
 );
 
