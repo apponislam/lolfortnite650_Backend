@@ -2,8 +2,8 @@ import { Types } from "mongoose";
 
 export interface IZoomMeetingCreate {
     topic: string;
-    start_time?: string; // ISO 8601 format
-    duration?: number; // in minutes
+    start_time?: string;
+    duration?: number;
     timezone?: string;
     agenda?: string;
     password?: string;
