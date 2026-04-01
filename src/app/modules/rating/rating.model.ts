@@ -5,7 +5,8 @@ const ratingSchema = new Schema<Rating>(
     {
         tutor: {
             type: Schema.Types.ObjectId,
-            ref: "Tutor",
+            ref: "User",
+            required: [true, "Tutor ID is required"],
         },
 
         class: {
@@ -29,11 +30,6 @@ const ratingSchema = new Schema<Rating>(
         review: {
             type: String,
             trim: true,
-        },
-
-        isAnonymous: {
-            type: Boolean,
-            default: false,
         },
 
         reply: {

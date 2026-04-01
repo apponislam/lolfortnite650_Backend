@@ -22,7 +22,7 @@ const deleteRating = async (ratingId: string) => {
 };
 
 const getRatingById = async (ratingId: string) => {
-    const rating = await RatingModel.findById(ratingId).populate("student", "name email").populate("tutor", "name").populate("class", "subject");
+    const rating = await RatingModel.findById(ratingId).populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
 
     if (!rating) throw new ApiError(404, "Rating not found");
     return rating;
@@ -35,7 +35,7 @@ const getRatings = async (filter: any = {}, options: any = {}) => {
     if (options.limit) query.limit(options.limit);
     if (options.skip) query.skip(options.skip);
 
-    return query.populate("student", "name email").populate("tutor", "name").populate("class", "subject");
+    return query.populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
 };
 
 const getAverageRatingForTutor = async (tutorId: Types.ObjectId) => {
