@@ -22,7 +22,7 @@ const createOrUpdateHourlyClass = catchAsync(async (req: Request, res: Response)
 
 // Get all hourly classes
 const getAllHourlyClasses = catchAsync(async (req: Request, res: Response) => {
-    const result = await hourlyClassServices.getAllHourlyClasses(req.query);
+    const result = await hourlyClassServices.getAllHourlyClasses(req.query, req.user);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
