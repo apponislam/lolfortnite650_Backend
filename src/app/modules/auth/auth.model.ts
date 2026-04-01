@@ -93,7 +93,7 @@ const UserSchema = new Schema<User>(
         preferences: {
             subjects: [String],
             curriculum: [String],
-            teacherGender: { type: String, enum: ["Male", "Female", "Any"], default: "Any" },
+            teacherGender: { type: String, enum: ["Male", "Female"] },
             languages: [String],
         },
 

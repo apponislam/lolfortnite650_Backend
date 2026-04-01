@@ -39,7 +39,7 @@ export interface User {
     preferences?: {
         subjects?: string[];
         curriculum?: string[];
-        teacherGender?: "Male" | "Female" | "Any";
+        teacherGender?: "Male" | "Female";
         languages?: string[];
     };
 
