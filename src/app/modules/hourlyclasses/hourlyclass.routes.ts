@@ -10,8 +10,7 @@ router.get("/", hourlyClassControllers.getAllHourlyClasses);
 router.get("/:id", hourlyClassControllers.getHourlyClassById);
 
 // Teacher/Admin routes
-router.post("/", auth, authorize(["TEACHER"]), hourlyClassControllers.createHourlyClass);
-router.get("/my/classes", auth, authorize(["TEACHER"]), hourlyClassControllers.getMyHourlyClasses);
-router.patch("/:id", auth, authorize(["TEACHER"]), hourlyClassControllers.updateHourlyClass);
+router.post("/", auth, authorize(["TEACHER"]), hourlyClassControllers.createOrUpdateHourlyClass);
+router.get("/my/class", auth, authorize(["TEACHER"]), hourlyClassControllers.getMyHourlyClass);
 
 export const hourlyClassRoutes = router;

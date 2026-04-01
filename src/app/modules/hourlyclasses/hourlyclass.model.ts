@@ -5,10 +5,13 @@ export interface HourlyClassDocument extends HourlyClass, Document {}
 
 const hourlyClassSchema = new Schema<HourlyClassDocument>(
     {
-        subject: {
-            type: String,
-            required: [true, "Subject is required"],
-            trim: true,
+        subjects: {
+            type: [String],
+            required: [true, "Subjects are required"],
+            validate: {
+                validator: (v: string[]) => v.length > 0,
+                message: "At least one subject is required",
+            },
         },
         curriculum: {
             type: String,
@@ -31,15 +34,11 @@ const hourlyClassSchema = new Schema<HourlyClassDocument>(
             required: [true, "Description is required"],
             trim: true,
         },
-        status: {
-            type: String,
-            enum: ["PENDING", "APPROVED", "REJECTED"],
-            default: "PENDING",
-        },
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: [true, "Tutor user ID is required"],
+            unique: true,
         },
     },
     {
@@ -49,8 +48,6 @@ const hourlyClassSchema = new Schema<HourlyClassDocument>(
 );
 
 // Indexes
-hourlyClassSchema.index({ createdBy: 1 });
-hourlyClassSchema.index({ subject: 1 });
-hourlyClassSchema.index({ status: 1 });
+hourlyClassSchema.index({ subjects: 1 });
 
 export const HourlyClassModel = model<HourlyClassDocument>("HourlyClass", hourlyClassSchema);
