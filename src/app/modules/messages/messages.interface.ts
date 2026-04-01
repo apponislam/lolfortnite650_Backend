@@ -1,5 +1,16 @@
 import { Types } from "mongoose";
 
+export interface Conversation {
+    participantIds: Types.ObjectId[];
+    lastMessage?: Types.ObjectId;
+    unreadCounts: {
+        userId: Types.ObjectId;
+        count: number;
+    }[];
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE" | "SYSTEM" | "MEETING";
 
 export interface MessageFile {

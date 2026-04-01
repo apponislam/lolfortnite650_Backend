@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import httpStatus from "http-status";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
-import { conversationService } from "./conversion.services";
+import { messageService } from "./messages.services";
 
 // Create new conversation
 const createConversation = catchAsync(async (req: Request, res: Response) => {
@@ -10,7 +10,7 @@ const createConversation = catchAsync(async (req: Request, res: Response) => {
     if (!userId) {
         throw new Error("User not authenticated");
     }
-    const result = await conversationService.createConversation(userId, req.body);
+    const result = await messageService.createConversation(userId, req.body);
 
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -26,13 +26,14 @@ const getUserConversations = catchAsync(async (req: Request, res: Response) => {
     if (!userId) {
         throw new Error("User not authenticated");
     }
-    const result = await conversationService.getUserConversations(userId);
+    const result = await messageService.getUserConversations(userId, req.query);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: "Conversations retrieved successfully",
-        data: result,
+        data: result.conversations,
+        meta: result.meta,
     });
 });
 
@@ -43,7 +44,7 @@ const getConversationById = catchAsync(async (req: Request, res: Response) => {
         throw new Error("User not authenticated");
     }
     const { conversationId } = req.params;
-    const result = await conversationService.getConversationById(conversationId as string, userId);
+    const result = await messageService.getConversationById(conversationId as string, userId);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -53,84 +54,102 @@ const getConversationById = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// Update group conversation
-const updateGroupConversation = catchAsync(async (req: Request, res: Response) => {
+// Get messages for a conversation
+const getMessages = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     if (!userId) {
         throw new Error("User not authenticated");
     }
     const { conversationId } = req.params;
-    const result = await conversationService.updateGroupConversation(conversationId as string, userId, req.body);
+    const result = await messageService.getMessages(conversationId as string, userId, req.query);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: "Group conversation updated successfully",
-        data: result,
+        message: "Messages retrieved successfully",
+        data: result.messages,
+        meta: result.meta,
     });
 });
 
-// Add participants to group
-const addParticipantsToGroup = catchAsync(async (req: Request, res: Response) => {
+// Send a new message
+const sendMessage = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     if (!userId) {
         throw new Error("User not authenticated");
     }
-    const { conversationId } = req.params;
-    const { participantIds } = req.body;
-
-    const result = await conversationService.addParticipantsToGroup(conversationId as string, userId, participantIds);
+    const result = await messageService.sendMessage(userId, req.body);
 
     sendResponse(res, {
-        statusCode: httpStatus.OK,
+        statusCode: httpStatus.CREATED,
         success: true,
-        message: "Participants added successfully",
-        data: result,
-    });
-});
-
-// Remove participant from group
-const removeParticipantFromGroup = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.user?._id;
-    if (!userId) {
-        throw new Error("User not authenticated");
-    }
-    const { conversationId, participantId } = req.params;
-
-    const result = await conversationService.removeParticipantFromGroup(conversationId as string, userId, participantId as string);
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Participant removed successfully",
+        message: "Message sent successfully",
         data: result,
     });
 });
 
 // Mark conversation as read
-const markConversationAsRead = catchAsync(async (req: Request, res: Response) => {
+const markAsRead = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user?._id;
     if (!userId) {
         throw new Error("User not authenticated");
     }
     const { conversationId } = req.params;
 
-    const result = await conversationService.markConversationAsRead(conversationId as string, userId);
+    const result = await messageService.markAsRead(conversationId as string, userId);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: "Conversation marked as read",
+        message: "Messages marked as read",
         data: result,
     });
 });
 
-export const ConversationControllers = {
+// Edit message
+const editMessage = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+    const { messageId } = req.params;
+    const { text } = req.body;
+
+    const result = await messageService.editMessage(userId, messageId as string, text);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Message updated successfully",
+        data: result,
+    });
+});
+
+// Delete message
+const deleteMessage = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+    const { messageId } = req.params;
+
+    const result = await messageService.deleteMessage(userId, messageId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Message deleted successfully",
+        data: result,
+    });
+});
+
+export const MessageControllers = {
     createConversation,
     getUserConversations,
     getConversationById,
-    updateGroupConversation,
-    addParticipantsToGroup,
-    removeParticipantFromGroup,
-    markConversationAsRead,
+    getMessages,
+    sendMessage,
+    markAsRead,
+    editMessage,
+    deleteMessage,
 };

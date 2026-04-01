@@ -1,11 +1,53 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { Message } from "./chat.interface";
+import mongoose, { Schema, Document, Model } from "mongoose";
+import ApiError from "../../../errors/ApiError";
+import { Conversation, Message } from "./messages.interface";
 
+// Document interfaces
+export interface ConversationDocument extends Conversation, Document {}
 export interface MessageDocument extends Message, Document {}
 
 /*
 |--------------------------------------------------------------------------
-| Message File Schema (Subdocument)
+| Conversation Schema
+|--------------------------------------------------------------------------
+*/
+const ConversationSchema = new Schema<ConversationDocument>(
+    {
+        participantIds: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: true,
+            },
+        ],
+        lastMessage: {
+            type: Schema.Types.ObjectId,
+            ref: "Message",
+        },
+        unreadCounts: [
+            {
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                    required: true,
+                },
+                count: {
+                    type: Number,
+                    default: 0,
+                    min: 0,
+                },
+            },
+        ],
+    },
+    {
+        timestamps: true,
+        versionKey: false,
+    },
+);
+
+/*
+|--------------------------------------------------------------------------
+| Message Subdocument Schemas
 |--------------------------------------------------------------------------
 */
 const MessageFileSchema = new Schema({
@@ -16,21 +58,11 @@ const MessageFileSchema = new Schema({
     thumbnailUrl: String,
 });
 
-/*
-|--------------------------------------------------------------------------
-| Message Seen Schema (Subdocument)
-|--------------------------------------------------------------------------
-*/
 const MessageSeenSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     seenAt: { type: Date, default: Date.now, required: true },
 });
 
-/*
-|--------------------------------------------------------------------------
-| Message Delivery Schema (Subdocument)
-|--------------------------------------------------------------------------
-*/
 const MessageDeliverySchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     deliveredAt: { type: Date, default: Date.now, required: true },
@@ -114,6 +146,13 @@ const MessageSchema = new Schema<MessageDocument>(
 |--------------------------------------------------------------------------
 */
 
+// Ensure conversations have exactly two participants
+ConversationSchema.pre("save", async function (this: ConversationDocument) {
+    if (this.participantIds.length !== 2) {
+        throw new ApiError(400, "Conversation must have exactly 2 participants");
+    }
+});
+
 // Update editedAt when message text is modified
 MessageSchema.pre("save", async function (this: MessageDocument) {
     if (this.isModified("text") && !this.isNew) {
@@ -127,6 +166,11 @@ MessageSchema.pre("save", async function (this: MessageDocument) {
 | Indexes
 |--------------------------------------------------------------------------
 */
+ConversationSchema.index({ participantIds: 1 });
+ConversationSchema.index({ updatedAt: -1 });
+ConversationSchema.index({ "unreadCounts.userId": 1, "unreadCounts.count": 1 });
+ConversationSchema.index({ participantIds: 1, updatedAt: -1 });
+
 MessageSchema.index({ conversationId: 1, createdAt: -1 });
 MessageSchema.index({ senderId: 1 });
 MessageSchema.index({ type: 1 });
@@ -140,7 +184,27 @@ MessageSchema.index({ text: "text" });
 
 /*
 |--------------------------------------------------------------------------
-| Model
+| Static Methods
 |--------------------------------------------------------------------------
 */
+interface ConversationModelInterface extends Model<ConversationDocument> {
+    markMessageAsRead(conversationId: string, userId: string): Promise<any>;
+    incrementUnreadCount(conversationId: string, userIds: string[], senderId: string): Promise<any>;
+}
+
+ConversationSchema.statics.markMessageAsRead = async function (conversationId: string, userId: string) {
+    return this.updateOne({ _id: conversationId, "unreadCounts.userId": userId }, { $set: { "unreadCounts.$.count": 0 } });
+};
+
+ConversationSchema.statics.incrementUnreadCount = async function (conversationId: string, userIds: string[], senderId: string) {
+    const excludeSender = userIds.filter((id) => id.toString() !== senderId.toString());
+    return this.updateOne({ _id: conversationId }, { $inc: { "unreadCounts.$[elem].count": 1 } }, { arrayFilters: [{ "elem.userId": { $in: excludeSender } }] });
+};
+
+/*
+|--------------------------------------------------------------------------
+| Models
+|--------------------------------------------------------------------------
+*/
+export const ConversationModel = mongoose.model<ConversationDocument, ConversationModelInterface>("Conversation", ConversationSchema);
 export const MessageModel = mongoose.model<MessageDocument>("Message", MessageSchema);
