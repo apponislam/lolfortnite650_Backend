@@ -23,13 +23,20 @@ const createOrUpdateHourlyClass = async (userId: string, payload: Partial<Hourly
 };
 
 /**
- * Get all hourly classes (with filters and pagination)
+ * Get all hourly classes (with filters, search, and pagination)
  */
 const getAllHourlyClasses = async (query: any) => {
-    const { page = 1, limit = 10, subjects, curriculum, language } = query;
+    const { page = 1, limit = 10, subjects, curriculum, language, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc" } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = {};
+
+    // Text Search
+    if (search) {
+        filters.$text = { $search: search };
+    }
+
+    // Exact or partial matches
     if (subjects) {
         const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
         filters.subjects = { $in: subjectArray.map((s: string) => new RegExp(s, "i")) };
@@ -37,7 +44,28 @@ const getAllHourlyClasses = async (query: any) => {
     if (curriculum) filters.curriculum = { $regex: curriculum, $options: "i" };
     if (language) filters.language = { $regex: language, $options: "i" };
 
-    const result = await HourlyClassModel.find(filters).populate("createdBy", "name email profileImage").sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
+    // Price range
+    if (minPrice !== undefined || maxPrice !== undefined) {
+        filters.pricePerHour = {};
+        if (minPrice !== undefined) filters.pricePerHour.$gte = Number(minPrice);
+        if (maxPrice !== undefined) filters.pricePerHour.$lte = Number(maxPrice);
+    }
+
+    // Sort options
+    const sort: any = {};
+    if (search) {
+        sort.score = { $meta: "textScore" };
+    } else {
+        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+    }
+
+    const queryBuilder = HourlyClassModel.find(filters);
+
+    if (search) {
+        queryBuilder.select({ score: { $meta: "textScore" } });
+    }
+
+    const result = await queryBuilder.populate("createdBy", "name email profileImage").sort(sort).skip(skip).limit(Number(limit)).lean();
 
     const total = await HourlyClassModel.countDocuments(filters);
     const totalPages = Math.ceil(total / Number(limit));

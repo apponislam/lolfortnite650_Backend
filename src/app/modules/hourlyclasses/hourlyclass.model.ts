@@ -49,5 +49,29 @@ const hourlyClassSchema = new Schema<HourlyClassDocument>(
 
 // Indexes
 hourlyClassSchema.index({ subjects: 1 });
+hourlyClassSchema.index({ curriculum: 1 });
+hourlyClassSchema.index({ language: 1 });
+hourlyClassSchema.index({ pricePerHour: 1 });
+hourlyClassSchema.index({ createdAt: -1 });
+
+// Compound indexes for filtering and sorting
+hourlyClassSchema.index({ subjects: 1, pricePerHour: 1 });
+hourlyClassSchema.index({ curriculum: 1, pricePerHour: 1 });
+hourlyClassSchema.index({ language: 1, pricePerHour: 1 });
+
+// Text index for full-text search on description and subjects
+hourlyClassSchema.index(
+    {
+        description: "text",
+        subjects: "text",
+    },
+    {
+        weights: {
+            subjects: 10,
+            description: 5,
+        },
+        name: "HourlyClassSearchIndex",
+    },
+);
 
 export const HourlyClassModel = model<HourlyClassDocument>("HourlyClass", hourlyClassSchema);
