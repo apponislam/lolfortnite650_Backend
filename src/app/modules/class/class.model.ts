@@ -83,8 +83,39 @@ const ClassSchema = new Schema<ClassDocument>(
     },
 );
 
-ClassSchema.index({ subject: "text", description: "text" });
+// Single field indexes for core filtering
 ClassSchema.index({ status: 1 });
 ClassSchema.index({ classType: 1 });
+ClassSchema.index({ subject: 1 });
+ClassSchema.index({ level: 1 });
+ClassSchema.index({ language: 1 });
+ClassSchema.index({ curriculum: 1 });
+ClassSchema.index({ price: 1 });
+ClassSchema.index({ tutorGender: 1 });
+ClassSchema.index({ createdBy: 1 });
+ClassSchema.index({ createdAt: -1 });
+
+// Compound indexes for high-performance searching
+ClassSchema.index({ status: 1, classType: 1 });
+ClassSchema.index({ subject: 1, price: 1 });
+ClassSchema.index({ level: 1, price: 1 });
+ClassSchema.index({ curriculum: 1, price: 1 });
+ClassSchema.index({ language: 1, price: 1 });
+ClassSchema.index({ status: 1, createdAt: -1 });
+
+// Full-text search index with relevance weights
+ClassSchema.index(
+    {
+        subject: "text",
+        description: "text",
+    },
+    {
+        weights: {
+            subject: 10,
+            description: 5,
+        },
+        name: "ClassSearchIndex",
+    },
+);
 
 export const ClassModel = mongoose.model<Class>("Class", ClassSchema);

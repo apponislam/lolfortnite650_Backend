@@ -16,13 +16,64 @@ const createClass = async (userId: string, payload: any) => {
 };
 
 const getClasses = async (query: any = {}) => {
-    const filter: any = {};
-    if (query.status) filter.status = query.status;
-    if (query.classType) filter.classType = query.classType;
-    if (query.subject) filter.subject = { $regex: query.subject, $options: "i" };
+    const { page = 1, limit = 10, status, classType, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
 
-    const result = await ClassModel.find(filter).sort({ createdAt: -1 });
-    return result;
+    const filters: any = {};
+
+    // Text Search
+    if (search) {
+        filters.$text = { $search: search };
+    }
+
+    // Exact or partial matches
+    if (status) filters.status = status;
+    if (classType) filters.classType = classType;
+    if (subject) filters.subject = { $regex: subject, $options: "i" };
+    if (level) filters.level = level;
+    if (language) filters.language = language;
+    if (curriculum) filters.curriculum = curriculum;
+
+    // Price range
+    if (minPrice !== undefined || maxPrice !== undefined) {
+        filters.price = {};
+        if (minPrice !== undefined) filters.price.$gte = Number(minPrice);
+        if (maxPrice !== undefined) filters.price.$lte = Number(maxPrice);
+    }
+
+    // Sort options
+    const sort: any = {};
+    if (search) {
+        sort.score = { $meta: "textScore" };
+    } else {
+        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+    }
+
+    const queryBuilder = ClassModel.find(filters);
+
+    if (search) {
+        queryBuilder.select({ score: { $meta: "textScore" } });
+    }
+
+    const result = await queryBuilder
+        .populate("createdBy", "name email profileImage")
+        .sort(sort)
+        .skip(skip)
+        .limit(Number(limit))
+        .lean();
+
+    const total = await ClassModel.countDocuments(filters);
+    const totalPages = Math.ceil(total / Number(limit));
+
+    return {
+        data: result,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages,
+        },
+    };
 };
 
 const getClassById = async (classId: string) => {

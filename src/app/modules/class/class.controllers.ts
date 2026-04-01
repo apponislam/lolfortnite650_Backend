@@ -30,7 +30,8 @@ export const getClasses = catchAsync(async (req: Request, res: Response) => {
         statusCode: httpStatus.OK,
         success: true,
         message: "Classes retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
