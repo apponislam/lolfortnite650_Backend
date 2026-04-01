@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authControllers } from "./auth.controllers";
 import validateRequest from "../../middlewares/validateRequest";
-import { changePasswordSchema, loginSchema, resendEmailUpdateSchema, updateEmailSchema } from "./auth.validations";
+import { changePasswordSchema, loginSchema, resendEmailUpdateSchema, updateEmailSchema, updateLocationSchema } from "./auth.validations";
 import auth from "../../middlewares/auth";
 import { uploadProfileImage } from "../../middlewares/multer";
 const router = Router();
@@ -21,6 +21,7 @@ router.post("/reset-password", authControllers.resetPassword);
 router.get("/me", auth, authControllers.getMe);
 router.post("/logout", auth, authControllers.logout);
 router.patch("/profile", auth, uploadProfileImage, authControllers.updateProfile);
+router.patch("/location", auth, validateRequest(updateLocationSchema), authControllers.updateLocation);
 router.post("/change-password", auth, validateRequest(changePasswordSchema), authControllers.changePassword);
 router.post("/update-email", auth, validateRequest(updateEmailSchema), authControllers.updateEmail);
 router.get("/verify-new-email", authControllers.verifyNewEmail);

@@ -5,6 +5,7 @@ import sendResponse from "../../../utils/sendResponse";
 import config from "../../config";
 import { Request, Response } from "express";
 import { authServices } from "./auth.services";
+import { getSocket } from "../../socket/socket";
 
 const register = catchAsync(async (req: Request, res: Response) => {
     // Handle profile image if uploaded
@@ -284,6 +285,31 @@ const setUserPassword = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateLocation = catchAsync(async (req: Request, res: Response) => {
+    const { lat, lng } = req.body;
+    const userId = req.user._id;
+
+    if (lat === undefined || lng === undefined) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Latitude and longitude are required");
+    }
+
+    const updatedUser = await authServices.updateLocation(userId, lat, lng);
+
+    // Emit socket event for real-time update
+    const io = getSocket();
+    io.emit("location_updated", {
+        userId: userId,
+        location: { lat, lng },
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Location updated successfully",
+        data: updatedUser,
+    });
+});
+
 export const authControllers = {
     register,
     login,
@@ -302,4 +328,5 @@ export const authControllers = {
     resendEmailUpdate,
     verifyNewEmail,
     setUserPassword,
+    updateLocation,
 };

@@ -363,6 +363,13 @@ const setUserPassword = async (userId: string, newPassword: string) => {
     await user.save();
 };
 
+const updateLocation = async (userId: string, lat: number, lng: number) => {
+    const user = await UserModel.findByIdAndUpdate(userId, { $set: { location: { lat, lng } } }, { new: true, runValidators: true }).select("-password");
+
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    return user;
+};
+
 export const authServices = {
     registerUser,
     loginUser,
@@ -380,4 +387,5 @@ export const authServices = {
     resendEmailUpdate,
     verifyNewEmail,
     setUserPassword,
+    updateLocation,
 };

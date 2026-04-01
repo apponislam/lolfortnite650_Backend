@@ -60,3 +60,8 @@ export const updateEmailSchema = z.object({
 export const resendEmailUpdateSchema = z.object({
     password: z.string(),
 });
+
+export const updateLocationSchema = z.object({
+    lat: z.number({ required_error: "Latitude is required" }),
+    lng: z.number({ required_error: "Longitude is required" }),
+});
