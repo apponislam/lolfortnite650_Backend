@@ -24,7 +24,7 @@ export const createClass = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getClasses = catchAsync(async (req: Request, res: Response) => {
-    const result = await classServices.getClasses(req.query);
+    const result = await classServices.getClasses(req.query, req.user);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

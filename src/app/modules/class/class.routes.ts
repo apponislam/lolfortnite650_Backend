@@ -1,12 +1,13 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth";
+import checkAuth from "../../middlewares/checkAuth";
 import authorize from "../../middlewares/authorized";
 import { classControllers } from "./class.controllers";
 import { uploadClassImages } from "../../middlewares/uploadClassImages";
 
 const router = Router();
 
-router.get("/", classControllers.getClasses);
+router.get("/", checkAuth, classControllers.getClasses);
 router.get("/:classId", classControllers.getClassById);
 
 // router.post("/", auth, authorize(["TEACHER"]), uploadClassImages("images", 5), validateRequest(createClassSchema), classControllers.createClass);

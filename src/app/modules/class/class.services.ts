@@ -15,7 +15,7 @@ const createClass = async (userId: string, payload: any) => {
     return result;
 };
 
-const getClasses = async (query: any = {}) => {
+const getClasses = async (query: any = {}, user?: any) => {
     const { page = 1, limit = 10, status, classType, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc" } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -41,32 +41,81 @@ const getClasses = async (query: any = {}) => {
         if (maxPrice !== undefined) filters.price.$lte = Number(maxPrice);
     }
 
-    // Sort options
-    const sort: any = {};
-    if (search) {
-        sort.score = { $meta: "textScore" };
+    // Pipeline stages
+    const pipeline: any[] = [{ $match: filters }];
+
+    // Handle Sorting and Randomization with Preferences
+    if (user && user.preferences) {
+        const { subjects = [], curriculum: userCurriculums = [], languages = [], teacherGender } = user.preferences;
+
+        // Create preference matching condition
+        const preferenceMatch: any = {
+            $or: [{ subject: { $in: subjects } }, { curriculum: { $in: userCurriculums } }, { language: { $in: languages } }],
+        };
+
+        if (teacherGender) {
+            preferenceMatch.$or.push({ tutorGender: teacherGender.toUpperCase() });
+        }
+
+        // Add a field to mark if it matches preferences
+        pipeline.push({
+            $addFields: {
+                isPreferred: {
+                    $cond: {
+                        if: preferenceMatch,
+                        then: 1,
+                        else: 0,
+                    },
+                },
+                randomSort: { $rand: {} }, // Add random value for randomization
+            },
+        });
+
+        // Sort by isPreferred (preferred first), then randomly
+        pipeline.push({
+            $sort: {
+                isPreferred: -1,
+                randomSort: 1,
+            },
+        });
     } else {
-        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+        // If not authenticated or no preferences, just randomize or use standard sort
+        pipeline.push({
+            $addFields: {
+                randomSort: { $rand: {} },
+            },
+        });
+
+        if (search) {
+            // Text score sort if searching
+            pipeline.push({
+                $sort: { score: { $meta: "textScore" }, randomSort: 1 },
+            });
+        } else {
+            // Default random sort
+            pipeline.push({
+                $sort: { randomSort: 1 },
+            });
+        }
     }
 
-    const queryBuilder = ClassModel.find(filters);
+    // Pagination
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
 
-    if (search) {
-        queryBuilder.select({ score: { $meta: "textScore" } });
-    }
+    const result = await ClassModel.aggregate(pipeline);
 
-    const result = await queryBuilder
-        .populate("createdBy", "name email profileImage")
-        .sort(sort)
-        .skip(skip)
-        .limit(Number(limit))
-        .lean();
+    // Populate createdBy manually since aggregate doesn't support .populate()
+    const populatedResult = await ClassModel.populate(result, {
+        path: "createdBy",
+        select: "name email profileImage",
+    });
 
     const total = await ClassModel.countDocuments(filters);
     const totalPages = Math.ceil(total / Number(limit));
 
     return {
-        data: result,
+        data: populatedResult,
         meta: {
             page: Number(page),
             limit: Number(limit),
