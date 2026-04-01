@@ -6,8 +6,6 @@ import config from "./app/config";
 import { seedSuperAdmin } from "./app/modules/auth/auth.seed";
 import { initSocket } from "./app/socket/socket";
 import { SlotJobs } from "./app/modules/slot/slot.jobs";
-// import { CalendarJobs } from "./app/modules/calender/calendar.jobs";
-// import { testEmail } from "./utils/testemail";
 
 let server: Server;
 
@@ -15,19 +13,14 @@ async function main() {
     try {
         await mongoose.connect(config.mongodb_url as string);
         server = http.createServer(app);
-        // testEmail();
 
         initSocket(server);
 
         seedSuperAdmin();
-        // createBotAdmin();
 
-        // reviewReminderCron.start();
         SlotJobs.initializeAllJobs();
 
-        // await verifyMailConnection();
-
-        server.listen(Number(config.port), () => {
+        server.listen(Number(config.port), config.ip, () => {
             console.log(`✅ App listening on port ${config.port}`);
         });
     } catch (err) {
