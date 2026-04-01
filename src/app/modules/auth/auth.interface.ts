@@ -29,6 +29,10 @@ export interface User {
     approvedBy?: mongoose.Types.ObjectId;
     approvalDate?: Date;
 
+    hourlyRate?: number;
+    description?: string;
+    nationality?: string;
+
     availabilityLocation?: {
         address?: string;
         lat?: number;

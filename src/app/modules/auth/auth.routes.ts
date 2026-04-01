@@ -1,14 +1,12 @@
 import { Router } from "express";
 import { authControllers } from "./auth.controllers";
-import validateRequest from "../../middlewares/validateRequest";
-import { changePasswordSchema, loginSchema, resendEmailUpdateSchema, updateEmailSchema, updateLocationSchema } from "./auth.validations";
 import auth from "../../middlewares/auth";
 import { uploadProfileImage } from "../../middlewares/multer";
 const router = Router();
 
 // Public routes
 router.post("/register", uploadProfileImage, authControllers.register);
-router.post("/login", validateRequest(loginSchema), authControllers.login);
+router.post("/login", authControllers.login);
 router.get("/verify-email", authControllers.verifyEmail);
 router.post("/resend-verification", authControllers.resendVerificationEmail);
 router.post("/refresh-token", authControllers.refreshAccessToken);
@@ -21,11 +19,11 @@ router.post("/reset-password", authControllers.resetPassword);
 router.get("/me", auth, authControllers.getMe);
 router.post("/logout", auth, authControllers.logout);
 router.patch("/profile", auth, uploadProfileImage, authControllers.updateProfile);
-router.patch("/location", auth, validateRequest(updateLocationSchema), authControllers.updateLocation);
-router.post("/change-password", auth, validateRequest(changePasswordSchema), authControllers.changePassword);
-router.post("/update-email", auth, validateRequest(updateEmailSchema), authControllers.updateEmail);
+router.patch("/location", auth, authControllers.updateLocation);
+router.post("/change-password", auth, authControllers.changePassword);
+router.post("/update-email", auth, authControllers.updateEmail);
 router.get("/verify-new-email", authControllers.verifyNewEmail);
-router.post("/resend-email-update", auth, validateRequest(resendEmailUpdateSchema), authControllers.resendEmailUpdate);
+router.post("/resend-email-update", auth, authControllers.resendEmailUpdate);
 
 // Admin only routes
 router.post("/set-password/:userId", auth, authControllers.setUserPassword);

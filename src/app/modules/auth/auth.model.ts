@@ -83,6 +83,21 @@ const UserSchema = new Schema<User>(
             type: Date,
         },
 
+        hourlyRate: {
+            type: Number,
+            min: 0,
+        },
+
+        description: {
+            type: String,
+            trim: true,
+        },
+
+        nationality: {
+            type: String,
+            trim: true,
+        },
+
         availabilityLocation: {
             address: String,
             lat: Number,
