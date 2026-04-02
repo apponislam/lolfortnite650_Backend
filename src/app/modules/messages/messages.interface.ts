@@ -11,7 +11,7 @@ export interface Conversation {
     updatedAt: Date;
 }
 
-export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE";
+export type MessageType = "MESSAGE" | "OFFER" | "ACCEPTED" | "REJECTED" | "RESCHEDULED";
 
 export interface MessageFile {
     url: string;
@@ -27,6 +27,9 @@ export interface Message {
     type: MessageType;
     text?: string;
     files?: MessageFile[];
+    subject?: string;
+    price?: number;
+    slot?: Types.ObjectId;
     replyTo?: Types.ObjectId | Message;
     isEdited: boolean;
     editedAt?: Date;

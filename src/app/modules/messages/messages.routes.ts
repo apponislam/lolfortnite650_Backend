@@ -17,6 +17,9 @@ router.post("/conversations/:conversationId/read", MessageControllers.markAsRead
 // Message management
 router.get("/conversations/:conversationId/messages", MessageControllers.getMessages);
 router.post("/send", uploadMessageFiles, MessageControllers.sendMessage);
+router.post("/:messageId/accept", MessageControllers.acceptOffer);
+router.post("/:messageId/reject", MessageControllers.rejectOffer);
+router.post("/:messageId/reschedule", MessageControllers.rescheduleOffer);
 router.patch("/:messageId", MessageControllers.editMessage);
 router.delete("/:messageId", MessageControllers.deleteMessage);
 

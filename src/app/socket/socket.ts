@@ -67,13 +67,13 @@ export const getSocket = () => {
 |--------------------------------------------------------------------------
 */
 
-export const emitToUsers = (userIds: any[], event: string, data: any) => {
+export const sendToUsers = (userIds: any[], event: string, data: any) => {
     if (!io) return;
     const rooms = userIds.map((id) => `user_${id.toString()}`);
     io.to(rooms).emit(event, data);
 };
 
-export const emitToRoom = (roomId: string, event: string, data: any) => {
+export const sendToRoom = (roomId: string, event: string, data: any) => {
     if (!io) return;
     io.to(roomId).emit(event, data);
 };

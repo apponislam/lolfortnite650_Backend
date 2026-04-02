@@ -143,6 +143,61 @@ const deleteMessage = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// Accept offer
+const acceptOffer = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+    const { messageId } = req.params;
+
+    const result = await messageService.acceptOffer(userId, messageId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Offer accepted successfully",
+        data: result,
+    });
+});
+
+// Reject offer
+const rejectOffer = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+    const { messageId } = req.params;
+
+    const result = await messageService.rejectOffer(userId, messageId as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Offer rejected successfully",
+        data: result,
+    });
+});
+
+// Reschedule offer
+const rescheduleOffer = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+    const { messageId } = req.params;
+    const { slotId } = req.body;
+
+    const result = await messageService.rescheduleOffer(userId, messageId as string, slotId);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Offer rescheduled successfully",
+        data: result,
+    });
+});
+
 export const MessageControllers = {
     createConversation,
     getUserConversations,
@@ -152,4 +207,7 @@ export const MessageControllers = {
     markAsRead,
     editMessage,
     deleteMessage,
+    acceptOffer,
+    rejectOffer,
+    rescheduleOffer,
 };

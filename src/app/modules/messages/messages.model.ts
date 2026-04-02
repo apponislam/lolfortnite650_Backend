@@ -78,18 +78,21 @@ const MessageSchema = new Schema<MessageDocument>(
         },
         type: {
             type: String,
-            enum: ["TEXT", "FILE", "TEXT_WITH_FILE"],
-            default: "TEXT",
+            enum: ["MESSAGE", "OFFER", "ACCEPTED", "REJECTED", "RESCHEDULED"],
+            default: "MESSAGE",
             required: true,
         },
         text: {
             type: String,
             trim: true,
-            required: function (this: MessageDocument) {
-                return ["TEXT", "TEXT_WITH_FILE"].includes(this.type);
-            },
         },
         files: [MessageFileSchema],
+        subject: String,
+        price: Number,
+        slot: {
+            type: Schema.Types.ObjectId,
+            ref: "Slot",
+        },
         replyTo: {
             type: Schema.Types.ObjectId,
             ref: "Message",
