@@ -78,7 +78,7 @@ const MessageSchema = new Schema<MessageDocument>(
         },
         type: {
             type: String,
-            enum: ["TEXT", "FILE", "TEXT_WITH_FILE", "SYSTEM", "MEETING"],
+            enum: ["TEXT", "FILE", "TEXT_WITH_FILE"],
             default: "TEXT",
             required: true,
         },
@@ -90,29 +90,6 @@ const MessageSchema = new Schema<MessageDocument>(
             },
         },
         files: [MessageFileSchema],
-        meeting: {
-            provider: {
-                type: String,
-                enum: ["ZOOM"],
-                required: function (this: MessageDocument) {
-                    return this.type === "MEETING";
-                },
-            },
-            meetingId: {
-                type: String,
-                required: function (this: MessageDocument) {
-                    return this.type === "MEETING";
-                },
-            },
-            meetingLink: {
-                type: String,
-                required: function (this: MessageDocument) {
-                    return this.type === "MEETING";
-                },
-            },
-            recordingLink: String,
-            scheduledAt: Date,
-        },
         replyTo: {
             type: Schema.Types.ObjectId,
             ref: "Message",

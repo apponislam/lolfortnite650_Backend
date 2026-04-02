@@ -11,7 +11,7 @@ export interface Conversation {
     updatedAt: Date;
 }
 
-export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE" | "SYSTEM" | "MEETING";
+export type MessageType = "TEXT" | "FILE" | "TEXT_WITH_FILE";
 
 export interface MessageFile {
     url: string;
@@ -27,13 +27,6 @@ export interface Message {
     type: MessageType;
     text?: string;
     files?: MessageFile[];
-    meeting?: {
-        provider: "ZOOM";
-        meetingId: string;
-        meetingLink: string;
-        recordingLink?: string;
-        scheduledAt?: Date;
-    };
     replyTo?: string;
     isEdited: boolean;
     editedAt?: Date;
