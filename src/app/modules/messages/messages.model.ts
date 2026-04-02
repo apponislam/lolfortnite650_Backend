@@ -58,16 +58,6 @@ const MessageFileSchema = new Schema({
     thumbnailUrl: String,
 });
 
-const MessageSeenSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    seenAt: { type: Date, default: Date.now, required: true },
-});
-
-const MessageDeliverySchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    deliveredAt: { type: Date, default: Date.now, required: true },
-});
-
 /*
 |--------------------------------------------------------------------------
 | Message Schema
@@ -123,8 +113,6 @@ const MessageSchema = new Schema<MessageDocument>(
             recordingLink: String,
             scheduledAt: Date,
         },
-        seenBy: [MessageSeenSchema],
-        deliveredTo: [MessageDeliverySchema],
         replyTo: {
             type: Schema.Types.ObjectId,
             ref: "Message",
@@ -175,10 +163,7 @@ MessageSchema.index({ conversationId: 1, createdAt: -1 });
 MessageSchema.index({ senderId: 1 });
 MessageSchema.index({ type: 1 });
 MessageSchema.index({ isDeleted: 1 });
-MessageSchema.index({ "seenBy.userId": 1 });
-MessageSchema.index({ "deliveredTo.userId": 1 });
 MessageSchema.index({ conversationId: 1, createdAt: -1, _id: 1 });
-MessageSchema.index({ conversationId: 1, "seenBy.userId": 1 });
 MessageSchema.index({ replyTo: 1 });
 MessageSchema.index({ text: "text" });
 

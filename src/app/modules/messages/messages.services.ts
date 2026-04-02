@@ -105,6 +105,9 @@ export const getMessages = async (conversationId: string, userId: string, query:
         throw new ApiError(httpStatus.FORBIDDEN, "Access denied");
     }
 
+    // Mark as read for this user when they fetch messages
+    await (ConversationModel as any).markMessageAsRead(conversationId, userId);
+
     const { page = 1, limit = 50 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -112,6 +115,19 @@ export const getMessages = async (conversationId: string, userId: string, query:
 
     const total = await MessageModel.countDocuments({ conversationId });
     const totalPages = Math.ceil(total / Number(limit));
+
+    // Emit socket events to notify that messages are read
+    const io = getSocket();
+    conversation.participantIds.forEach((participantId) => {
+        io.to(`user_${participantId.toString()}`).emit("conversation_read", {
+            conversationId,
+            userId,
+        });
+    });
+    io.to(`conversation_${conversationId}`).emit("conversation_read", {
+        conversationId,
+        userId,
+    });
 
     return {
         messages: messages.reverse(),
@@ -206,17 +222,28 @@ export const sendMessage = async (senderId: string, payload: any) => {
  * Mark all messages as read in a conversation
  */
 export const markAsRead = async (conversationId: string, userId: string) => {
+    const conversation = await ConversationModel.findOne({
+        _id: conversationId,
+        participantIds: new Types.ObjectId(userId),
+    });
+
+    if (!conversation) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Conversation not found");
+    }
+
     await (ConversationModel as any).markMessageAsRead(conversationId, userId);
 
     const io = getSocket();
 
-    // Notify the user in their own room
-    io.to(`user_${userId}`).emit("conversation_read", {
-        conversationId,
-        userId,
+    // Notify all participants about the read status
+    conversation.participantIds.forEach((participantId) => {
+        io.to(`user_${participantId.toString()}`).emit("conversation_read", {
+            conversationId,
+            userId,
+        });
     });
 
-    // Notify other participants
+    // Notify other participants in the conversation room
     io.to(`conversation_${conversationId}`).emit("conversation_read", {
         conversationId,
         userId,
@@ -244,6 +271,15 @@ export const editMessage = async (userId: string, messageId: string, text: strin
     await message.save();
 
     const io = getSocket();
+
+    // Get conversation to get participant IDs
+    const conversation = await ConversationModel.findById(message.conversationId);
+    if (conversation) {
+        conversation.participantIds.forEach((participantId) => {
+            io.to(`user_${participantId.toString()}`).emit("message_updated", message);
+        });
+    }
+
     io.to(`conversation_${message.conversationId}`).emit("message_updated", message);
 
     return message;
@@ -267,6 +303,18 @@ export const deleteMessage = async (userId: string, messageId: string) => {
     await message.save();
 
     const io = getSocket();
+
+    // Get conversation to get participant IDs
+    const conversation = await ConversationModel.findById(message.conversationId);
+    if (conversation) {
+        conversation.participantIds.forEach((participantId) => {
+            io.to(`user_${participantId.toString()}`).emit("message_deleted", {
+                messageId,
+                conversationId: message.conversationId,
+            });
+        });
+    }
+
     io.to(`conversation_${message.conversationId}`).emit("message_deleted", {
         messageId,
         conversationId: message.conversationId,

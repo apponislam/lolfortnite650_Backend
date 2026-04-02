@@ -21,16 +21,6 @@ export interface MessageFile {
     thumbnailUrl?: string;
 }
 
-export interface MessageSeen {
-    userId: Types.ObjectId;
-    seenAt: Date;
-}
-
-export interface MessageDelivery {
-    userId: Types.ObjectId;
-    deliveredAt: Date;
-}
-
 export interface Message {
     conversationId: Types.ObjectId;
     senderId: Types.ObjectId;
@@ -44,8 +34,6 @@ export interface Message {
         recordingLink?: string;
         scheduledAt?: Date;
     };
-    seenBy: MessageSeen[];
-    deliveredTo: MessageDelivery[];
     replyTo?: string;
     isEdited: boolean;
     editedAt?: Date;
