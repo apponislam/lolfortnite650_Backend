@@ -11,7 +11,7 @@ export interface Conversation {
     updatedAt: Date;
 }
 
-export type MessageType = "MESSAGE" | "OFFER" | "ACCEPTED" | "REJECTED" | "RESCHEDULED";
+export type MessageType = "MESSAGE" | "OFFER" | "ACCEPTED" | "REJECTED" | "RESCHEDULED" | "COMPLETED";
 
 export interface MessageFile {
     url: string;

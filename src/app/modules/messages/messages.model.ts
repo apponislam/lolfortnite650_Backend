@@ -78,7 +78,7 @@ const MessageSchema = new Schema<MessageDocument>(
         },
         type: {
             type: String,
-            enum: ["MESSAGE", "OFFER", "ACCEPTED", "REJECTED", "RESCHEDULED"],
+            enum: ["MESSAGE", "OFFER", "ACCEPTED", "REJECTED", "RESCHEDULED", "COMPLETED"],
             default: "MESSAGE",
             required: true,
         },

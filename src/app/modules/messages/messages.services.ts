@@ -303,6 +303,44 @@ export const acceptOffer = async (userId: string, messageId: string) => {
 };
 
 /**
+ * Complete an offer (Internal service - call when payment is successful)
+ */
+export const completeOffer = async (messageId: string) => {
+    const originalMessage = await MessageModel.findById(messageId);
+    if (!originalMessage || !["OFFER", "RESCHEDULED", "ACCEPTED"].includes(originalMessage.type)) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
+    }
+
+    const newMessage = await MessageModel.create({
+        conversationId: originalMessage.conversationId,
+        senderId: originalMessage.senderId, // Keep original sender as reference or system? usually keeps original context
+        type: "COMPLETED",
+        slot: originalMessage.slot,
+        subject: originalMessage.subject,
+        price: originalMessage.price,
+        replyTo: originalMessage._id,
+    });
+
+    await ConversationModel.findByIdAndUpdate(originalMessage.conversationId, {
+        lastMessage: newMessage._id,
+    });
+
+    await newMessage.populate([{ path: "senderId", select: "name email avatar role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email avatar" } }]);
+
+    const conversation = await ConversationModel.findById(originalMessage.conversationId);
+    if (conversation) {
+        sendToUsers(conversation.participantIds, "message", newMessage);
+        sendToUsers(conversation.participantIds, "notification", {
+            conversationId: originalMessage.conversationId,
+            message: newMessage,
+        });
+    }
+    sendToRoom(`conversation_${originalMessage.conversationId}`, "message", newMessage);
+
+    return newMessage;
+};
+
+/**
  * Reject an offer
  */
 export const rejectOffer = async (userId: string, messageId: string) => {
@@ -492,4 +530,5 @@ export const messageService = {
     acceptOffer,
     rejectOffer,
     rescheduleOffer,
+    completeOffer,
 };
