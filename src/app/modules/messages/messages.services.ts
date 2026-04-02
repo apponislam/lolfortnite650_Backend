@@ -114,7 +114,16 @@ export const getMessages = async (conversationId: string, userId: string, query:
     const { page = 1, limit = 50 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const messages = await MessageModel.find({ conversationId }).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate("senderId", "name email avatar").lean();
+    const messages = await MessageModel.find({ conversationId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("senderId", "name email avatar")
+        .populate({
+            path: "replyTo",
+            populate: { path: "senderId", select: "name email avatar" },
+        })
+        .lean();
 
     const total = await MessageModel.countDocuments({ conversationId });
     const totalPages = Math.ceil(total / Number(limit));

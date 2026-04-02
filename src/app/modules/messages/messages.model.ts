@@ -93,6 +93,7 @@ const MessageSchema = new Schema<MessageDocument>(
         replyTo: {
             type: Schema.Types.ObjectId,
             ref: "Message",
+            index: true,
         },
         isEdited: { type: Boolean, default: false },
         editedAt: Date,

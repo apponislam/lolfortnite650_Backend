@@ -27,7 +27,7 @@ export interface Message {
     type: MessageType;
     text?: string;
     files?: MessageFile[];
-    replyTo?: string;
+    replyTo?: Types.ObjectId | Message;
     isEdited: boolean;
     editedAt?: Date;
     isDeleted: boolean;
