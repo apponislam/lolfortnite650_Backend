@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
 import { ConversationModel, MessageModel } from "./messages.model";
-import { getSocket } from "../../socket/socket";
+import { emitToRoom, emitToUsers } from "../../socket/socket";
 
 /**
  * Create a new conversation (private)
@@ -43,6 +43,9 @@ export const createConversation = async (
 
     // Populate participant details before returning
     await conversation.populate("participantIds", "name email avatar");
+
+    // Notify participants
+    emitToUsers(conversation.participantIds, "conversation", conversation);
 
     return conversation;
 };
@@ -116,18 +119,9 @@ export const getMessages = async (conversationId: string, userId: string, query:
     const total = await MessageModel.countDocuments({ conversationId });
     const totalPages = Math.ceil(total / Number(limit));
 
-    // Emit socket events to notify that messages are read
-    const io = getSocket();
-    conversation.participantIds.forEach((participantId) => {
-        io.to(`user_${participantId.toString()}`).emit("conversation_read", {
-            conversationId,
-            userId,
-        });
-    });
-    io.to(`conversation_${conversationId}`).emit("conversation_read", {
-        conversationId,
-        userId,
-    });
+    // Notify that messages are read
+    emitToUsers(conversation.participantIds, "read", { conversationId, userId });
+    emitToRoom(`conversation_${conversationId}`, "read", { conversationId, userId });
 
     return {
         messages: messages.reverse(),
@@ -201,19 +195,9 @@ export const sendMessage = async (senderId: string, payload: any) => {
 
     await message.populate("senderId", "name email avatar");
 
-    // Emit socket event
-    const io = getSocket();
-
-    // Emit to conversation room (for people currently in the chat)
-    io.to(`conversation_${conversationId}`).emit("new_message", message);
-
-    // Also emit specifically to all participants using their user rooms
-    conversation.participantIds.forEach((participantId) => {
-        io.to(`user_${participantId.toString()}`).emit("new_message_notification", {
-            conversationId,
-            message,
-        });
-    });
+    // Socket events
+    emitToRoom(`conversation_${conversationId}`, "message", message);
+    emitToUsers(conversation.participantIds, "notification", { conversationId, message });
 
     return message;
 };
@@ -233,21 +217,9 @@ export const markAsRead = async (conversationId: string, userId: string) => {
 
     await (ConversationModel as any).markMessageAsRead(conversationId, userId);
 
-    const io = getSocket();
-
-    // Notify all participants about the read status
-    conversation.participantIds.forEach((participantId) => {
-        io.to(`user_${participantId.toString()}`).emit("conversation_read", {
-            conversationId,
-            userId,
-        });
-    });
-
-    // Notify other participants in the conversation room
-    io.to(`conversation_${conversationId}`).emit("conversation_read", {
-        conversationId,
-        userId,
-    });
+    // Notify participants
+    emitToUsers(conversation.participantIds, "read", { conversationId, userId });
+    emitToRoom(`conversation_${conversationId}`, "read", { conversationId, userId });
 
     return { success: true };
 };
@@ -270,17 +242,12 @@ export const editMessage = async (userId: string, messageId: string, text: strin
     message.editedAt = new Date();
     await message.save();
 
-    const io = getSocket();
-
-    // Get conversation to get participant IDs
+    // Notify participants
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        conversation.participantIds.forEach((participantId) => {
-            io.to(`user_${participantId.toString()}`).emit("message_updated", message);
-        });
+        emitToUsers(conversation.participantIds, "update", message);
     }
-
-    io.to(`conversation_${message.conversationId}`).emit("message_updated", message);
+    emitToRoom(`conversation_${message.conversationId}`, "update", message);
 
     return message;
 };
@@ -302,23 +269,14 @@ export const deleteMessage = async (userId: string, messageId: string) => {
     message.deletedAt = new Date();
     await message.save();
 
-    const io = getSocket();
+    const data = { messageId, conversationId: message.conversationId };
 
-    // Get conversation to get participant IDs
+    // Notify participants
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        conversation.participantIds.forEach((participantId) => {
-            io.to(`user_${participantId.toString()}`).emit("message_deleted", {
-                messageId,
-                conversationId: message.conversationId,
-            });
-        });
+        emitToUsers(conversation.participantIds, "delete", data);
     }
-
-    io.to(`conversation_${message.conversationId}`).emit("message_deleted", {
-        messageId,
-        conversationId: message.conversationId,
-    });
+    emitToRoom(`conversation_${message.conversationId}`, "delete", data);
 
     return { success: true };
 };
