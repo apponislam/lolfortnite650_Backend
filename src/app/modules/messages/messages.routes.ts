@@ -1,6 +1,7 @@
 import express from "express";
 import { MessageControllers } from "./messages.controllers";
 import auth from "../../middlewares/auth";
+import { uploadMessageFiles } from "../../middlewares/uploadMessageFiles";
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.post("/conversations/:conversationId/read", MessageControllers.markAsRead
 
 // Message management
 router.get("/conversations/:conversationId/messages", MessageControllers.getMessages);
-router.post("/send", MessageControllers.sendMessage);
+router.post("/send", uploadMessageFiles, MessageControllers.sendMessage);
 router.patch("/:messageId", MessageControllers.editMessage);
 router.delete("/:messageId", MessageControllers.deleteMessage);
 
