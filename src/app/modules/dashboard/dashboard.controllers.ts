@@ -27,7 +27,19 @@ const getMonthlyRegistrationStats = catchAsync(async (req: Request, res: Respons
     });
 });
 
+const getUserRoleDistribution = catchAsync(async (req: Request, res: Response) => {
+    const result = await dashboardServices.getUserRoleDistribution();
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User role distribution retrieved successfully",
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
+    getUserRoleDistribution,
 };

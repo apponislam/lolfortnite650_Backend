@@ -10,24 +10,15 @@ const getAdminDashboardStats = async () => {
     const totalStudents = await UserModel.countDocuments({ role: "STUDENT" });
 
     // 3. Total Earning (Sum of commissions from PAID class payments)
-    const totalEarningResult = await ClassPaymentModel.aggregate([
-        { $match: { status: "PAID" } },
-        { $group: { _id: null, total: { $sum: "$commission" } } },
-    ]);
+    const totalEarningResult = await ClassPaymentModel.aggregate([{ $match: { status: "PAID" } }, { $group: { _id: null, total: { $sum: "$commission" } } }]);
     const totalEarning = totalEarningResult.length > 0 ? totalEarningResult[0].total : 0;
 
     // 4. Total Payout (Sum of amount from PAID withdraw requests)
-    const totalPayoutResult = await WithdrawModel.aggregate([
-        { $match: { status: "PAID" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
+    const totalPayoutResult = await WithdrawModel.aggregate([{ $match: { status: "PAID" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]);
     const totalPayout = totalPayoutResult.length > 0 ? totalPayoutResult[0].total : 0;
 
     // 5. Total Class Revenue (Total amount paid by students)
-    const totalRevenueResult = await ClassPaymentModel.aggregate([
-        { $match: { status: "PAID" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
+    const totalRevenueResult = await ClassPaymentModel.aggregate([{ $match: { status: "PAID" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]);
     const totalRevenue = totalRevenueResult.length > 0 ? totalRevenueResult[0].total : 0;
 
     return {
@@ -82,7 +73,36 @@ const getMonthlyRegistrationStats = async (year: number) => {
     return formattedData;
 };
 
+const getUserRoleDistribution = async () => {
+    const stats = await UserModel.aggregate([
+        {
+            $match: {
+                role: { $in: ["TEACHER", "STUDENT"] },
+            },
+        },
+        {
+            $group: {
+                _id: "$role",
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const teachers = stats.find((s) => s._id === "TEACHER")?.count || 0;
+    const students = stats.find((s) => s._id === "STUDENT")?.count || 0;
+    const total = teachers + students;
+
+    return {
+        total,
+        distribution: [
+            { label: "Teachers", value: teachers, percentage: total > 0 ? ((teachers / total) * 100).toFixed(2) : 0 },
+            { label: "Students", value: students, percentage: total > 0 ? ((students / total) * 100).toFixed(2) : 0 },
+        ],
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
+    getUserRoleDistribution,
 };
