@@ -12,7 +12,7 @@ import { availabilityRoutes } from "../modules/availability/availability.routes"
 import { slotRouter } from "../modules/slot/slot.routes";
 import { MessageRoutes } from "../modules/messages/messages.routes";
 import { hourlyClassRoutes } from "../modules/hourlyclasses/hourlyclass.routes";
-import { MyClassRoutes } from "../modules/myclasses/myclasses.routes";
+import { ClassPaymentRoutes } from "../modules/classpayments/classpayments.routes";
 
 const router = express.Router();
 
@@ -71,8 +71,8 @@ const moduleRoutes = [
         route: hourlyClassRoutes,
     },
     {
-        path: "/my-classes",
-        route: MyClassRoutes,
+        path: "/class-payments",
+        route: ClassPaymentRoutes,
     },
 ];
 
