@@ -7,6 +7,7 @@ import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { completeOffer } from "../messages/messages.services";
 import ApiError from "../../../errors/ApiError";
+import { UserModel } from "../auth/auth.model";
 
 const MF_WEBHOOK_SECRET = config.myfatoorah.webhook_secret;
 
@@ -59,6 +60,11 @@ const processMyClassPayment = async (payload: any) => {
         myClass.status = "PAID";
         if (paymentId) myClass.paymentId = paymentId.toString();
         await myClass.save();
+
+        // Add balance to teacher
+        await UserModel.findByIdAndUpdate(myClass.teacher, {
+            $inc: { balance: myClass.amount },
+        });
 
         // Trigger additional logic like completing the offer message
         if (myClass.classType === "HOURLY_CLASS" && myClass.messageId) {

@@ -103,6 +103,11 @@ export const verifyClassPayment = async (paymentId: string) => {
         myClass.transactionId = invoiceData.InvoiceTransactions[0]?.TransactionId;
         await myClass.save();
 
+        // Add balance to teacher
+        await UserModel.findByIdAndUpdate(myClass.teacher, {
+            $inc: { balance: myClass.amount },
+        });
+
         // If it's an hourly class related to an offer, complete the offer in messages
         if (myClass.classType === "HOURLY_CLASS" && myClass.messageId) {
             try {
