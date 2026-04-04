@@ -38,6 +38,12 @@ const ClassSchema = new Schema<ClassDocument>(
             min: [1, "Max students must be at least 1"],
         },
 
+        enrolledStudents: {
+            type: Number,
+            default: 0,
+            min: [0, "Enrolled students cannot be negative"],
+        },
+
         whatsappGroupLink: { type: String, trim: true },
 
         description: { type: String, trim: true },

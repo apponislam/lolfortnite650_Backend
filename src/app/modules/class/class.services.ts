@@ -16,7 +16,7 @@ const createClass = async (userId: string, payload: any) => {
 };
 
 const getClasses = async (query: any = {}, user?: any) => {
-    const { page = 1, limit = 10, status, classType, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc" } = query;
+    const { page = 1, limit = 10, status, classType, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = {};
@@ -33,6 +33,13 @@ const getClasses = async (query: any = {}, user?: any) => {
     if (level) filters.level = level;
     if (language) filters.language = language;
     if (curriculum) filters.curriculum = curriculum;
+
+    // Filter by isFull
+    if (isFull === "true") {
+        filters.$expr = { $gte: ["$enrolledStudents", "$maxStudents"] };
+    } else if (isFull === "false") {
+        filters.$expr = { $lt: ["$enrolledStudents", "$maxStudents"] };
+    }
 
     // Price range
     if (minPrice !== undefined || maxPrice !== undefined) {

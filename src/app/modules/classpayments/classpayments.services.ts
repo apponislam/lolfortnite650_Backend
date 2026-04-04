@@ -26,6 +26,23 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
     if (classType === "CLASS") {
         const classData = await ClassModel.findById(classId);
         if (!classData) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
+
+        // Check if student is already enrolled
+        const alreadyEnrolled = await ClassPaymentModel.findOne({
+            student: userId,
+            classId: classId,
+            status: "PAID",
+        });
+
+        if (alreadyEnrolled) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "You are already enrolled in this class");
+        }
+
+        // Check if class is full
+        if (classData.maxStudents && classData.enrolledStudents && classData.enrolledStudents >= classData.maxStudents) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Class is already full");
+        }
+
         teacherId = classData.createdBy;
         finalAmount = classData.price;
     } else if (classType === "HOURLY_CLASS") {
@@ -107,6 +124,13 @@ export const verifyClassPayment = async (paymentId: string) => {
         await UserModel.findByIdAndUpdate(classPayment.teacher, {
             $inc: { balance: classPayment.amount },
         });
+
+        // Increment enrolledStudents for regular classes
+        if (classPayment.classType === "CLASS") {
+            await ClassModel.findByIdAndUpdate(classPayment.classId, {
+                $inc: { enrolledStudents: 1 },
+            });
+        }
 
         // If it's an hourly class related to an offer, complete the offer in messages
         if (classPayment.classType === "HOURLY_CLASS" && classPayment.messageId) {

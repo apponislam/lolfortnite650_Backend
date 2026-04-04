@@ -12,6 +12,7 @@ export interface Class {
     price: number;
     tutorGender?: TutorGender;
     maxStudents?: number;
+    enrolledStudents?: number;
     whatsappGroupLink?: string;
     description?: string;
     youtubeVideoLink?: string;
