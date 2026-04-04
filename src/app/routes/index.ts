@@ -13,6 +13,7 @@ import { slotRouter } from "../modules/slot/slot.routes";
 import { MessageRoutes } from "../modules/messages/messages.routes";
 import { hourlyClassRoutes } from "../modules/hourlyclasses/hourlyclass.routes";
 import { ClassPaymentRoutes } from "../modules/classpayments/classpayments.routes";
+import { WithdrawRoutes } from "../modules/withdraw/withdraw.routes";
 
 const router = express.Router();
 
@@ -73,6 +74,10 @@ const moduleRoutes = [
     {
         path: "/class-payments",
         route: ClassPaymentRoutes,
+    },
+    {
+        path: "/withdrawals",
+        route: WithdrawRoutes,
     },
 ];
 
