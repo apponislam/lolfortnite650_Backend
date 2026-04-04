@@ -145,7 +145,6 @@ MessageSchema.index({ senderId: 1 });
 MessageSchema.index({ type: 1 });
 MessageSchema.index({ isDeleted: 1 });
 MessageSchema.index({ conversationId: 1, createdAt: -1, _id: 1 });
-MessageSchema.index({ replyTo: 1 });
 MessageSchema.index({ text: "text" });
 
 /*
