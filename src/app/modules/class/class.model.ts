@@ -59,7 +59,7 @@ const ClassSchema = new Schema<ClassDocument>(
                 values: ["GROUP", "ONE_TO_ONE"],
                 message: "Class type must be GROUP or ONE_TO_ONE",
             },
-            required: [true, "Class type is required"],
+            // Removed required: true since it's auto-set
         },
 
         // thumbnailUrl: { type: String, trim: true },
@@ -92,6 +92,34 @@ const ClassSchema = new Schema<ClassDocument>(
         versionKey: false,
     },
 );
+
+// Auto-set classType based on maxStudents
+ClassSchema.pre("save", async function () {
+    const maxStudents = this.maxStudents || 1; // Default to 1 if not provided
+    if (maxStudents === 1) {
+        this.classType = "ONE_TO_ONE";
+    } else if (maxStudents > 1) {
+        this.classType = "GROUP";
+    }
+});
+
+// Auto-set classType for updates
+ClassSchema.pre(["findOneAndUpdate", "updateMany", "updateOne"], async function () {
+    const update = this.getUpdate() as any;
+
+    // Check for maxStudents in direct update or $set
+    const maxStudents = update.maxStudents !== undefined ? update.maxStudents : update.$set && update.$set.maxStudents;
+
+    if (maxStudents !== undefined) {
+        const classType = maxStudents === 1 ? "ONE_TO_ONE" : "GROUP";
+
+        if (update.$set) {
+            update.$set.classType = classType;
+        } else {
+            update.classType = classType;
+        }
+    }
+});
 
 // Single field indexes for core filtering
 ClassSchema.index({ status: 1 });

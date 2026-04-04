@@ -15,7 +15,7 @@ export interface Class {
     whatsappGroupLink?: string;
     description?: string;
     youtubeVideoLink?: string;
-    classType: ClassType;
+    classType?: ClassType;
     images: string[];
     status: ClassStatus;
     createdBy: Types.ObjectId;
