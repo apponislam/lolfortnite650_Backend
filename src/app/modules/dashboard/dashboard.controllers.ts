@@ -38,8 +38,34 @@ const getUserRoleDistribution = catchAsync(async (req: Request, res: Response) =
     });
 });
 
+const getMonthlyPaymentStats = catchAsync(async (req: Request, res: Response) => {
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const result = await dashboardServices.getMonthlyPaymentStats(year);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `Monthly payment stats for ${year} retrieved successfully`,
+        data: result,
+    });
+});
+
+const getMonthlyWithdrawStats = catchAsync(async (req: Request, res: Response) => {
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const result = await dashboardServices.getMonthlyWithdrawStats(year);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `Monthly withdraw stats for ${year} retrieved successfully`,
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
     getUserRoleDistribution,
+    getMonthlyPaymentStats,
+    getMonthlyWithdrawStats,
 };

@@ -101,8 +101,84 @@ const getUserRoleDistribution = async () => {
     };
 };
 
+const getMonthlyPaymentStats = async (year: number) => {
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59);
+
+    const monthlyStats = await ClassPaymentModel.aggregate([
+        {
+            $match: {
+                status: "PAID",
+                createdAt: { $gte: startDate, $lte: endDate },
+            },
+        },
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                totalRevenue: { $sum: "$amount" },
+                totalEarning: { $sum: "$commission" },
+                count: { $sum: 1 },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const formattedData = monthNames.map((name, index) => {
+        const monthNum = index + 1;
+        const stat = monthlyStats.find((s) => s._id === monthNum);
+
+        return {
+            month: name,
+            revenue: stat ? stat.totalRevenue : 0,
+            earning: stat ? stat.totalEarning : 0,
+            transactions: stat ? stat.count : 0,
+        };
+    });
+
+    return formattedData;
+};
+
+const getMonthlyWithdrawStats = async (year: number) => {
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59);
+
+    const monthlyStats = await WithdrawModel.aggregate([
+        {
+            $match: {
+                status: "PAID",
+                paidAt: { $gte: startDate, $lte: endDate },
+            },
+        },
+        {
+            $group: {
+                _id: { $month: "$paidAt" },
+                totalPayout: { $sum: "$amount" },
+                count: { $sum: 1 },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const formattedData = monthNames.map((name, index) => {
+        const monthNum = index + 1;
+        const stat = monthlyStats.find((s) => s._id === monthNum);
+
+        return {
+            month: name,
+            payout: stat ? stat.totalPayout : 0,
+            withdrawals: stat ? stat.count : 0,
+        };
+    });
+
+    return formattedData;
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
     getUserRoleDistribution,
+    getMonthlyPaymentStats,
+    getMonthlyWithdrawStats,
 };

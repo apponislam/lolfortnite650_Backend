@@ -10,4 +10,7 @@ router.get("/admin-stats", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardC
 router.get("/monthly-registration", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyRegistrationStats);
 router.get("/user-distribution", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getUserRoleDistribution);
 
+router.get("/monthly-payments", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyPaymentStats);
+router.get("/monthly-withdrawals", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyWithdrawStats);
+
 export const DashboardRoutes = router;
