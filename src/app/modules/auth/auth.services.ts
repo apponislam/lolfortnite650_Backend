@@ -12,6 +12,11 @@ const registerUser = async (data: any) => {
     const existing = await UserModel.findOne({ email: data.email });
     if (existing) throw new ApiError(httpStatus.BAD_REQUEST, "Email already in use");
 
+    // Remove balance if sent in payload to prevent manual setting
+    if (data.balance !== undefined) {
+        delete data.balance;
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, Number(config.bcrypt_salt_rounds));
 
@@ -26,6 +31,7 @@ const registerUser = async (data: any) => {
         password: hashedPassword,
         isActive: true,
         isEmailVerified: false,
+        balance: 0,
         verificationToken,
         verificationCode,
         verificationExpiry,
@@ -266,6 +272,11 @@ const resetPassword = async (token: string, newPassword: string) => {
 };
 
 const updateProfile = async (userId: string, data: any) => {
+    // Prevent manual balance update
+    if (data.balance !== undefined) {
+        delete data.balance;
+    }
+
     const user = await UserModel.findByIdAndUpdate(userId, { $set: data }, { new: true, runValidators: true }).select("-password");
 
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");

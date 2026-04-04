@@ -97,6 +97,12 @@ const UserSchema = new Schema<User>(
             languages: [String],
         },
 
+        balance: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+
         resetPasswordOtp: String,
         resetPasswordOtpExpiry: Date,
         resetPasswordToken: String,

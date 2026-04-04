@@ -43,6 +43,8 @@ export interface User {
         languages?: string[];
     };
 
+    balance?: number;
+
     // Password reset fields
     resetPasswordOtp?: string;
     resetPasswordOtpExpiry?: Date;
