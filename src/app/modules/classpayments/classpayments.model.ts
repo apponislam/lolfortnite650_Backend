@@ -61,4 +61,19 @@ const classPaymentSchema = new Schema<IClassPayment>(
     },
 );
 
+// Single field indexes
+classPaymentSchema.index({ transactionId: 1 });
+classPaymentSchema.index({ classId: 1 });
+classPaymentSchema.index({ createdAt: -1 });
+
+// Compound indexes for student/teacher dashboards and history
+classPaymentSchema.index({ student: 1, status: 1, createdAt: -1 });
+classPaymentSchema.index({ teacher: 1, status: 1, createdAt: -1 });
+classPaymentSchema.index({ student: 1, createdAt: -1 });
+classPaymentSchema.index({ teacher: 1, createdAt: -1 });
+
+// Unique/Search indexes for external references
+classPaymentSchema.index({ invoiceId: 1 }, { unique: true, sparse: true });
+classPaymentSchema.index({ paymentId: 1 }, { unique: true, sparse: true });
+
 export const ClassPaymentModel = model<IClassPayment>("ClassPayment", classPaymentSchema);
