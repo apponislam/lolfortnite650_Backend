@@ -34,6 +34,7 @@ const ClassSchema = new Schema<ClassDocument>(
 
         maxStudents: {
             type: Number,
+            default: 1,
             min: [1, "Max students must be at least 1"],
         },
 
@@ -41,7 +42,16 @@ const ClassSchema = new Schema<ClassDocument>(
 
         description: { type: String, trim: true },
 
-        youtubeVideoLink: { type: String, trim: true },
+        youtubeVideoLink: {
+            type: String,
+            trim: true,
+            validate: {
+                validator: function (v: string) {
+                    return !v || /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/.test(v);
+                },
+                message: "Please enter a valid YouTube link",
+            },
+        },
 
         classType: {
             type: String,
