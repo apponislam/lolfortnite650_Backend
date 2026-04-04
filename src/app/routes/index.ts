@@ -14,6 +14,7 @@ import { MessageRoutes } from "../modules/messages/messages.routes";
 import { hourlyClassRoutes } from "../modules/hourlyclasses/hourlyclass.routes";
 import { ClassPaymentRoutes } from "../modules/classpayments/classpayments.routes";
 import { WithdrawRoutes } from "../modules/withdraw/withdraw.routes";
+import { DashboardRoutes } from "../modules/dashboard/dashboard.routes";
 
 const router = express.Router();
 
@@ -78,6 +79,10 @@ const moduleRoutes = [
     {
         path: "/withdrawals",
         route: WithdrawRoutes,
+    },
+    {
+        path: "/dashboard",
+        route: DashboardRoutes,
     },
 ];
 
