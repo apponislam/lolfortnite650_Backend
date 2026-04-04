@@ -15,6 +15,19 @@ const getAdminDashboardStats = catchAsync(async (req: Request, res: Response) =>
     });
 });
 
+const getMonthlyRegistrationStats = catchAsync(async (req: Request, res: Response) => {
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const result = await dashboardServices.getMonthlyRegistrationStats(year);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `Monthly registration stats for ${year} retrieved successfully`,
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
+    getMonthlyRegistrationStats,
 };
