@@ -7,6 +7,8 @@ export interface IClassPayment {
     student: Types.ObjectId;
     teacher: Types.ObjectId;
     amount: number;
+    commission: number;
+    teacherFee: number;
     currency: string;
     status: ClassPaymentStatus;
 

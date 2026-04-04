@@ -61,6 +61,14 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 
     if (!teacherId) throw new ApiError(httpStatus.BAD_REQUEST, "Teacher not found for this class");
 
+    // Get teacher percentage
+    const teacher = await UserModel.findById(teacherId);
+    const percentage = teacher?.percentage ?? 20;
+
+    // Calculate commission and teacher fee
+    const commission = (finalAmount * percentage) / 100;
+    const teacherFee = finalAmount - commission;
+
     // Execute MyFatoorah Payment
     const paymentResponse = await executeMyFatoorahPayment({
         amount: finalAmount,
@@ -81,6 +89,8 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         student: userId,
         teacher: teacherId,
         amount: finalAmount,
+        commission,
+        teacherFee,
         currency,
         status: "PENDING",
         invoiceId: paymentResponse.Data.InvoiceId,
@@ -122,7 +132,7 @@ export const verifyClassPayment = async (paymentId: string) => {
 
         // Add balance to teacher
         await UserModel.findByIdAndUpdate(classPayment.teacher, {
-            $inc: { balance: classPayment.amount },
+            $inc: { balance: classPayment.teacherFee },
         });
 
         // Increment enrolledStudents for regular classes

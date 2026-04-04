@@ -19,6 +19,14 @@ const classPaymentSchema = new Schema<IClassPayment>(
             type: Number,
             required: true,
         },
+        commission: {
+            type: Number,
+            required: true,
+        },
+        teacherFee: {
+            type: Number,
+            required: true,
+        },
         currency: {
             type: String,
             required: true,
