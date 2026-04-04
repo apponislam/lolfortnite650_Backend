@@ -12,9 +12,12 @@ const registerUser = async (data: any) => {
     const existing = await UserModel.findOne({ email: data.email });
     if (existing) throw new ApiError(httpStatus.BAD_REQUEST, "Email already in use");
 
-    // Remove balance if sent in payload to prevent manual setting
+    // Remove balance and percentage if sent in payload to prevent manual setting
     if (data.balance !== undefined) {
         delete data.balance;
+    }
+    if (data.percentage !== undefined) {
+        delete data.percentage;
     }
 
     // Hash password
@@ -272,9 +275,12 @@ const resetPassword = async (token: string, newPassword: string) => {
 };
 
 const updateProfile = async (userId: string, data: any) => {
-    // Prevent manual balance update
+    // Prevent manual balance and percentage update
     if (data.balance !== undefined) {
         delete data.balance;
+    }
+    if (data.percentage !== undefined) {
+        delete data.percentage;
     }
 
     const user = await UserModel.findByIdAndUpdate(userId, { $set: data }, { new: true, runValidators: true }).select("-password");

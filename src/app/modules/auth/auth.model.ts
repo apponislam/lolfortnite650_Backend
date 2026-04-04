@@ -103,6 +103,13 @@ const UserSchema = new Schema<User>(
             min: 0,
         },
 
+        percentage: {
+            type: Number,
+            default: 20,
+            min: 0,
+            max: 100,
+        },
+
         resetPasswordOtp: String,
         resetPasswordOtpExpiry: Date,
         resetPasswordToken: String,

@@ -43,6 +43,7 @@ export interface User {
         languages?: string[];
     };
 
+    percentage?: number;
     balance?: number;
 
     // Password reset fields
