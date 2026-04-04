@@ -6,6 +6,7 @@ import config from "../../config";
 import catchAsync from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { completeOffer } from "../messages/messages.services";
+import ApiError from "../../../errors/ApiError";
 
 const MF_WEBHOOK_SECRET = config.myfatoorah.webhook_secret;
 
@@ -101,12 +102,7 @@ const handleMyFatoorahWebhook = catchAsync(async (req: Request, res: Response) =
     if (MF_WEBHOOK_SECRET && process.env.NODE_ENV === "production") {
         const isValid = verifySignature(signature, body);
         if (!isValid) {
-            return sendResponse(res, {
-                statusCode: httpStatus.UNAUTHORIZED,
-                success: false,
-                message: "Invalid webhook signature",
-                data: null,
-            });
+            throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid webhook signature");
         }
     }
 
