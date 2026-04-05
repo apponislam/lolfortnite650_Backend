@@ -16,5 +16,6 @@ router.get("/monthly-withdrawals", auth, authorize(["ADMIN", "SUPER_ADMIN"]), da
 // Teacher-only dashboard stats
 router.get("/teacher-stats", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherDashboardStats);
 router.get("/teacher-ratings", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherRatingStats);
+router.get("/teacher-weekly-earnings", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherWeeklyEarningStats);
 
 export const DashboardRoutes = router;

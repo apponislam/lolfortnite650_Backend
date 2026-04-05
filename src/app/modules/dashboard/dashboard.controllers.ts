@@ -86,6 +86,19 @@ const getTeacherRatingStats = catchAsync(async (req: Request, res: Response) => 
     });
 });
 
+const getTeacherWeeklyEarningStats = catchAsync(async (req: Request, res: Response) => {
+    const teacherId = req.user._id;
+    const { startDate } = req.query;
+    const result = await dashboardServices.getTeacherWeeklyEarningStats(teacherId, startDate as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher weekly earning stats retrieved successfully",
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -94,4 +107,5 @@ export const dashboardControllers = {
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
     getTeacherRatingStats,
+    getTeacherWeeklyEarningStats,
 };

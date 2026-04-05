@@ -242,6 +242,52 @@ const getTeacherRatingStats = async (teacherId: string) => {
     };
 };
 
+const getTeacherWeeklyEarningStats = async (teacherId: string, startDate?: string) => {
+    let start = startDate ? new Date(startDate) : new Date();
+    // Adjust to the beginning of the week (Sunday)
+    const day = start.getDay();
+    start.setDate(start.getDate() - day);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+
+    const weeklyStats = await ClassPaymentModel.aggregate([
+        {
+            $match: {
+                teacher: new Types.ObjectId(teacherId),
+                status: "PAID",
+                createdAt: { $gte: start, $lte: end },
+            },
+        },
+        {
+            $group: {
+                _id: { $dayOfWeek: "$createdAt" },
+                totalEarning: { $sum: "$teacherFee" },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const formattedData = days.map((name, index) => {
+        const dayNum = index + 1; // MongoDB $dayOfWeek returns 1 (Sun) to 7 (Sat)
+        const stat = weeklyStats.find((s) => s._id === dayNum);
+
+        return {
+            day: name,
+            earning: stat ? stat.totalEarning : 0,
+        };
+    });
+
+    return {
+        startDate: start.toISOString().split("T")[0],
+        endDate: end.toISOString().split("T")[0],
+        earnings: formattedData,
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -250,4 +296,5 @@ export const dashboardServices = {
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
     getTeacherRatingStats,
+    getTeacherWeeklyEarningStats,
 };
