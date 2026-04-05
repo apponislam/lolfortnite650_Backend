@@ -68,6 +68,12 @@ const ClassSchema = new Schema<ClassDocument>(
             // Removed required: true since it's auto-set
         },
 
+        runningStatus: {
+            type: String,
+            enum: ["RUNNING", "COMPLETED"],
+            default: "RUNNING",
+        },
+
         // thumbnailUrl: { type: String, trim: true },
         images: {
             type: [String],
