@@ -1,6 +1,8 @@
+import { Types } from "mongoose";
 import { UserModel } from "../auth/auth.model";
 import { ClassPaymentModel } from "../classpayments/classpayments.model";
 import { WithdrawModel } from "../withdraw/withdraw.model";
+import { ClassModel } from "../class/class.model";
 
 const getAdminDashboardStats = async () => {
     // 1. Total Teacher Count
@@ -175,10 +177,28 @@ const getMonthlyWithdrawStats = async (year: number) => {
     return formattedData;
 };
 
+const getTeacherDashboardStats = async (teacherId: string) => {
+    // 1. Count Active Classes
+    const activeClasses = await ClassModel.countDocuments({
+        createdBy: new Types.ObjectId(teacherId),
+        runningStatus: "RUNNING",
+    });
+
+    // 2. Count Total Students (Sum of enrolledStudents across all teacher's classes)
+    const totalStudentsResult = await ClassModel.aggregate([{ $match: { createdBy: new Types.ObjectId(teacherId) } }, { $group: { _id: null, total: { $sum: "$enrolledStudents" } } }]);
+    const totalStudents = totalStudentsResult.length > 0 ? totalStudentsResult[0].total : 0;
+
+    return {
+        activeClasses,
+        totalStudents,
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
     getUserRoleDistribution,
     getMonthlyPaymentStats,
     getMonthlyWithdrawStats,
+    getTeacherDashboardStats,
 };

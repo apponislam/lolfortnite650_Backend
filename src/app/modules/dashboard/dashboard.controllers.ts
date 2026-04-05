@@ -62,10 +62,23 @@ const getMonthlyWithdrawStats = catchAsync(async (req: Request, res: Response) =
     });
 });
 
+const getTeacherDashboardStats = catchAsync(async (req: Request, res: Response) => {
+    const teacherId = req.user._id;
+    const result = await dashboardServices.getTeacherDashboardStats(teacherId);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher dashboard stats retrieved successfully",
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
     getUserRoleDistribution,
     getMonthlyPaymentStats,
     getMonthlyWithdrawStats,
+    getTeacherDashboardStats,
 };
