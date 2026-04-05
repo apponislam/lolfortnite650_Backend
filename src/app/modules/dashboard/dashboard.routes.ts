@@ -17,5 +17,6 @@ router.get("/monthly-withdrawals", auth, authorize(["ADMIN", "SUPER_ADMIN"]), da
 router.get("/teacher-stats", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherDashboardStats);
 router.get("/teacher-ratings", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherRatingStats);
 router.get("/teacher-weekly-earnings", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherWeeklyEarningStats);
+router.get("/teacher-financial-stats", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherFinancialStats);
 
 export const DashboardRoutes = router;

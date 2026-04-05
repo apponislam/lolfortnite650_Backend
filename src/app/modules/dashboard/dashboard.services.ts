@@ -288,6 +288,43 @@ const getTeacherWeeklyEarningStats = async (teacherId: string, startDate?: strin
     };
 };
 
+const getTeacherFinancialStats = async (teacherId: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Total Revenue (Sum of teacherFee from all PAID class payments)
+    const totalRevenueResult = await ClassPaymentModel.aggregate([{ $match: { teacher: new Types.ObjectId(teacherId), status: "PAID" } }, { $group: { _id: null, total: { $sum: "$teacherFee" } } }]);
+    const totalRevenue = totalRevenueResult.length > 0 ? totalRevenueResult[0].total : 0;
+
+    // 2. Current Balance (From User model)
+    const user = await UserModel.findById(teacherId).select("balance");
+    const currentBalance = user?.balance || 0;
+
+    // 3. Total Withdrawals (Sum of amount from PAID withdraw requests)
+    const totalWithdrawalsResult = await WithdrawModel.aggregate([{ $match: { teacher: new Types.ObjectId(teacherId), status: "PAID" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]);
+    const totalWithdrawals = totalWithdrawalsResult.length > 0 ? totalWithdrawalsResult[0].total : 0;
+
+    // 4. Today Revenue (Sum of teacherFee from PAID class payments today)
+    const todayRevenueResult = await ClassPaymentModel.aggregate([
+        {
+            $match: {
+                teacher: new Types.ObjectId(teacherId),
+                status: "PAID",
+                createdAt: { $gte: today },
+            },
+        },
+        { $group: { _id: null, total: { $sum: "$teacherFee" } } },
+    ]);
+    const todayRevenue = todayRevenueResult.length > 0 ? todayRevenueResult[0].total : 0;
+
+    return {
+        totalRevenue,
+        currentBalance,
+        totalWithdrawals,
+        todayRevenue,
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -297,4 +334,5 @@ export const dashboardServices = {
     getTeacherDashboardStats,
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
+    getTeacherFinancialStats,
 };
