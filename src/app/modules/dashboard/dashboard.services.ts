@@ -3,6 +3,7 @@ import { UserModel } from "../auth/auth.model";
 import { ClassPaymentModel } from "../classpayments/classpayments.model";
 import { WithdrawModel } from "../withdraw/withdraw.model";
 import { ClassModel } from "../class/class.model";
+import { RatingModel } from "../rating/rating.model";
 
 const getAdminDashboardStats = async () => {
     // 1. Total Teacher Count
@@ -194,6 +195,53 @@ const getTeacherDashboardStats = async (teacherId: string) => {
     };
 };
 
+const getTeacherRatingStats = async (teacherId: string) => {
+    const stats = await RatingModel.aggregate([
+        { $match: { tutor: new Types.ObjectId(teacherId) } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                totalRatings: { $sum: 1 },
+                star5: { $sum: { $cond: [{ $eq: ["$rating", 5] }, 1, 0] } },
+                star4: { $sum: { $cond: [{ $eq: ["$rating", 4] }, 1, 0] } },
+                star3: { $sum: { $cond: [{ $eq: ["$rating", 3] }, 1, 0] } },
+                star2: { $sum: { $cond: [{ $eq: ["$rating", 2] }, 1, 0] } },
+                star1: { $sum: { $cond: [{ $eq: ["$rating", 1] }, 1, 0] } },
+            },
+        },
+    ]);
+
+    if (stats.length === 0) {
+        return {
+            averageRating: 0,
+            totalRatings: 0,
+            distribution: [
+                { star: 5, count: 0, percentage: 0 },
+                { star: 4, count: 0, percentage: 0 },
+                { star: 3, count: 0, percentage: 0 },
+                { star: 2, count: 0, percentage: 0 },
+                { star: 1, count: 0, percentage: 0 },
+            ],
+        };
+    }
+
+    const data = stats[0];
+    const total = data.totalRatings;
+
+    return {
+        averageRating: Number(data.averageRating.toFixed(1)),
+        totalRatings: total,
+        distribution: [
+            { star: 5, count: data.star5, percentage: total > 0 ? Number(((data.star5 / total) * 100).toFixed(1)) : 0 },
+            { star: 4, count: data.star4, percentage: total > 0 ? Number(((data.star4 / total) * 100).toFixed(1)) : 0 },
+            { star: 3, count: data.star3, percentage: total > 0 ? Number(((data.star3 / total) * 100).toFixed(1)) : 0 },
+            { star: 2, count: data.star2, percentage: total > 0 ? Number(((data.star2 / total) * 100).toFixed(1)) : 0 },
+            { star: 1, count: data.star1, percentage: total > 0 ? Number(((data.star1 / total) * 100).toFixed(1)) : 0 },
+        ],
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -201,4 +249,5 @@ export const dashboardServices = {
     getMonthlyPaymentStats,
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
+    getTeacherRatingStats,
 };
