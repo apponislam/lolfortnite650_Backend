@@ -34,13 +34,14 @@ const updateMeetingRecordings = catchAsync(async (req: Request, res: Response) =
 const getMyMeetings = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user._id;
 
-    const result = await ZoomService.getMyMeetings(userId);
+    const result = await ZoomService.getMyMeetings(userId, req.query);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: "Meetings retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -57,9 +58,24 @@ const getMeetingDetails = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getMeetingsByClass = catchAsync(async (req: Request, res: Response) => {
+    const { classId } = req.params;
+
+    const result = await ZoomService.getMeetingsByClass(classId as string, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Class meetings retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const ZoomController = {
     createMeeting,
     updateMeetingRecordings,
     getMyMeetings,
     getMeetingDetails,
+    getMeetingsByClass,
 };

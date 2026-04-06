@@ -44,6 +44,7 @@ export interface IZoom {
         recording_type: string;
     }[];
 
+    classId: Types.ObjectId;
     createdBy: Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;

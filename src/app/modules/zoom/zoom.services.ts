@@ -4,6 +4,7 @@ import { ZoomModel } from "./zoom.model";
 import config from "../../config";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
+import { Types } from "mongoose";
 
 const getAccessToken = async (): Promise<string> => {
     const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
@@ -26,9 +27,15 @@ const getAccessToken = async (): Promise<string> => {
 };
 
 const createMeeting = async (meetingData: any, userId: string) => {
+    const { classId, ...zoomPayload } = meetingData;
+
+    if (!classId) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Class ID is required");
+    }
+
     const token = await getAccessToken();
 
-    const response = await axios.post(`https://api.zoom.us/v2/users/me/meetings`, meetingData, {
+    const response = await axios.post(`https://api.zoom.us/v2/users/me/meetings`, zoomPayload, {
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -55,6 +62,7 @@ const createMeeting = async (meetingData: any, userId: string) => {
         password: zoomData.password,
         encrypted_password: zoomData.encrypted_password,
         settings: zoomData.settings,
+        classId,
         createdBy: userId,
     });
 
@@ -95,8 +103,23 @@ const updateMeetingRecordings = async (meetingId: string) => {
     }
 };
 
-const getMyMeetings = async (userId: string) => {
-    return await ZoomModel.find({ createdBy: userId }).sort({ createdAt: -1 });
+const getMyMeetings = async (userId: string, query: any) => {
+    const { page = 1, limit = 10 } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const result = await ZoomModel.find({ createdBy: userId }).sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
+
+    const total = await ZoomModel.countDocuments({ createdBy: userId });
+
+    return {
+        data: result,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages: Math.ceil(total / Number(limit)),
+        },
+    };
 };
 
 const getMeetingDetails = async (meetingId: string) => {
@@ -107,9 +130,32 @@ const getMeetingDetails = async (meetingId: string) => {
     return result;
 };
 
+const getMeetingsByClass = async (classId: string, query: any) => {
+    const { page = 1, limit = 10 } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const result = await ZoomModel.find({ classId: new Types.ObjectId(classId) })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit));
+
+    const total = await ZoomModel.countDocuments({ classId: new Types.ObjectId(classId) });
+
+    return {
+        data: result,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages: Math.ceil(total / Number(limit)),
+        },
+    };
+};
+
 export const ZoomService = {
     createMeeting,
     updateMeetingRecordings,
     getMyMeetings,
     getMeetingDetails,
+    getMeetingsByClass,
 };

@@ -92,6 +92,12 @@ const ZoomSchema = new Schema<IZoom>(
                 recording_type: { type: String },
             },
         ],
+        classId: {
+            type: Schema.Types.ObjectId,
+            ref: "Class",
+            required: [true, "Class ID is required"],
+            index: true,
+        },
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
