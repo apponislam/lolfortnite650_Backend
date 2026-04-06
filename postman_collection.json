@@ -1,281 +1,1585 @@
 {
-	"info": {
-		"_postman_id": "lolfortnite650-backend-collection",
-		"name": "lolfortnite650 Backend",
-		"description": "API collection for testing lolfortnite650 backend endpoints.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Auth",
-			"item": [
-				{
-					"name": "Register",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"name\": \"Test User\", \"email\": \"test@example.com\", \"password\": \"123456\", \"role\": \"STUDENT\"}",
-									"type": "text"
-								},
-								{
-									"key": "profileImage",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/register",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"register"
-							]
-						}
-					}
-				},
-				{
-					"name": "Login",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"login"
-							]
-						}
-					}
-				},
-				{
-					"name": "Get Me",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/auth/me",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"me"
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Classes",
-			"item": [
-				{
-					"name": "Get All Classes",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/classes",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"classes"
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Class",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "data",
-									"value": "{\"subject\": \"Mathematics\", \"price\": 50, \"tutorGender\": \"MALE\", \"maxStudents\": 5, \"description\": \"Algebra and Geometry\"}",
-									"type": "text"
-								},
-								{
-									"key": "images",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/classes",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"classes"
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Zoom",
-			"item": [
-				{
-					"name": "Create Meeting",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"classId\": \"<CLASS_ID>\",\n    \"topic\": \"Math Class\",\n    \"type\": 2,\n    \"start_time\": \"2024-04-10T10:00:00Z\",\n    \"duration\": 60,\n    \"timezone\": \"UTC\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/zoom/create-meeting",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"zoom",
-								"create-meeting"
-							]
-						}
-					}
-				},
-				{
-					"name": "My Meetings",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/zoom/my-meetings",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"zoom",
-								"my-meetings"
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Payments",
-			"item": [
-				{
-					"name": "Initiate Payment",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{access_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"classType\": \"CLASS\",\n    \"classId\": \"<CLASS_ID>\",\n    \"amount\": 50,\n    \"currency\": \"KWD\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/class-payments/initiate-payment",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"class-payments",
-								"initiate-payment"
-							]
-						}
-					}
-				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:5010/api/v1",
-			"type": "string"
-		},
-		{
-			"key": "access_token",
-			"value": "<YOUR_ACCESS_TOKEN>",
-			"type": "string"
-		}
-	]
+    "info": {
+        "_postman_id": "lolfortnite650-backend-exhaustive-collection",
+        "name": "lolfortnite650 Backend EXHAUSTIVE",
+        "description": "This is the COMPLETE API collection for the lolfortnite650 backend. It contains EVERY endpoint identified in the project modules.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "body",
+                                    "value": "{\"name\": \"John Doe\", \"email\": \"johndoe@example.com\", \"password\": \"password123\", \"role\": \"TEACHER\", \"phone\": \"+1234567890\", \"location\": {\"fullAddress\": \"123 Street\", \"lat\": 23.8103, \"lng\": 90.4125}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "profileImage",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "register"]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\", \"password\": \"password123\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "login"]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Email",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify-email?token=TOKEN&otp=123456&email=johndoe@example.com",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "verify-email"],
+                            "query": [
+                                { "key": "token", "value": "TOKEN" },
+                                { "key": "otp", "value": "123456" },
+                                { "key": "email", "value": "johndoe@example.com" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Resend Verification",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/resend-verification",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "resend-verification"]
+                        }
+                    }
+                },
+                {
+                    "name": "Refresh Token",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"refreshToken\": \"{{refresh_token}}\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/refresh-token",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "refresh-token"]
+                        }
+                    }
+                },
+                {
+                    "name": "Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "forgot-password"]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\", \"otp\": \"123456\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify-otp",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "verify-otp"]
+                        }
+                    }
+                },
+                {
+                    "name": "Resend OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/resend-otp",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "resend-otp"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reset Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"johndoe@example.com\", \"otp\": \"123456\", \"newPassword\": \"newpassword123\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "reset-password"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "me"]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "logout"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "body",
+                                    "value": "{\"name\": \"John Updated\", \"phone\": \"+9876543210\"}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "profileImage",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/profile",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "profile"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Location",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"lat\": 23.8, \"lng\": 90.4}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/location",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "location"]
+                        }
+                    }
+                },
+                {
+                    "name": "Change Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"currentPassword\": \"password123\", \"newPassword\": \"newsecurepass123\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/change-password",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "change-password"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Email",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"newemail@example.com\", \"password\": \"password123\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/update-email",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "update-email"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set User Password (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/auth/set-password/{{user_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "set-password", "{{user_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Classes",
+            "item": [
+                {
+                    "name": "Get All Classes",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/classes?page=1&limit=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Class By ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/classes/{{class_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes", "{{class_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Class",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "data",
+                                    "value": "{\"subject\": \"Advanced Math\", \"level\": \"High School\", \"language\": \"English\", \"price\": 100, \"tutorGender\": \"MALE\", \"maxStudents\": 10, \"description\": \"Intensive math course\"}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "images",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/classes",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Class",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "data",
+                                    "value": "{\"subject\": \"Updated Math Title\", \"price\": 120}",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/classes/{{class_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes", "{{class_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Class",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/classes/{{class_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes", "{{class_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Submit for Review",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/classes/{{class_id}}/submit-review",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes", "{{class_id}}", "submit-review"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Status (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"status\": \"APPROVED\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/classes/{{class_id}}/status",
+                            "host": ["{{base_url}}"],
+                            "path": ["classes", "{{class_id}}", "status"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Public & Policies",
+            "item": [
+                {
+                    "name": "Get All Policies",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/public",
+                            "host": ["{{base_url}}"],
+                            "path": ["public"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Policy By Type",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/public/TERMS",
+                            "host": ["{{base_url}}"],
+                            "path": ["public", "TERMS"]
+                        }
+                    }
+                },
+                {
+                    "name": "Upsert Policy (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"type\": \"TERMS\", \"title\": \"Terms of Service\", \"content\": \"Sample content here...\", \"publishedAt\": \"2024-04-01T00:00:00Z\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/public",
+                            "host": ["{{base_url}}"],
+                            "path": ["public"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Policy (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/public/TERMS",
+                            "host": ["{{base_url}}"],
+                            "path": ["public", "TERMS"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Bank Details",
+            "item": [
+                {
+                    "name": "Add Bank Account",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"bankName\": \"Global Bank\", \"accountHolderName\": \"John Doe\", \"accountNumber\": \"987654321\", \"iban\": \"KW0000123456789\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/bank-details",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Bank Accounts",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/bank-details",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Bank Account By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/bank-details/{{account_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details", "{{account_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Bank Account",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"bankName\": \"Updated Bank Name\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/bank-details/{{account_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details", "{{account_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Default Account",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/bank-details/{{account_id}}/set-default",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details", "{{account_id}}", "set-default"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Bank Account",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/bank-details/{{account_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details", "{{account_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Account (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/bank-details/{{account_id}}/verify",
+                            "host": ["{{base_url}}"],
+                            "path": ["bank-details", "{{account_id}}", "verify"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. FAQs",
+            "item": [
+                {
+                    "name": "Get Active FAQs",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/faqs?audience=STUDENT",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs"],
+                            "query": [{ "key": "audience", "value": "STUDENT" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Get FAQ By ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/faqs/{{faq_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs", "{{faq_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create FAQ (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"question\": \"How to join a class?\", \"answer\": \"Go to your dashboard and click join.\", \"audience\": \"STUDENT\", \"category\": \"General\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/faqs",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All FAQs (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/faqs/admin/all",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs", "admin", "all"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update FAQ (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"question\": \"Updated Question?\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/faqs/{{faq_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs", "{{faq_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle FAQ Status (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/faqs/{{faq_id}}/toggle-status",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs", "{{faq_id}}", "toggle-status"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete FAQ (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/faqs/{{faq_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["faqs", "{{faq_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. Contact",
+            "item": [
+                {
+                    "name": "Get Contact Info",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/contact",
+                            "host": ["{{base_url}}"],
+                            "path": ["contact"]
+                        }
+                    }
+                },
+                {
+                    "name": "Upsert Contact (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"email\": \"support@example.com\", \"phone\": \"+123456789\", \"address\": \"123 Tech City\", \"socialLinks\": {\"facebook\": \"fb.com/page\"}}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/contact",
+                            "host": ["{{base_url}}"],
+                            "path": ["contact"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. Payments",
+            "item": [
+                {
+                    "name": "Initiate Generic Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"amount\": 10, \"currency\": \"KWD\", \"metadata\": {\"orderId\": \"123\"}}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/payments/initiate",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "initiate"]
+                        }
+                    }
+                },
+                {
+                    "name": "Refund Payment (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"invoiceId\": \"INV-123\", \"amount\": 10}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/payments/refund",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "refund"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. Cards",
+            "item": [
+                {
+                    "name": "Get Saved Cards",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/cards",
+                            "host": ["{{base_url}}"],
+                            "path": ["cards"]
+                        }
+                    }
+                },
+                {
+                    "name": "Initiate Card Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"amount\": 25, \"cardId\": \"{{card_id}}\", \"saveCard\": true}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/cards/initiate-payment",
+                            "host": ["{{base_url}}"],
+                            "path": ["cards", "initiate-payment"]
+                        }
+                    }
+                },
+                {
+                    "name": "Save Card",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"token\": \"TOK_123\", \"cardLastFour\": \"4444\", \"cardBrand\": \"Visa\", \"cardExpiryMonth\": \"12\", \"cardExpiryYear\": \"28\", \"cardHolderName\": \"John Doe\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/cards/save-card",
+                            "host": ["{{base_url}}"],
+                            "path": ["cards", "save-card"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Card",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/cards/{{card_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["cards", "{{card_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Default Card",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/cards/{{card_id}}/default",
+                            "host": ["{{base_url}}"],
+                            "path": ["cards", "{{card_id}}", "default"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "9. Zoom",
+            "item": [
+                {
+                    "name": "Create Meeting",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"classId\": \"{{class_id}}\", \"topic\": \"Live Math Session\", \"start_time\": \"2026-04-10T15:00:00Z\", \"duration\": 45}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/zoom/create-meeting",
+                            "host": ["{{base_url}}"],
+                            "path": ["zoom", "create-meeting"]
+                        }
+                    }
+                },
+                {
+                    "name": "My Meetings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/zoom/my-meetings?page=1&limit=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["zoom", "my-meetings"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Meeting Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/zoom/details/{{meeting_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["zoom", "details", "{{meeting_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Class Meetings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/zoom/class-meetings/{{class_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["zoom", "class-meetings", "{{class_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "10. Availability",
+            "item": [
+                {
+                    "name": "Get My Availability",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/availability",
+                            "host": ["{{base_url}}"],
+                            "path": ["availability"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Availability",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"availability\": [{\"dayOfWeek\": 1, \"startTime\": \"09:00\", \"endTime\": \"12:00\"}, {\"dayOfWeek\": 3, \"startTime\": \"14:00\", \"endTime\": \"17:00\"}]}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/availability",
+                            "host": ["{{base_url}}"],
+                            "path": ["availability"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Availability",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/availability",
+                            "host": ["{{base_url}}"],
+                            "path": ["availability"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "11. Slots",
+            "item": [
+                {
+                    "name": "Get Available Slots",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/slots/available/{{teacher_id}}?date=2026-04-10",
+                            "host": ["{{base_url}}"],
+                            "path": ["slots", "available", "{{teacher_id}}"],
+                            "query": [{ "key": "date", "value": "2026-04-10" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Slot Status",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/slots/{{slot_id}}/status",
+                            "host": ["{{base_url}}"],
+                            "path": ["slots", "{{slot_id}}", "status"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Teacher Slots",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/slots/teacher?date=2026-04-10",
+                            "host": ["{{base_url}}"],
+                            "path": ["slots", "teacher"],
+                            "query": [{ "key": "date", "value": "2026-04-10" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Slot Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"status\": \"UNAVAILABLE\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/slots/{{slot_id}}/status",
+                            "host": ["{{base_url}}"],
+                            "path": ["slots", "{{slot_id}}", "status"]
+                        }
+                    }
+                },
+                {
+                    "name": "Admin: Get Teacher Slots",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/slots/admin/teacher/{{teacher_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["slots", "admin", "teacher", "{{teacher_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "12. Messages",
+            "item": [
+                {
+                    "name": "Create Conversation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"receiverId\": \"{{receiver_id}}\", \"message\": \"Hi, I am interested in your class.\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "conversations"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Conversations",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations?page=1&limit=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "conversations"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Conversation By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations/{{conversation_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "conversations", "{{conversation_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Mark As Read",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations/{{conversation_id}}/read",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "conversations", "{{conversation_id}}", "read"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Messages",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations/{{conversation_id}}/messages?page=1&limit=20",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "conversations", "{{conversation_id}}", "messages"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "20" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Send Message",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                { "key": "receiverId", "value": "{{receiver_id}}", "type": "text" },
+                                { "key": "text", "value": "Check out this file.", "type": "text" },
+                                { "key": "files", "type": "file", "src": [] }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/send",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "send"]
+                        }
+                    }
+                },
+                {
+                    "name": "Accept Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/{{message_id}}/accept",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "{{message_id}}", "accept"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/{{message_id}}/reject",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "{{message_id}}", "reject"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reschedule Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/{{message_id}}/reschedule",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "{{message_id}}", "reschedule"]
+                        }
+                    }
+                },
+                {
+                    "name": "Edit Message",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"text\": \"Edited message text\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/{{message_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "{{message_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Message",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/messages/{{message_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["messages", "{{message_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "13. Hourly Classes",
+            "item": [
+                {
+                    "name": "Get All Hourly Classes",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/hourly-classes",
+                            "host": ["{{base_url}}"],
+                            "path": ["hourly-classes"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Hourly Class By ID",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/hourly-classes/{{hourly_class_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["hourly-classes", "{{hourly_class_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create/Update Hourly Class (Teacher)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"subjects\": [\"Physics\", \"Calculus\"], \"pricePerHour\": 30, \"description\": \"Expert tutoring in STEM subjects.\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/hourly-classes",
+                            "host": ["{{base_url}}"],
+                            "path": ["hourly-classes"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Hourly Class (Teacher)",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/hourly-classes/my/class",
+                            "host": ["{{base_url}}"],
+                            "path": ["hourly-classes", "my", "class"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "14. Class Payments",
+            "item": [
+                {
+                    "name": "Initiate Class Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"classType\": \"CLASS\", \"classId\": \"{{class_id}}\", \"amount\": 100, \"currency\": \"KWD\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/class-payments/initiate-payment",
+                            "host": ["{{base_url}}"],
+                            "path": ["class-payments", "initiate-payment"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Student Classes",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/class-payments/student",
+                            "host": ["{{base_url}}"],
+                            "path": ["class-payments", "student"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Teacher Classes",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/class-payments/teacher",
+                            "host": ["{{base_url}}"],
+                            "path": ["class-payments", "teacher"]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Payment Status",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/class-payments/verify-payment?paymentId=PAY_123",
+                            "host": ["{{base_url}}"],
+                            "path": ["class-payments", "verify-payment"],
+                            "query": [{ "key": "paymentId", "value": "PAY_123" }]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "15. Withdrawals",
+            "item": [
+                {
+                    "name": "Request Withdrawal",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"amount\": 200, \"bankDetailsId\": \"{{bank_id}}\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/withdrawals/request",
+                            "host": ["{{base_url}}"],
+                            "path": ["withdrawals", "request"]
+                        }
+                    }
+                },
+                {
+                    "name": "My Withdraw Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/withdrawals/my-requests",
+                            "host": ["{{base_url}}"],
+                            "path": ["withdrawals", "my-requests"]
+                        }
+                    }
+                },
+                {
+                    "name": "Cancel Request (Teacher)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/withdrawals/cancel/{{withdraw_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["withdrawals", "cancel", "{{withdraw_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Requests (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/withdrawals/all",
+                            "host": ["{{base_url}}"],
+                            "path": ["withdrawals", "all"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Withdraw Status (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"status\": \"APPROVED\", \"adminComment\": \"Paid via bank transfer.\"}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/withdrawals/status/{{withdraw_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["withdrawals", "status", "{{withdraw_id}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "16. Dashboard",
+            "item": [
+                {
+                    "name": "Admin Dashboard Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/admin-stats",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "admin-stats"]
+                        }
+                    }
+                },
+                {
+                    "name": "Monthly Registration Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/monthly-registration?year=2024",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "monthly-registration"],
+                            "query": [{ "key": "year", "value": "2024" }]
+                        }
+                    }
+                },
+                {
+                    "name": "User Role Distribution",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/user-distribution",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "user-distribution"]
+                        }
+                    }
+                },
+                {
+                    "name": "Monthly Payment Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/monthly-payments?year=2024",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "monthly-payments"],
+                            "query": [{ "key": "year", "value": "2024" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Monthly Withdrawal Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/monthly-withdrawals?year=2024",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "monthly-withdrawals"],
+                            "query": [{ "key": "year", "value": "2024" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Teacher Dashboard Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/teacher-stats",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "teacher-stats"]
+                        }
+                    }
+                },
+                {
+                    "name": "Teacher Rating Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/teacher-ratings",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "teacher-ratings"]
+                        }
+                    }
+                },
+                {
+                    "name": "Teacher Weekly Earnings",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/teacher-weekly-earnings?startDate=2024-04-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "teacher-weekly-earnings"],
+                            "query": [{ "key": "startDate", "value": "2024-04-01" }]
+                        }
+                    }
+                },
+                {
+                    "name": "Teacher Financial Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/teacher-financial-stats",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "teacher-financial-stats"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5010/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "YOUR_ACCESS_TOKEN",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "YOUR_REFRESH_TOKEN",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "USER_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "class_id",
+            "value": "CLASS_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "teacher_id",
+            "value": "TEACHER_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "receiver_id",
+            "value": "RECEIVER_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "bank_id",
+            "value": "BANK_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "account_id",
+            "value": "ACCOUNT_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "faq_id",
+            "value": "FAQ_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "card_id",
+            "value": "CARD_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "meeting_id",
+            "value": "MEETING_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "slot_id",
+            "value": "SLOT_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "conversation_id",
+            "value": "CONVERSATION_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "message_id",
+            "value": "MESSAGE_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "hourly_class_id",
+            "value": "HOURLY_CLASS_ID_HERE",
+            "type": "string"
+        },
+        {
+            "key": "withdraw_id",
+            "value": "WITHDRAW_ID_HERE",
+            "type": "string"
+        }
+    ]
 }
