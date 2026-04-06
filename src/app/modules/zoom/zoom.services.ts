@@ -5,6 +5,7 @@ import config from "../../config";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { Types } from "mongoose";
+import { ClassModel } from "../class/class.model";
 
 const getAccessToken = async (): Promise<string> => {
     const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
@@ -31,6 +32,20 @@ const createMeeting = async (meetingData: any, userId: string) => {
 
     if (!classId) {
         throw new ApiError(httpStatus.BAD_REQUEST, "Class ID is required");
+    }
+
+    if (!Types.ObjectId.isValid(classId)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Invalid Class ID");
+    }
+
+    const classData = await ClassModel.findById(classId);
+
+    if (!classData) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
+    }
+
+    if (classData.runningStatus === "COMPLETED") {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Cannot create meeting for a completed class");
     }
 
     const token = await getAccessToken();
