@@ -42,7 +42,15 @@ export interface IZoom {
         download_url: string;
         status: string;
         recording_type: string;
+
+        // drive
+        drive_file_id?: string;
+        drive_web_link?: string;
+        uploaded_to_drive?: boolean;
     }[];
+
+    // drive
+    drive_upload_status?: "pending" | "completed" | "failed";
 
     classId: Types.ObjectId;
     createdBy: Types.ObjectId;

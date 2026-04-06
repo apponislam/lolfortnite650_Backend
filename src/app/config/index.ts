@@ -28,6 +28,10 @@ export default {
         webhook_secret: process.env.ZOOM_WEBHOOK_SECRET_TOKEN,
     },
 
+    drive: {
+        folder_id: process.env.DRIVE_FOLDER_ID,
+    },
+
     myfatoorah: {
         api_key: process.env.MYFATOORAH_API_KEY,
         base_url: process.env.MYFATOORAH_BASE_URL,

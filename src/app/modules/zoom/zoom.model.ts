@@ -90,8 +90,15 @@ const ZoomSchema = new Schema<IZoom>(
                 download_url: { type: String },
                 status: { type: String },
                 recording_type: { type: String },
+
+                // drive
+                drive_file_id: { type: String },
+                drive_web_link: { type: String },
+                uploaded_to_drive: { type: Boolean },
             },
         ],
+        // drive
+        drive_upload_status: { type: String, default: "pending" },
         classId: {
             type: Schema.Types.ObjectId,
             ref: "Class",

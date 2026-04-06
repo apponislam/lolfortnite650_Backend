@@ -146,6 +146,10 @@ const getMeetingDetails = async (meetingId: string) => {
 };
 
 const getMeetingsByClass = async (classId: string, query: any) => {
+    if (!Types.ObjectId.isValid(classId)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Invalid Class ID");
+    }
+
     const { page = 1, limit = 10 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
