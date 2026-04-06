@@ -7,32 +7,12 @@ import { zoomValidations } from "./zoom.validations";
 const router = Router();
 
 // Meeting creation
-router.post(
-    "/create-meeting", 
-    auth, 
-    validateRequest(zoomValidations.createMeetingSchema), 
-    ZoomController.createMeeting
-);
-
-// Fetch and update recording details for a specific meeting
-router.patch(
-    "/update-recordings/:meetingId", 
-    auth, 
-    ZoomController.updateMeetingRecordings
-);
+router.post("/create-meeting", auth, validateRequest(zoomValidations.createMeetingSchema), ZoomController.createMeeting);
 
 // Get my meetings (includes recording info if fetched)
-router.get(
-    "/my-meetings", 
-    auth, 
-    ZoomController.getMyMeetings
-);
+router.get("/my-meetings", auth, ZoomController.getMyMeetings);
 
 // Get single meeting details
-router.get(
-    "/details/:meetingId", 
-    auth, 
-    ZoomController.getMeetingDetails
-);
+router.get("/details/:meetingId", auth, ZoomController.getMeetingDetails);
 
 export const zoomRoutes = router;
