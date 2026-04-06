@@ -1,16 +1,11 @@
 import axios from "axios";
-import { IZoomAccessToken, IZoomMeetingCreate, IZoomMeetingResponse, IZoomRecordingResponse } from "./zoom.interface";
-import { ZoomMeeting, ZoomRecording } from "./zoom.model";
+import { IZoomAccessToken } from "./zoom.interface";
+import { ZoomModel } from "./zoom.model";
 import config from "../../config";
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiError";
 
 const getAccessToken = async (): Promise<string> => {
-    let accessToken: string | null = null;
-    let tokenExpiry: number | null = null;
-
-    if (accessToken && tokenExpiry && Date.now() < tokenExpiry) {
-        return accessToken;
-    }
-
     const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
 
     const response = await axios.post<IZoomAccessToken>(
@@ -27,70 +22,94 @@ const getAccessToken = async (): Promise<string> => {
         },
     );
 
-    accessToken = response.data.access_token;
-    tokenExpiry = Date.now() + (response.data.expires_in - 60) * 1000; // 60 seconds buffer
-
-    return accessToken;
+    return response.data.access_token;
 };
 
-const createMeeting = async (meetingData: IZoomMeetingCreate, userId: string): Promise<IZoomMeetingResponse> => {
+const createMeeting = async (meetingData: any, userId: string) => {
     const token = await getAccessToken();
 
-    const response = await axios.post<IZoomMeetingResponse>(`https://api.zoom.us/v2/users/me/meetings`, meetingData, {
+    const response = await axios.post(`https://api.zoom.us/v2/users/me/meetings`, meetingData, {
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
         },
     });
 
-    // Save to database
-    const meeting = new ZoomMeeting({
-        ...response.data,
+    const zoomData = response.data;
+
+    // Save to database mapping important details
+    const result = await ZoomModel.create({
+        meetingId: zoomData.id,
+        uuid: zoomData.uuid,
+        host_id: zoomData.host_id,
+        host_email: zoomData.host_email,
+        topic: zoomData.topic,
+        type: zoomData.type,
+        status: zoomData.status,
+        start_time: zoomData.start_time,
+        duration: zoomData.duration,
+        timezone: zoomData.timezone,
+        agenda: zoomData.agenda,
+        start_url: zoomData.start_url,
+        join_url: zoomData.join_url,
+        password: zoomData.password,
+        encrypted_password: zoomData.encrypted_password,
+        settings: zoomData.settings,
         createdBy: userId,
     });
-    await meeting.save();
 
-    return response.data;
+    return result;
 };
 
-const getMeetingRecordings = async (meetingId: string): Promise<IZoomRecordingResponse> => {
+const updateMeetingRecordings = async (meetingId: string) => {
     const token = await getAccessToken();
 
-    const response = await axios.get<IZoomRecordingResponse>(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    // Find the meeting in DB
-    const meeting = await ZoomMeeting.findOne({ id: parseInt(meetingId) });
-    if (meeting) {
-        // Save recording to DB
-        const recording = new ZoomRecording({
-            ...response.data,
-            meeting: meeting._id,
+    try {
+        const response = await axios.get(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
-        await recording.save();
+
+        const recordingData = response.data;
+
+        // Update the meeting record with recording details
+        const result = await ZoomModel.findOneAndUpdate(
+            { meetingId: parseInt(meetingId) },
+            {
+                $set: {
+                    total_size: recordingData.total_size,
+                    recording_count: recordingData.recording_count,
+                    recording_files: recordingData.recording_files,
+                },
+            },
+            { new: true },
+        );
+
+        return result;
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Recordings not found for this meeting yet");
+        }
+        throw error;
     }
-
-    return response.data;
 };
 
-const getUserMeetings = async (userId: string) => {
-    return await ZoomMeeting.find({ createdBy: userId }).sort({ createdAt: -1 });
+const getMyMeetings = async (userId: string) => {
+    return await ZoomModel.find({ createdBy: userId }).sort({ createdAt: -1 });
 };
 
-const getUserRecordings = async (userId: string) => {
-    const userMeetings = await ZoomMeeting.find({ createdBy: userId }).select("_id");
-    const meetingIds = userMeetings.map((m) => m._id);
-    return await ZoomRecording.find({ meeting: { $in: meetingIds } })
-        .populate("meeting")
-        .sort({ createdAt: -1 });
+const getMeetingDetails = async (meetingId: string) => {
+    const result = await ZoomModel.findOne({ meetingId: parseInt(meetingId) });
+    if (!result) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Meeting not found in database");
+    }
+    return result;
 };
 
 export const ZoomService = {
     createMeeting,
-    getMeetingRecordings,
-    getUserMeetings,
-    getUserRecordings,
+    updateMeetingRecordings,
+    getMyMeetings,
+    getMeetingDetails,
 };
