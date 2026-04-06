@@ -96,6 +96,7 @@ const ZoomSchema = new Schema<IZoom>(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
+            index: true,
         },
     },
     {
@@ -103,5 +104,11 @@ const ZoomSchema = new Schema<IZoom>(
         versionKey: false,
     },
 );
+
+// Performance Indexes
+ZoomSchema.index({ createdBy: 1, createdAt: -1 });
+ZoomSchema.index({ status: 1 });
+ZoomSchema.index({ start_time: 1 });
+ZoomSchema.index({ uuid: 1 });
 
 export const ZoomModel = model<IZoom>("Zoom", ZoomSchema);
