@@ -52,45 +52,61 @@ const createMeeting = async (meetingData: any, userId: string) => {
 
     const token = await getAccessToken();
 
-    const response = await axios.post(`https://api.zoom.us/v2/users/me/meetings`, zoomPayload, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
+    try {
+        const response = await axios.post(
+            `https://api.zoom.us/v2/users/me/meetings`,
+            {
+                type: 2, // Default to scheduled meeting
+                ...zoomPayload,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            },
+        );
 
-    const zoomData = response.data;
+        const zoomData = response.data;
 
-    // Save to database mapping important details
-    const result = await ZoomModel.create({
-        meetingId: zoomData.id,
-        uuid: zoomData.uuid,
-        host_id: zoomData.host_id,
-        host_email: zoomData.host_email,
-        topic: zoomData.topic,
-        type: zoomData.type,
-        status: zoomData.status,
-        start_time: zoomData.start_time,
-        duration: zoomData.duration,
-        timezone: zoomData.timezone,
-        agenda: zoomData.agenda,
-        start_url: zoomData.start_url,
-        join_url: zoomData.join_url,
-        password: zoomData.password,
-        encrypted_password: zoomData.encrypted_password,
-        settings: zoomData.settings,
-        classId,
-        createdBy: userId,
-    });
+        // Save to database mapping important details
+        const result = await ZoomModel.create({
+            meetingId: zoomData.id,
+            uuid: zoomData.uuid,
+            host_id: zoomData.host_id,
+            host_email: zoomData.host_email,
+            topic: zoomData.topic,
+            type: zoomData.type,
+            status: zoomData.status,
+            start_time: zoomData.start_time,
+            duration: zoomData.duration,
+            timezone: zoomData.timezone,
+            agenda: zoomData.agenda,
+            start_url: zoomData.start_url,
+            join_url: zoomData.join_url,
+            password: zoomData.password,
+            encrypted_password: zoomData.encrypted_password,
+            settings: zoomData.settings,
+            classId,
+            createdBy: userId,
+        });
 
-    // after create zoom find enrolled students from class payments then sent a email to them with meeting link
-    const enrolledStudents = await ClassPaymentModel.find({ classId: new Types.ObjectId(classId), status: "PAID" }).populate("student", "name email");
-    // send email to each student with meeting link
-    enrolledStudents.forEach((student: any) => {
-        sendZoomMeetingInvitation(student.student.email, student.student.name, zoomData.topic, zoomData.id, zoomData.join_url, zoomData.start_time);
-    });
+        // after create zoom find enrolled students from class payments then sent a email to them with meeting link
+        const enrolledStudents = await ClassPaymentModel.find({ classId: new Types.ObjectId(classId), status: "PAID" }).populate("student", "name email");
+        // send email to each student with meeting link
+        enrolledStudents.forEach((student: any) => {
+            sendZoomMeetingInvitation(student.student.email, student.student.name, zoomData.topic, zoomData.id, zoomData.join_url, zoomData.start_time);
+        });
 
-    return result;
+        return result;
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            const zoomError = error.response?.data;
+            console.error("Zoom API Error Details:", JSON.stringify(zoomError, null, 2));
+            throw new ApiError(error.response?.status || httpStatus.INTERNAL_SERVER_ERROR, zoomError?.message || "Zoom API Request Failed");
+        }
+        throw error;
+    }
 };
 
 const updateMeetingRecordings = async (meetingId: string) => {

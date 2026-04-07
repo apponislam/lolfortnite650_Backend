@@ -15,6 +15,7 @@ import { hourlyClassRoutes } from "../modules/hourlyclasses/hourlyclass.routes";
 import { ClassPaymentRoutes } from "../modules/classpayments/classpayments.routes";
 import { WithdrawRoutes } from "../modules/withdraw/withdraw.routes";
 import { DashboardRoutes } from "../modules/dashboard/dashboard.routes";
+import { zoomRoutes2 } from "../modules/zoom2/zoom.routes";
 
 const router = express.Router();
 
@@ -54,6 +55,10 @@ const moduleRoutes = [
     {
         path: "/zoom",
         route: zoomRoutes,
+    },
+    {
+        path: "/zoom2",
+        route: zoomRoutes2,
     },
 
     {
