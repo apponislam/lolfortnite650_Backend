@@ -6,6 +6,8 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { Types } from "mongoose";
 import { ClassModel } from "../class/class.model";
+import { ClassPaymentModel } from "../classpayments/classpayments.model";
+import { sendZoomMeetingInvitation } from "../../../utils/emailTemplates";
 
 const getAccessToken = async (): Promise<string> => {
     const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
@@ -79,6 +81,13 @@ const createMeeting = async (meetingData: any, userId: string) => {
         settings: zoomData.settings,
         classId,
         createdBy: userId,
+    });
+
+    // after create zoom find enrolled students from class payments then sent a email to them with meeting link
+    const enrolledStudents = await ClassPaymentModel.find({ classId: new Types.ObjectId(classId), status: "PAID" }).populate("student", "name email");
+    // send email to each student with meeting link
+    enrolledStudents.forEach((student: any) => {
+        sendZoomMeetingInvitation(student.student.email, student.student.name, zoomData.topic, zoomData.id, zoomData.join_url, zoomData.start_time);
     });
 
     return result;

@@ -58,3 +58,37 @@ export const sendEmailUpdateVerification = (email: string, name: string, verific
     `;
     sendMail(email, "Verify Your New Email", html);
 };
+
+export const sendZoomMeetingInvitation = (email: string, name: string, topic: string, meetingId: string, joinUrl: string, startTime: string) => {
+    const html = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; background-color: #ffffff;">
+            <div style="background-color: #2D8CFF; padding: 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Zoom Meeting Invitation</h1>
+            </div>
+            <div style="padding: 30px; color: #333333; line-height: 1.6;">
+                <h2 style="color: #2D8CFF; margin-top: 0;">Hello ${name},</h2>
+                <p style="font-size: 16px;">You have been invited to join a Zoom meeting for the class: <strong>${topic}</strong>.</p>
+                
+                <div style="background-color: #f8f9fa; border-left: 4px solid #2D8CFF; padding: 15px; margin: 25px 0;">
+                    <p style="margin: 5px 0;"><strong>Topic:</strong> ${topic}</p>
+                    <p style="margin: 5px 0;"><strong>Start Time:</strong> ${new Date(startTime).toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>Meeting ID:</strong> ${meetingId}</p>
+                </div>
+
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="${joinUrl}" style="background-color: #2D8CFF; color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(45, 140, 255, 0.2);">Join Meeting</a>
+                </div>
+
+                <p style="font-size: 14px; color: #666666;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+                <p style="font-size: 12px; word-break: break-all; color: #2D8CFF;">${joinUrl}</p>
+                
+                <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 30px 0;">
+                <p style="font-size: 12px; color: #999999; text-align: center;">Please make sure you have Zoom installed on your device before the meeting starts.</p>
+            </div>
+            <div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 12px; color: #777777;">
+                &copy; ${new Date().getFullYear()} lolfortnite650. All rights reserved.
+            </div>
+        </div>
+    `;
+    sendMail(email, `Meeting Invitation: ${topic}`, html);
+};
