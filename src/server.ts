@@ -21,7 +21,7 @@ async function main() {
         SlotJobs.initializeAllJobs();
 
         server.listen(Number(config.port), config.ip, () => {
-            console.log(`✅ App listening on port ${config.port}`);
+            console.log(`✅ App listening on port ${config.port} on ${config.ip}`);
         });
     } catch (err) {
         console.log("❌ DB Connection Failed:", err);
