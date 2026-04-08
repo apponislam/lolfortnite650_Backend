@@ -3,6 +3,7 @@ import { HourlyClassModel } from "./hourlyclass.model";
 import { HourlyClass } from "./hourlyclass.interface";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
+import { RatingModel } from "../rating/rating.model";
 
 /**
  * Create or Update hourly class (Upsert)
@@ -125,19 +126,36 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
     const result = await HourlyClassModel.aggregate(pipeline);
 
     // Clean up or re-populate if necessary (since we used lookup)
-    const formattedResult = result.map((item) => {
-        if (item.tutorDetails) {
-            item.createdBy = {
-                _id: item.tutorDetails._id,
-                name: item.tutorDetails.name,
-                email: item.tutorDetails.email,
-                profileImage: item.tutorDetails.profileImage,
-                gender: item.tutorDetails.gender,
-            };
-            delete item.tutorDetails;
-        }
-        return item;
-    });
+    const formattedResult = await Promise.all(
+        result.map(async (item) => {
+            // Get ratings for this specific class
+            const ratingStats = await RatingModel.aggregate([
+                { $match: { class: item._id } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: "$rating" },
+                        ratingCount: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            item.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+            item.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+
+            if (item.tutorDetails) {
+                item.createdBy = {
+                    _id: item.tutorDetails._id,
+                    name: item.tutorDetails.name,
+                    email: item.tutorDetails.email,
+                    profileImage: item.tutorDetails.profileImage,
+                    gender: item.tutorDetails.gender,
+                };
+                delete item.tutorDetails;
+            }
+            return item;
+        }),
+    );
 
     // If tutorDetails wasn't joined (non-auth user), populate manually
     if (!user || !user.preferences) {

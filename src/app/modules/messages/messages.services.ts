@@ -56,7 +56,7 @@ export const createConversation = async (
 /**
  * Get all conversations for a user
  */
-export const getUserConversations = async (userId: string, query: { page?: number; limit?: number }) => {
+const getUserConversations = async (userId: string, query: { page?: number; limit?: number }) => {
     const { page = 1, limit = 20 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -77,9 +77,15 @@ export const getUserConversations = async (userId: string, query: { page?: numbe
     const totalPages = Math.ceil(total / Number(limit));
 
     const result = (conversations as any[]).map((conv) => {
-        const unreadEntry = conv.unreadCounts.find((u: any) => u.userId.toString() === userId);
+        const currentUserId = userId.toString();
+        const unreadEntry = conv.unreadCounts.find((u: any) => u.userId.toString() === currentUserId);
+        const otherParticipants = conv.participantIds.filter((p: any) => p._id.toString() !== currentUserId);
+        const myUnreadCounts = conv.unreadCounts.filter((u: any) => u.userId.toString() === currentUserId);
+
         return {
             ...conv,
+            participantIds: otherParticipants,
+            unreadCounts: myUnreadCounts,
             unreadCount: unreadEntry?.count || 0,
         };
     });
@@ -164,9 +170,15 @@ export const getConversationById = async (conversationId: string, userId: string
         throw new ApiError(httpStatus.NOT_FOUND, "Conversation not found");
     }
 
-    const unreadEntry = (conversation as any).unreadCounts.find((u: any) => u.userId.toString() === userId);
+    const currentUserId = userId.toString();
+    const unreadEntry = (conversation as any).unreadCounts.find((u: any) => u.userId.toString() === currentUserId);
+    const otherParticipants = (conversation as any).participantIds.filter((p: any) => p._id.toString() !== currentUserId);
+    const myUnreadCounts = (conversation as any).unreadCounts.filter((u: any) => u.userId.toString() === currentUserId);
+
     return {
         ...conversation,
+        participantIds: otherParticipants,
+        unreadCounts: myUnreadCounts,
         unreadCount: unreadEntry?.count || 0,
     };
 };
