@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 export type ClassPaymentStatus = "PENDING" | "PAID" | "FAILED" | "CANCELED";
 export type ClassPaymentType = "HOURLY_CLASS" | "CLASS";
+export type ClassDetailType = "GROUP" | "ONE_TO_ONE";
 
 export interface IClassPayment {
     student: Types.ObjectId;
@@ -20,6 +21,7 @@ export interface IClassPayment {
 
     // Class references
     classType: ClassPaymentType;
+    classDetailType?: ClassDetailType; // For CLASS type: GROUP or ONE_TO_ONE
     classId: Types.ObjectId; // Reference to Class or HourlyClass
     slotId?: Types.ObjectId; // Only for Hourly Class
     messageId?: Types.ObjectId; // Reference to the message (OFFER/REQUEST/ACCEPTED)

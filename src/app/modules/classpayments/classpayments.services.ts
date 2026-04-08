@@ -21,13 +21,14 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 
     let teacherId: Types.ObjectId | undefined;
     let finalAmount = amount;
+    let classDetailType: any = undefined;
 
     // Validate class and get teacher
     if (classType === "CLASS") {
         const classData = await ClassModel.findById(classId);
         if (!classData) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
-        // Check if student is already enrolled
+        // ... existing enrollment checks ...
         const alreadyEnrolled = await ClassPaymentModel.findOne({
             student: userId,
             classId: classId,
@@ -45,6 +46,7 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 
         teacherId = classData.createdBy;
         finalAmount = classData.price;
+        classDetailType = classData.classType; // This will be "GROUP" or "ONE_TO_ONE"
     } else if (classType === "HOURLY_CLASS") {
         const hourlyClass = await HourlyClassModel.findById(classId);
         if (!hourlyClass) throw new ApiError(httpStatus.NOT_FOUND, "Hourly class not found");
@@ -87,6 +89,7 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         currency,
         status: "PENDING",
         classType,
+        classDetailType,
         classId,
         slotId,
         messageId,

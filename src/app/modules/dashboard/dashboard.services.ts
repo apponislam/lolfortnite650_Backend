@@ -423,7 +423,7 @@ const getTeacherFinancialStats = async (teacherId: string) => {
 };
 
 const getAllClassPayments = async (query: any) => {
-    const { page = 1, limit = 10, status, classType, searchTerm } = query;
+    const { page = 1, limit = 10, status, classType, classDetailType, searchTerm } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = {};
@@ -438,7 +438,12 @@ const getAllClassPayments = async (query: any) => {
         filters.classType = classType;
     }
 
-    // 3. Search Functionality
+    // 3. Class Detail Type Filter (GROUP | ONE_TO_ONE)
+    if (classDetailType) {
+        filters.classDetailType = classDetailType;
+    }
+
+    // 4. Search Functionality
     if (searchTerm) {
         const searchRegex = new RegExp(searchTerm, "i");
 

@@ -47,6 +47,10 @@ const classPaymentSchema = new Schema<IClassPayment>(
             enum: ["HOURLY_CLASS", "CLASS"],
             required: true,
         },
+        classDetailType: {
+            type: String,
+            enum: ["GROUP", "ONE_TO_ONE"],
+        },
         classId: {
             type: Schema.Types.ObjectId,
             required: true,
