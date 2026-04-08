@@ -69,22 +69,7 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
     const commission = (finalAmount * percentage) / 100;
     const teacherFee = finalAmount - commission;
 
-    // Execute MyFatoorah Payment
-    const paymentResponse = await executeMyFatoorahPayment({
-        amount: finalAmount,
-        currency,
-        customerName: student.name,
-        customerEmail: student.email,
-        successUrl: `${config.client_url}/payment/success`,
-        errorUrl: `${config.client_url}/payment/error`,
-        metadata: { classType, classId, slotId, messageId, studentId: userId, teacherId },
-    });
-
-    if (!paymentResponse.IsSuccess) {
-        throw new ApiError(httpStatus.BAD_GATEWAY, "Payment initiation failed");
-    }
-
-    // Create record in ClassPayment
+    // Create record in ClassPayment first in PENDING state
     const classPayment = await ClassPaymentModel.create({
         student: userId,
         teacher: teacherId,
@@ -93,20 +78,49 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         teacherFee,
         currency,
         status: "PENDING",
-        invoiceId: paymentResponse.Data.InvoiceId,
-        paymentUrl: paymentResponse.Data.PaymentURL,
         classType,
         classId,
         slotId,
         messageId,
-        metadata: { ...payload, rawResponse: paymentResponse.Data },
+        metadata: payload,
     });
 
-    return {
-        paymentUrl: paymentResponse.Data.PaymentURL,
-        invoiceId: paymentResponse.Data.InvoiceId,
-        classPaymentId: classPayment._id,
-    };
+    try {
+        // Execute MyFatoorah Payment
+        const paymentResponse = await executeMyFatoorahPayment({
+            amount: finalAmount,
+            currency,
+            customerName: student.name || "Customer",
+            customerEmail: student.email || "test@test.com",
+            successUrl: `${config.client_url}/payment/success?paymentId=${classPayment._id}`,
+            errorUrl: `${config.client_url}/payment/error?paymentId=${classPayment._id}`,
+            customerReference: classPayment._id.toString(),
+            // No need to send all metadata in UserDefinedField if it's already in our DB
+            // metadata: { classType, classId, slotId, messageId, studentId: userId, teacherId },
+        });
+
+        if (!paymentResponse.IsSuccess) {
+            classPayment.status = "FAILED";
+            await classPayment.save();
+            throw new ApiError(httpStatus.BAD_GATEWAY, "Payment initiation failed");
+        }
+
+        // Update record with MyFatoorah details
+        classPayment.invoiceId = paymentResponse.Data.InvoiceId;
+        classPayment.paymentUrl = paymentResponse.Data.InvoiceURL;
+        classPayment.metadata = { ...payload, rawResponse: paymentResponse.Data };
+        await classPayment.save();
+
+        return {
+            paymentUrl: paymentResponse.Data.InvoiceURL,
+            invoiceId: paymentResponse.Data.InvoiceId,
+            classPaymentId: classPayment._id,
+        };
+    } catch (error: any) {
+        classPayment.status = "FAILED";
+        await classPayment.save();
+        throw new ApiError(httpStatus.BAD_REQUEST, error.message || "Failed to initiate payment");
+    }
 };
 
 /**
@@ -120,14 +134,18 @@ export const verifyClassPayment = async (paymentId: string) => {
     }
 
     const invoiceData = statusResponse.Data;
-    const classPayment = await ClassPaymentModel.findOne({ invoiceId: invoiceData.InvoiceId });
+    const classPayment = await ClassPaymentModel.findOne({
+        $or: [{ invoiceId: invoiceData.InvoiceId.toString() }, { _id: paymentId }],
+    });
 
     if (!classPayment) throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found");
 
     if (invoiceData.InvoiceStatus === "Paid") {
+        if (classPayment.status === "PAID") return classPayment; // Already processed
+
         classPayment.status = "PAID";
         classPayment.paymentId = paymentId;
-        classPayment.transactionId = invoiceData.InvoiceTransactions[0]?.TransactionId;
+        classPayment.transactionId = invoiceData.InvoiceTransactions?.[0]?.TransactionId;
         await classPayment.save();
 
         // Add balance to teacher

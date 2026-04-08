@@ -45,7 +45,7 @@ export const createConversation = async (
     const conversation = await ConversationModel.create(conversationData);
 
     // Populate participant details before returning
-    await conversation.populate("participantIds", "name email avatar role");
+    await conversation.populate("participantIds", "name email profileImage role");
 
     // Notify participants
     sendToUsers(conversation.participantIds, "conversation", conversation);
@@ -64,7 +64,7 @@ export const getUserConversations = async (userId: string, query: { page?: numbe
         participantIds: new Types.ObjectId(userId),
     })
         .populate("lastMessage")
-        .populate("participantIds", "name email avatar")
+        .populate("participantIds", "name email profileImage")
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(Number(limit))
@@ -121,10 +121,10 @@ export const getMessages = async (conversationId: string, userId: string, query:
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
-        .populate("senderId", "name email avatar")
+        .populate("senderId", "name email profileImage")
         .populate({
             path: "replyTo",
-            populate: { path: "senderId", select: "name email avatar" },
+            populate: { path: "senderId", select: "name email profileImage" },
         })
         .lean();
 
@@ -156,7 +156,7 @@ export const getConversationById = async (conversationId: string, userId: string
         _id: conversationId,
         participantIds: new Types.ObjectId(userId),
     })
-        .populate("participantIds", "name email avatar")
+        .populate("participantIds", "name email profileImage")
         .populate("lastMessage")
         .lean();
 
@@ -235,11 +235,11 @@ export const sendMessage = async (senderId: string, payload: any) => {
     );
 
     await message.populate([
-        { path: "senderId", select: "name email avatar role" },
+        { path: "senderId", select: "name email profileImage role" },
         { path: "slot" },
         {
             path: "replyTo",
-            populate: { path: "senderId", select: "name email avatar" },
+            populate: { path: "senderId", select: "name email profileImage" },
         },
     ]);
 
@@ -287,7 +287,7 @@ export const acceptOffer = async (userId: string, messageId: string) => {
         lastMessage: newMessage._id,
     });
 
-    await newMessage.populate([{ path: "senderId", select: "name email avatar role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email avatar" } }]);
+    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(originalMessage.conversationId);
     if (conversation) {
@@ -325,7 +325,7 @@ export const completeOffer = async (messageId: string) => {
         lastMessage: newMessage._id,
     });
 
-    await newMessage.populate([{ path: "senderId", select: "name email avatar role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email avatar" } }]);
+    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(originalMessage.conversationId);
     if (conversation) {
@@ -367,7 +367,7 @@ export const rejectOffer = async (userId: string, messageId: string) => {
         lastMessage: newMessage._id,
     });
 
-    await newMessage.populate([{ path: "senderId", select: "name email avatar role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email avatar" } }]);
+    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(originalMessage.conversationId);
     if (conversation) {
@@ -424,7 +424,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         lastMessage: newMessage._id,
     });
 
-    await newMessage.populate([{ path: "senderId", select: "name email avatar role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email avatar" } }]);
+    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(originalMessage.conversationId);
     if (conversation) {

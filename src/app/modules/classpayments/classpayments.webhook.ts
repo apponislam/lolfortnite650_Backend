@@ -48,23 +48,45 @@ const processClassPayment = async (payload: any) => {
     const invoiceId = data.InvoiceId || data.Invoice?.Id;
     const transactionStatus = data.TransactionStatus || data.Transaction?.Status;
     const paymentId = data.PaymentId || data.Transaction?.PaymentId;
+    const externalIdentifier = data.Invoice?.ExternalIdentifier;
 
     if (!invoiceId || !transactionStatus) return null;
 
     // Find the record in ClassPayment
-    const classPayment = await ClassPaymentModel.findOne({ invoiceId: invoiceId.toString() });
+    const classPayment = await ClassPaymentModel.findOne({
+        $or: [{ invoiceId: invoiceId.toString() }, { _id: externalIdentifier }],
+    });
 
-    if (!classPayment) return null;
+    if (!classPayment) {
+        // Try direct ID lookup if it's a valid ObjectId
+        try {
+            const directPayment = await ClassPaymentModel.findById(externalIdentifier);
+            if (directPayment && transactionStatus === "SUCCESS") {
+                // ... handle below ...
+            }
+        } catch (err) {}
+        return null;
+    }
 
-    if (transactionStatus === "SUCCESS") {
+    if (transactionStatus === "SUCCESS" || transactionStatus === "Paid") {
+        if (classPayment.status === "PAID") return classPayment; // Already processed
+
         classPayment.status = "PAID";
         if (paymentId) classPayment.paymentId = paymentId.toString();
         await classPayment.save();
 
-        // Add balance to teacher
+        // Add balance to teacher (use teacherFee, not amount!)
         await UserModel.findByIdAndUpdate(classPayment.teacher, {
-            $inc: { balance: classPayment.amount },
+            $inc: { balance: classPayment.teacherFee },
         });
+
+        // Increment enrolledStudents for regular classes
+        if (classPayment.classType === "CLASS") {
+            const { ClassModel } = require("../class/class.model"); // Dynamic import to avoid circular dependency
+            await ClassModel.findByIdAndUpdate(classPayment.classId, {
+                $inc: { enrolledStudents: 1 },
+            });
+        }
 
         // Trigger additional logic like completing the offer message
         if (classPayment.classType === "HOURLY_CLASS" && classPayment.messageId) {
@@ -106,7 +128,7 @@ const handleMyFatoorahWebhook = catchAsync(async (req: Request, res: Response) =
 
     // Signature verification (Only in production or if secret is present)
     if (MF_WEBHOOK_SECRET && process.env.NODE_ENV === "production") {
-        const isValid = verifySignature(signature, body);
+        const isValid = verifySignature(signature, body.Data || body);
         if (!isValid) {
             throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid webhook signature");
         }

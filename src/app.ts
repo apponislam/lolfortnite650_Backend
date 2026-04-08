@@ -7,10 +7,12 @@ import globalErrorHandler from "./errors/globalErrorhandler";
 import router from "./app/routes";
 import { paymentWebhook } from "./app/modules/payment/payment.webhook";
 import { ZoomWebhook } from "./app/modules/zoom/zoom.webhook";
+import { ClassPaymentWebhookControllers } from "./app/modules/classpayments/classpayments.webhook";
 
 const app: Application = express();
 
-app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), paymentWebhook);
+app.post("/api/v1/class-payments/webhook", express.raw({ type: "application/json" }), ClassPaymentWebhookControllers.handleMyFatoorahWebhook);
+// app.post("/api/v1/payments/webhook", express.raw({ type: "application/json" }), paymentWebhook);
 app.post("/api/v1/zoom/webhook", express.raw({ type: "application/json" }), ZoomWebhook);
 
 const corsOptions = {
@@ -25,7 +27,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/", (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "../public/index.html"));
