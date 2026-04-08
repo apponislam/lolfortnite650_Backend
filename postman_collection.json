@@ -890,6 +890,25 @@
                             "path": ["zoom", "class-meetings", "{{class_id}}"]
                         }
                     }
+                },
+                {
+                    "name": "Test Google Drive Upload",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"downloadUrl\": \"https://example.com/test-video.mp4\",\n    \"fileName\": \"test-upload.mp4\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/zoom/test-drive-upload",
+                            "host": ["{{base_url}}"],
+                            "path": ["zoom", "test-drive-upload"]
+                        }
+                    }
                 }
             ]
         },

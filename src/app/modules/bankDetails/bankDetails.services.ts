@@ -83,7 +83,7 @@ const deleteBankAccount = async (accountId: string, userId: string) => {
 
 // Admin: verify a bank account
 const verifyBankAccount = async (accountId: string) => {
-    const account = await BankAccountModel.findByIdAndUpdate(accountId, { $set: { isVerified: true } }, { new: true });
+    const account = await BankAccountModel.findByIdAndUpdate(accountId, { $set: { isVerified: true } }, { returnDocument: "after" });
     if (!account) throw new ApiError(httpStatus.NOT_FOUND, "Bank account not found");
     return account;
 };

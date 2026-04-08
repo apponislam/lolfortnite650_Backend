@@ -121,17 +121,20 @@ const updateMeetingRecordings = async (meetingId: string) => {
 
         const recordingData = response.data;
 
+        // 🔴 FILTER ONLY MP4 FILES 🔴
+        const mp4Files = recordingData.recording_files?.filter((file: any) => file.file_type === "MP4") || [];
+
         // Update the meeting record with recording details
         const result = await ZoomModel.findOneAndUpdate(
             { meetingId: parseInt(meetingId) },
             {
                 $set: {
                     total_size: recordingData.total_size,
-                    recording_count: recordingData.recording_count,
-                    recording_files: recordingData.recording_files,
+                    recording_count: mp4Files.length,
+                    recording_files: mp4Files,
                 },
             },
-            { new: true },
+            { returnDocument: "after" },
         );
 
         return result;

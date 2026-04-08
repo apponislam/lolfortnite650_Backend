@@ -15,7 +15,7 @@ const createOrUpdateHourlyClass = async (userId: string, payload: Partial<Hourly
     };
 
     const result = await HourlyClassModel.findOneAndUpdate(filter, update, {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
     });

@@ -1,11 +1,12 @@
 import { google } from "googleapis";
 import axios from "axios";
 import config from "../../config";
+import path from "path";
 
 // You need to create a service account and download the JSON file
 // Save it as 'service-account-key.json' in your config folder
 const auth = new google.auth.GoogleAuth({
-    keyFile: "config/service-account-key.json",
+    keyFile: path.join(__dirname, "../../../../config/educate-492716-62d5a7fd4aa5.json"),
     scopes: ["https://www.googleapis.com/auth/drive.file"],
 });
 

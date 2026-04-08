@@ -30,6 +30,7 @@ export default {
 
     drive: {
         folder_id: process.env.DRIVE_FOLDER_ID,
+        credentials_path: process.env.GOOGLE_APPLICATION_CREDENTIALS || path.join(process.cwd(), "google-credentials.json"),
     },
 
     myfatoorah: {

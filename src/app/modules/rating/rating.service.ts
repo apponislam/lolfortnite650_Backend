@@ -8,7 +8,7 @@ const createRating = async (payload: any) => {
 
 const updateRating = async (ratingId: string, payload: any) => {
     const rating = await RatingModel.findByIdAndUpdate(ratingId, payload, {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
     });
     if (!rating) throw new ApiError(404, "Rating not found");

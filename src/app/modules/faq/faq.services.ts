@@ -40,7 +40,7 @@ const updateFAQ = async (faqId: string, payload: any) => {
     const faq = await FAQModel.findByIdAndUpdate(
         faqId,
         { $set: payload },
-        { new: true, runValidators: true },
+        { returnDocument: "after", runValidators: true },
     );
     if (!faq) throw new ApiError(httpStatus.NOT_FOUND, "FAQ not found");
     return faq;

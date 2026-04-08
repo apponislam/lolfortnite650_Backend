@@ -7,7 +7,7 @@ const upsertPolicy = async (type: PolicyTypeEnum, title: string, content: string
     const policy = await PolicyModel.findOneAndUpdate(
         { type },
         { $set: { title, content, publishedAt: publishedAt ?? new Date() } },
-        { new: true, upsert: true, runValidators: true },
+        { returnDocument: "after", upsert: true, runValidators: true },
     );
     return policy;
 };
