@@ -1456,6 +1456,18 @@
                     }
                 },
                 {
+                    "name": "Teacher Overview Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/teacher-overview",
+                            "host": ["{{base_url}}"],
+                            "path": ["dashboard", "teacher-overview"]
+                        }
+                    }
+                },
+                {
                     "name": "Teacher Rating Stats",
                     "request": {
                         "method": "GET",

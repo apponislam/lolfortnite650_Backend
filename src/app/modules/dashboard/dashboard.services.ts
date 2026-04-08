@@ -4,6 +4,7 @@ import { ClassPaymentModel } from "../classpayments/classpayments.model";
 import { WithdrawModel } from "../withdraw/withdraw.model";
 import { ClassModel } from "../class/class.model";
 import { RatingModel } from "../rating/rating.model";
+import { Slot } from "../slot/slot.model";
 
 const getAdminDashboardStats = async () => {
     // 1. Total Teacher Count
@@ -195,6 +196,75 @@ const getTeacherDashboardStats = async (teacherId: string) => {
     };
 };
 
+const getTeacherOverviewStats = async (teacherId: string) => {
+    // 1. Get Teacher details (Balance, Commission Percentage, Radius)
+    const teacher = await UserModel.findById(teacherId).select("balance percentage availabilityLocation");
+
+    // 2. Count Total Bookings (Paid class payments)
+    const totalBookings = await ClassPaymentModel.countDocuments({
+        teacher: new Types.ObjectId(teacherId),
+        status: "PAID",
+    });
+
+    // 3. Count Upcoming Sessions (Only HOURLY_CLASS, PAID status, and slot date is today or future)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingSessionsResult = await ClassPaymentModel.aggregate([
+        {
+            $match: {
+                teacher: new Types.ObjectId(teacherId),
+                status: "PAID",
+                classType: "HOURLY_CLASS",
+            },
+        },
+        {
+            $lookup: {
+                from: "slots",
+                localField: "slotId",
+                foreignField: "_id",
+                as: "slotDetails",
+            },
+        },
+        { $unwind: "$slotDetails" },
+        {
+            $match: {
+                "slotDetails.date": { $gte: today },
+            },
+        },
+        {
+            $count: "upcomingCount",
+        },
+    ]);
+
+    const upcomingSessions = upcomingSessionsResult.length > 0 ? upcomingSessionsResult[0].upcomingCount : 0;
+
+    // 4. Average Rating and Rating Count
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { tutor: new Types.ObjectId(teacherId) } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    const ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0.0;
+
+    return {
+        netEarnings: teacher?.balance || 0,
+        commissionPercentage: teacher?.percentage || 20,
+        totalBookings,
+        upcomingSessions,
+        averageRating,
+        ratingCount,
+        radius: teacher?.availabilityLocation?.radiusKm || 0,
+    };
+};
+
 const getTeacherRatingStats = async (teacherId: string) => {
     const stats = await RatingModel.aggregate([
         { $match: { tutor: new Types.ObjectId(teacherId) } },
@@ -332,6 +402,7 @@ export const dashboardServices = {
     getMonthlyPaymentStats,
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
+    getTeacherOverviewStats,
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
     getTeacherFinancialStats,
