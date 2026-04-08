@@ -55,7 +55,7 @@ const getWithdrawRequests = async (query: any) => {
     if (status) filters.status = status;
     if (teacherId) filters.teacher = new Types.ObjectId(teacherId);
 
-    const result = await WithdrawModel.find(filters).populate("teacher", "name email profileImage").populate("bankDetails").sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
+    const result = await WithdrawModel.find(filters).populate("teacher", "name email profileImage balance").populate("bankDetails").sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
 
     const total = await WithdrawModel.countDocuments(filters);
 

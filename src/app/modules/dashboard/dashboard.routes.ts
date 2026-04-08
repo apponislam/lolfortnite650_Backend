@@ -12,6 +12,7 @@ router.get("/user-distribution", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dash
 
 router.get("/monthly-payments", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyPaymentStats);
 router.get("/monthly-withdrawals", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyWithdrawStats);
+router.get("/all-payments", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getAllClassPayments);
 
 // Teacher-only dashboard stats
 router.get("/teacher-stats", auth, authorize(["TEACHER"]), dashboardControllers.getTeacherDashboardStats);

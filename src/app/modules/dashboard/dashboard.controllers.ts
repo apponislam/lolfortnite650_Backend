@@ -123,6 +123,17 @@ const getTeacherFinancialStats = catchAsync(async (req: Request, res: Response) 
     });
 });
 
+const getAllClassPayments = catchAsync(async (req: Request, res: Response) => {
+    const result = await dashboardServices.getAllClassPayments(req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "All class payments retrieved successfully",
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -134,4 +145,5 @@ export const dashboardControllers = {
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
     getTeacherFinancialStats,
+    getAllClassPayments,
 };

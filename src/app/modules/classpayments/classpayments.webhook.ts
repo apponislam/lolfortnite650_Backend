@@ -48,7 +48,7 @@ const processClassPayment = async (payload: any) => {
     const invoiceId = data.InvoiceId || data.Invoice?.Id;
     const transactionStatus = data.TransactionStatus || data.Transaction?.Status;
     const paymentId = data.PaymentId || data.Transaction?.PaymentId;
-    const externalIdentifier = data.Invoice?.ExternalIdentifier;
+    const externalIdentifier = data.Invoice?.ExternalIdentifier || data.Invoice?.CustomerReference;
 
     if (!invoiceId || !transactionStatus) return null;
 
@@ -58,17 +58,13 @@ const processClassPayment = async (payload: any) => {
     });
 
     if (!classPayment) {
-        // Try direct ID lookup if it's a valid ObjectId
-        try {
-            const directPayment = await ClassPaymentModel.findById(externalIdentifier);
-            if (directPayment && transactionStatus === "SUCCESS") {
-                // ... handle below ...
-            }
-        } catch (err) {}
         return null;
     }
 
-    if (transactionStatus === "SUCCESS" || transactionStatus === "Paid") {
+    // Handle multiple success statuses
+    const isSuccess = transactionStatus === "SUCCESS" || transactionStatus === "Paid" || transactionStatus === "Succeeded" || transactionStatus === "Captured";
+
+    if (isSuccess) {
         if (classPayment.status === "PAID") return classPayment; // Already processed
 
         classPayment.status = "PAID";
@@ -82,10 +78,17 @@ const processClassPayment = async (payload: any) => {
 
         // Increment enrolledStudents for regular classes
         if (classPayment.classType === "CLASS") {
-            const { ClassModel } = require("../class/class.model"); // Dynamic import to avoid circular dependency
-            await ClassModel.findByIdAndUpdate(classPayment.classId, {
-                $inc: { enrolledStudents: 1 },
-            });
+            try {
+                // Using a relative path that should be correct in the compiled output
+                const { ClassModel } = require("../class/class.model");
+                if (ClassModel) {
+                    await ClassModel.findByIdAndUpdate(classPayment.classId, {
+                        $inc: { enrolledStudents: 1 },
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to increment enrolledStudents in webhook:", err);
+            }
         }
 
         // Trigger additional logic like completing the offer message
@@ -96,7 +99,7 @@ const processClassPayment = async (payload: any) => {
                 console.error("Failed to complete offer after webhook success:", err);
             }
         }
-    } else if (transactionStatus === "FAILED") {
+    } else if (transactionStatus === "FAILED" || transactionStatus === "Failed") {
         classPayment.status = "FAILED";
         await classPayment.save();
     }

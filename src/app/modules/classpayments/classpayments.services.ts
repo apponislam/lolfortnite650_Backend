@@ -55,8 +55,16 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
             const slotData = await Slot.findById(slotId);
             if (slotData) {
                 finalAmount = hourlyClass.pricePerHour * slotData.hours;
+            } else {
+                finalAmount = hourlyClass.pricePerHour;
             }
+        } else if (!finalAmount) {
+            finalAmount = hourlyClass.pricePerHour;
         }
+    }
+
+    if (!finalAmount || finalAmount <= 0) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Invalid payment amount");
     }
 
     if (!teacherId) throw new ApiError(httpStatus.BAD_REQUEST, "Teacher not found for this class");
@@ -126,29 +134,39 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 /**
  * Verify payment status (usually called from success callback or webhook)
  */
-export const verifyClassPayment = async (paymentId: string) => {
-    const statusResponse = await getMyFatoorahPaymentStatus(paymentId, "PaymentId");
+export const verifyClassPayment = async (internalPaymentId: string) => {
+    // 1. Find the class payment record by our internal ID
+    const classPayment = await ClassPaymentModel.findById(internalPaymentId);
+    if (!classPayment) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found");
+    }
+
+    // 2. If already paid, return it immediately
+    if (classPayment.status === "PAID") {
+        return classPayment;
+    }
+
+    // 3. Get status from MyFatoorah using the InvoiceId we stored
+    const statusResponse = await getMyFatoorahPaymentStatus(classPayment.invoiceId as string, "InvoiceId");
 
     if (!statusResponse.IsSuccess) {
-        throw new ApiError(httpStatus.BAD_GATEWAY, "Failed to fetch payment status");
+        throw new ApiError(httpStatus.BAD_GATEWAY, "Failed to fetch payment status from MyFatoorah");
     }
 
     const invoiceData = statusResponse.Data;
-    const classPayment = await ClassPaymentModel.findOne({
-        $or: [{ invoiceId: invoiceData.InvoiceId.toString() }, { _id: paymentId }],
-    });
+    const invoiceStatus = invoiceData.InvoiceStatus;
+    const transactionStatus = invoiceData.InvoiceTransactions?.[0]?.TransactionStatus;
 
-    if (!classPayment) throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found");
+    // 4. Check for multiple success statuses ("Paid", "SUCCESS", "Succeeded", "Captured")
+    const isPaid = invoiceStatus === "Paid" || transactionStatus === "SUCCESS" || transactionStatus === "Succeeded" || transactionStatus === "Captured";
 
-    if (invoiceData.InvoiceStatus === "Paid") {
-        if (classPayment.status === "PAID") return classPayment; // Already processed
-
+    if (isPaid) {
         classPayment.status = "PAID";
-        classPayment.paymentId = paymentId;
-        classPayment.transactionId = invoiceData.InvoiceTransactions?.[0]?.TransactionId;
+        classPayment.paymentId = invoiceData.InvoiceTransactions?.[0]?.PaymentId || classPayment.paymentId;
+        classPayment.transactionId = invoiceData.InvoiceTransactions?.[0]?.TransactionId || classPayment.transactionId;
         await classPayment.save();
 
-        // Add balance to teacher
+        // Add balance to teacher (use teacherFee, not amount!)
         await UserModel.findByIdAndUpdate(classPayment.teacher, {
             $inc: { balance: classPayment.teacherFee },
         });
@@ -168,7 +186,7 @@ export const verifyClassPayment = async (paymentId: string) => {
                 console.error("Failed to complete offer message after payment:", err);
             }
         }
-    } else {
+    } else if (invoiceStatus === "Failed" || transactionStatus === "Failed") {
         classPayment.status = "FAILED";
         await classPayment.save();
     }
@@ -186,7 +204,7 @@ export const getStudentClasses = async (studentId: string, query: any) => {
     const filters: any = { student: new Types.ObjectId(studentId) };
     if (status) filters.status = status;
 
-    const result = await ClassPaymentModel.find(filters).populate("teacher", "name email avatar").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+    const result = await ClassPaymentModel.find(filters).populate("teacher", "name email profileImage").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 
     // Dynamically populate class details based on classType
     const populatedResult = await Promise.all(
@@ -217,7 +235,7 @@ export const getTeacherClasses = async (teacherId: string, query: any) => {
     const filters: any = { teacher: new Types.ObjectId(teacherId) };
     if (status) filters.status = status;
 
-    const result = await ClassPaymentModel.find(filters).populate("student", "name email avatar").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+    const result = await ClassPaymentModel.find(filters).populate("student", "name email profileImage").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 
     const populatedResult = await Promise.all(
         result.map(async (item: any) => {

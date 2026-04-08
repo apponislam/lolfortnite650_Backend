@@ -422,6 +422,63 @@ const getTeacherFinancialStats = async (teacherId: string) => {
     };
 };
 
+const getAllClassPayments = async (query: any) => {
+    const { page = 1, limit = 10, status, classType, searchTerm } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = {};
+
+    // 1. Status Filter
+    if (status) {
+        filters.status = status;
+    }
+
+    // 2. Class Type Filter
+    if (classType) {
+        filters.classType = classType;
+    }
+
+    // 3. Search Functionality
+    if (searchTerm) {
+        const searchRegex = new RegExp(searchTerm, "i");
+
+        // Find users matching name or email to filter by student/teacher
+        const matchingUsers = await UserModel.find({
+            $or: [{ name: searchRegex }, { email: searchRegex }],
+        }).select("_id");
+
+        const userIds = matchingUsers.map((user) => user._id);
+
+        filters.$or = [{ invoiceId: searchRegex }, { transactionId: searchRegex }, { student: { $in: userIds } }, { teacher: { $in: userIds } }];
+    }
+
+    const result = await ClassPaymentModel.find(filters).populate("student", "name email profileImage").populate("teacher", "name email profileImage").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+
+    // Dynamically populate class details based on classType
+    const populatedResult = await Promise.all(
+        result.map(async (item: any) => {
+            if (item.classType === "CLASS") {
+                item.classDetails = await ClassModel.findById(item.classId).select("subject level curriculum price images subjectName");
+            } else {
+                item.classDetails = await HourlyClassModel.findById(item.classId).select("subjects curriculum pricePerHour description");
+            }
+            return item;
+        }),
+    );
+
+    const total = await ClassPaymentModel.countDocuments(filters);
+
+    return {
+        data: populatedResult,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages: Math.ceil(total / Number(limit)),
+        },
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -433,4 +490,5 @@ export const dashboardServices = {
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
     getTeacherFinancialStats,
+    getAllClassPayments,
 };
