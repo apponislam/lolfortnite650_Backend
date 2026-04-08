@@ -1505,6 +1505,60 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "17. User Management",
+            "item": [
+                {
+                    "name": "Get All Teachers",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/users/teachers?searchTerm=Anna&status=APPROVED&page=1&limit=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["users", "teachers"],
+                            "query": [
+                                { "key": "searchTerm", "value": "Anna" },
+                                { "key": "status", "value": "APPROVED" },
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Teacher Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Authorization", "value": "Bearer {{access_token}}" },
+                            { "key": "Content-Type", "value": "application/json" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"APPROVED\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/users/teacher-status/{{teacher_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["users", "teacher-status", "{{teacher_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "View Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/users/{{user_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["users", "{{user_id}}"]
+                        }
+                    }
+                }
+            ]
         }
     ],
     "variable": [
