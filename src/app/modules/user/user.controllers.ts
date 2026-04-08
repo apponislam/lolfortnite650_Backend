@@ -30,6 +30,31 @@ const updateTeacherStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getAllStudents = catchAsync(async (req: Request, res: Response) => {
+    const query = req.query;
+    const result = await userServices.getAllStudentsWithStats(query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Students retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
+const toggleUserActive = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await userServices.toggleUserActiveStatus(id as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User active status toggled successfully",
+        data: result,
+    });
+});
+
 const getSingleUser = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await userServices.getSingleUser(id as string);
@@ -44,6 +69,8 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
 
 export const userControllers = {
     getAllTeachers,
+    getAllStudents,
     updateTeacherStatus,
+    toggleUserActive,
     getSingleUser,
 };

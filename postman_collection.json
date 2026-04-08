@@ -1547,6 +1547,36 @@
                     }
                 },
                 {
+                    "name": "Get All Students",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/users/students?searchTerm=Anna&isActive=true&page=1&limit=10",
+                            "host": ["{{base_url}}"],
+                            "path": ["users", "students"],
+                            "query": [
+                                { "key": "searchTerm", "value": "Anna" },
+                                { "key": "isActive", "value": "true" },
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "10" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle User Active Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+                        "url": {
+                            "raw": "{{base_url}}/users/toggle-active/{{user_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["users", "toggle-active", "{{user_id}}"]
+                        }
+                    }
+                },
+                {
                     "name": "View Profile",
                     "request": {
                         "method": "GET",

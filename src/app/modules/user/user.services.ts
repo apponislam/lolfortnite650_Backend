@@ -79,6 +79,71 @@ const updateUserStatus = async (userId: string, status: string) => {
     return user;
 };
 
+const toggleUserActiveStatus = async (userId: string) => {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+    return user;
+};
+
+const getAllStudentsWithStats = async (query: any) => {
+    const { searchTerm, isActive, page = 1, limit = 10 } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Build filter
+    const filter: any = { role: "STUDENT" };
+
+    if (searchTerm) {
+        filter.$or = [{ name: { $regex: searchTerm, $options: "i" } }, { email: { $regex: searchTerm, $options: "i" } }, { phone: { $regex: searchTerm, $options: "i" } }];
+    }
+
+    if (isActive !== undefined) {
+        filter.isActive = isActive === "true";
+    }
+
+    // Get students
+    const students = await UserModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).select("-password");
+
+    const total = await UserModel.countDocuments(filter);
+
+    // Get stats for each student
+    const studentsWithStats = await Promise.all(
+        students.map(async (student) => {
+            const studentId = student._id;
+
+            // 1. Total Purchase Class (Count of PAID class payments)
+            const totalPurchaseClass = await ClassPaymentModel.countDocuments({
+                student: studentId,
+                status: "PAID",
+            });
+
+            // 2. Total Spend (Sum of amount from PAID class payments)
+            const totalSpendResult = await ClassPaymentModel.aggregate([{ $match: { student: studentId, status: "PAID" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]);
+            const totalSpend = totalSpendResult.length > 0 ? totalSpendResult[0].total : 0;
+
+            const studentObj = student.toObject();
+            return {
+                ...studentObj,
+                totalPurchaseClass,
+                totalSpend,
+            };
+        }),
+    );
+
+    return {
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+        },
+        data: studentsWithStats,
+    };
+};
+
 const getSingleUser = async (userId: string) => {
     const user = await UserModel.findById(userId).select("-password");
     if (!user) {
@@ -127,6 +192,8 @@ const getSingleUser = async (userId: string) => {
 
 export const userServices = {
     getAllTeachersWithStats,
+    getAllStudentsWithStats,
     updateUserStatus,
+    toggleUserActiveStatus,
     getSingleUser,
 };
