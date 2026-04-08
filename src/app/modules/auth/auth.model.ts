@@ -53,6 +53,9 @@ const UserSchema = new Schema<User>(
             zipCode: String,
             country: String,
         },
+        aboutme: {
+            type: String,
+        },
 
         isActive: {
             type: Boolean,

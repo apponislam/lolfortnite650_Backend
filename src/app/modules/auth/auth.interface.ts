@@ -15,6 +15,7 @@ export interface User {
         lng?: number;
     };
     language?: string;
+    aboutme?: string;
     address?: {
         street?: string;
         city?: string;
