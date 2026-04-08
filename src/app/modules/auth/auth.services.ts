@@ -5,6 +5,9 @@ import config from "../../config";
 import { UserModel } from "./auth.model";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { Types } from "mongoose";
+import { ClassPaymentModel } from "../classpayments/classpayments.model";
+import { HourlyClassModel } from "../hourlyclasses/hourlyclass.model";
 import { sendOtpEmail, sendVerificationEmail, sendWelcomeEmail, sendEmailUpdateVerification } from "../../../utils/emailTemplates";
 
 const registerUser = async (data: any) => {
@@ -98,9 +101,9 @@ const loginUser = async (data: { email: string; password: string }) => {
     const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
     const refreshToken = jwtHelper.generateToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expire as string);
 
-    const { password, ...userWithoutPassword } = user.toObject();
+    const userWithDetails = await getUserById(user._id.toString());
 
-    return { user: userWithoutPassword, accessToken, refreshToken };
+    return { user: userWithDetails, accessToken, refreshToken };
 };
 
 const verifyEmail = async (email: string, token?: string, otp?: string) => {
@@ -163,7 +166,36 @@ const resendVerificationEmail = async (email: string) => {
 const getUserById = async (userId: string) => {
     const user = await UserModel.findById(userId).select("-password");
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    return user;
+
+    const userObject: any = user.toObject();
+
+    if (user.role === "TEACHER") {
+        // Count unique students who paid
+        const uniqueStudentsResult = await ClassPaymentModel.aggregate([
+            {
+                $match: {
+                    teacher: new Types.ObjectId(userId),
+                    status: "PAID",
+                },
+            },
+            {
+                $group: {
+                    _id: "$student",
+                },
+            },
+            {
+                $count: "uniqueCount",
+            },
+        ]);
+
+        userObject.studentCount = uniqueStudentsResult.length > 0 ? uniqueStudentsResult[0].uniqueCount : 0;
+
+        // Get price per hour
+        const hourlyClass = await HourlyClassModel.findOne({ createdBy: new Types.ObjectId(userId) }).select("pricePerHour");
+        userObject.pricePerHour = hourlyClass ? hourlyClass.pricePerHour : 0;
+    }
+
+    return userObject;
 };
 
 const refreshAccessToken = async (refreshToken: string) => {
@@ -184,7 +216,9 @@ const refreshAccessToken = async (refreshToken: string) => {
 
         const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
 
-        return { user, accessToken };
+        const userWithDetails = await getUserById(user._id.toString());
+
+        return { user: userWithDetails, accessToken };
     } catch (error) {
         throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid refresh token");
     }
@@ -286,7 +320,10 @@ const updateProfile = async (userId: string, data: any) => {
     const user = await UserModel.findByIdAndUpdate(userId, { $set: data }, { new: true, runValidators: true }).select("-password");
 
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    return user;
+
+    const userWithDetails = await getUserById(userId);
+
+    return userWithDetails;
 };
 
 const changePassword = async (userId: string, currentPassword: string, newPassword: string) => {

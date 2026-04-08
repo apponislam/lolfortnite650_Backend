@@ -196,26 +196,36 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
         profileImageUrl = `/uploads/profile-images/${req.file.filename}`;
     }
 
-    // Parse the body field if it's a string
+    // Parse the body field if it's a string (standard for multipart/form-data)
     let data: any = {};
     if (req.body.body && typeof req.body.body === "string") {
-        // Wrap in {} and parse as JSON
-        const bodyStr = `{${req.body.body}}`;
-        data = JSON.parse(bodyStr);
+        try {
+            data = JSON.parse(req.body.body);
+        } catch (error) {
+            // Fallback for cases where the body might be partially formatted
+            try {
+                const bodyStr = `{${req.body.body}}`;
+                data = JSON.parse(bodyStr);
+            } catch (innerError) {
+                throw new ApiError(httpStatus.BAD_REQUEST, "Invalid JSON in request body");
+            }
+        }
     } else {
         data = req.body;
     }
 
-    // Parse JSON fields
+    // Construct update data based on the provided fields
     const updateData: any = {
         ...(data.name && { name: data.name }),
         ...(data.phone && { phone: data.phone }),
+        ...(data.language && { language: data.language }),
         ...(profileImageUrl && { profileImage: profileImageUrl }),
+        ...(data.location && { location: data.location }),
+        ...(data.address && { address: data.address }),
+        ...(data.availabilityLocation && { availabilityLocation: data.availabilityLocation }),
         ...(data.preferences && { preferences: data.preferences }),
+        ...(data.aboutme && { aboutme: data.aboutme }),
     };
-
-    // Location is already parsed
-    if (data.location) updateData.location = data.location;
 
     const updatedUser = await authServices.updateProfile(req.user._id, updateData);
 

@@ -5,6 +5,7 @@ import { WithdrawModel } from "../withdraw/withdraw.model";
 import { ClassModel } from "../class/class.model";
 import { RatingModel } from "../rating/rating.model";
 import { Slot } from "../slot/slot.model";
+import { HourlyClassModel } from "../hourlyclasses/hourlyclass.model";
 
 const getAdminDashboardStats = async () => {
     // 1. Total Teacher Count
@@ -206,7 +207,31 @@ const getTeacherOverviewStats = async (teacherId: string) => {
         status: "PAID",
     });
 
-    // 3. Count Upcoming Sessions (Only HOURLY_CLASS, PAID status, and slot date is today or future)
+    // 3. Count Unique Students
+    const uniqueStudentsResult = await ClassPaymentModel.aggregate([
+        {
+            $match: {
+                teacher: new Types.ObjectId(teacherId),
+                status: "PAID",
+            },
+        },
+        {
+            $group: {
+                _id: "$student",
+            },
+        },
+        {
+            $count: "uniqueCount",
+        },
+    ]);
+
+    const studentCount = uniqueStudentsResult.length > 0 ? uniqueStudentsResult[0].uniqueCount : 0;
+
+    // 4. Get Price Per Hour
+    const hourlyClass = await HourlyClassModel.findOne({ createdBy: new Types.ObjectId(teacherId) }).select("pricePerHour");
+    const pricePerHour = hourlyClass ? hourlyClass.pricePerHour : 0;
+
+    // 5. Count Upcoming Sessions (Only HOURLY_CLASS, PAID status, and slot date is today or future)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -239,7 +264,7 @@ const getTeacherOverviewStats = async (teacherId: string) => {
 
     const upcomingSessions = upcomingSessionsResult.length > 0 ? upcomingSessionsResult[0].upcomingCount : 0;
 
-    // 4. Average Rating and Rating Count
+    // 6. Average Rating and Rating Count
     const ratingStats = await RatingModel.aggregate([
         { $match: { tutor: new Types.ObjectId(teacherId) } },
         {
@@ -258,6 +283,8 @@ const getTeacherOverviewStats = async (teacherId: string) => {
         netEarnings: teacher?.balance || 0,
         commissionPercentage: teacher?.percentage || 20,
         totalBookings,
+        studentCount,
+        pricePerHour,
         upcomingSessions,
         averageRating,
         ratingCount,
