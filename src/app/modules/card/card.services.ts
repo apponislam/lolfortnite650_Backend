@@ -2,28 +2,43 @@
 import axios from "axios";
 import httpStatus from "http-status";
 import { CardModel } from "./card.model";
-import { PaymentModel } from "../payment/payment.model";
 import config from "../../config";
 import ApiError from "../../../errors/ApiError";
 import { ICard, IInitiateCardPayment } from "./card.interface";
 import { UserModel } from "../auth/auth.model";
+import { ClassPaymentModel } from "../classpayments/classpayments.model";
 
 const MF_BASE_URL = config.myfatoorah.base_url;
 const MF_API_KEY = config.myfatoorah.api_key;
 
 const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment) => {
-    const { amount, currency = "KWD", cardId, saveCard, metadata } = payload;
+    const { amount, currency = "KWD", cardId, saveCard, teacherId, classId, classType, slotId, messageId, metadata } = payload;
 
     // Get user
     const user = await UserModel.findById(userId);
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 
+    // Get teacher percentage
+    const teacher = await UserModel.findById(teacherId);
+    const percentage = teacher?.percentage ?? 20;
+
+    // Calculate commission and teacher fee
+    const commission = (amount * percentage) / 100;
+    const teacherFee = amount - commission;
+
     // Create payment record
-    const payment = await PaymentModel.create({
-        user: userId,
+    const payment = await ClassPaymentModel.create({
+        student: userId,
+        teacher: teacherId,
         amount,
+        commission,
+        teacherFee,
         currency,
         status: "PENDING",
+        classType,
+        classId,
+        slotId,
+        messageId,
         metadata,
     });
 
@@ -103,7 +118,7 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
 };
 
 const saveCardFromPayment = async (userId: string, paymentId: string) => {
-    const payment = await PaymentModel.findOne({ _id: paymentId, user: userId });
+    const payment = await ClassPaymentModel.findOne({ _id: paymentId, student: userId });
     if (!payment) throw new ApiError(httpStatus.NOT_FOUND, "Payment not found");
 
     const user = await UserModel.findById(userId);

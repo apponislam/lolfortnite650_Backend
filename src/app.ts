@@ -5,7 +5,6 @@ import path from "path";
 import notFound from "./errors/notFound";
 import globalErrorHandler from "./errors/globalErrorhandler";
 import router from "./app/routes";
-import { paymentWebhook } from "./app/modules/payment/payment.webhook";
 import { ZoomWebhook } from "./app/modules/zoom/zoom.webhook";
 import { ClassPaymentWebhookControllers } from "./app/modules/classpayments/classpayments.webhook";
 

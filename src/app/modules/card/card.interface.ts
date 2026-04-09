@@ -22,6 +22,11 @@ export interface IInitiateCardPayment {
     currency?: string;
     cardId?: string;
     saveCard?: boolean;
+    teacherId: string;
+    classId: string;
+    classType: "HOURLY_CLASS" | "CLASS";
+    slotId?: string;
+    messageId?: string;
     metadata?: Record<string, any>;
 }
 

@@ -5,7 +5,7 @@ import { publicRoutes } from "../modules/public/public.routes";
 import { bankDetailsRoutes } from "../modules/bankDetails/bankDetails.routes";
 import { faqRoutes } from "../modules/faq/faq.routes";
 import { contactRoutes } from "../modules/contact/contact.routes";
-import { paymentRoutes } from "../modules/payment/payment.routes";
+// import { paymentRoutes } from "../modules/payment/payment.routes";
 import { cardRoutes } from "../modules/card/card.routes";
 import { zoomRoutes } from "../modules/zoom/zoom.routes";
 import { availabilityRoutes } from "../modules/availability/availability.routes";
@@ -44,10 +44,10 @@ const moduleRoutes = [
         path: "/contact",
         route: contactRoutes,
     },
-    {
-        path: "/payments",
-        route: paymentRoutes,
-    },
+    // {
+    //     path: "/payments",
+    //     route: paymentRoutes,
+    // },
     {
         path: "/cards",
         route: cardRoutes,
