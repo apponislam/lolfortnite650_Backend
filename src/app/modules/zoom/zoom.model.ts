@@ -78,6 +78,9 @@ const ZoomSchema = new Schema<IZoom>(
         recording_count: {
             type: Number,
         },
+        download_token: {
+            type: String,
+        },
         recording_files: [
             {
                 id: { type: String },

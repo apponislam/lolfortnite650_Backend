@@ -31,6 +31,7 @@ export interface IZoom {
     // Recording details (added later via webhook or manual fetch)
     total_size?: number;
     recording_count?: number;
+    download_token?: string;
     recording_files?: {
         id: string;
         meeting_id: string;

@@ -18,7 +18,6 @@ export interface MessageFile {
     fileName: string;
     fileSize: number;
     mimeType: string;
-    thumbnailUrl?: string;
 }
 
 export interface Message {

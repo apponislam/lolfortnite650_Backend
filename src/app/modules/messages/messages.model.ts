@@ -55,7 +55,6 @@ const MessageFileSchema = new Schema({
     fileName: { type: String, required: true },
     fileSize: { type: Number, required: true },
     mimeType: { type: String, required: true },
-    thumbnailUrl: String,
 });
 
 /*

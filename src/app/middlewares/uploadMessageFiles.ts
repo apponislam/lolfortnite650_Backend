@@ -49,7 +49,6 @@ export const uploadMessageFiles = (req: Request, res: Response, next: NextFuncti
                     let finalFileName = file.originalname;
                     let finalMimeType = file.mimetype;
                     let finalPath = "";
-                    let thumbnailUrl = undefined;
 
                     if (isImage) {
                         // Process main image: Convert to webp and optimize
@@ -60,14 +59,6 @@ export const uploadMessageFiles = (req: Request, res: Response, next: NextFuncti
                         await sharp(file.buffer).resize({ width: 1200, withoutEnlargement: true }).webp({ quality: 80 }).toFile(outputPath);
 
                         finalPath = `/uploads/message-files/${finalFileName}`;
-
-                        // Generate thumbnail
-                        const thumbFileName = `${fileName}-thumb.webp`;
-                        const thumbPath = path.join(messageUploadsDir, thumbFileName);
-
-                        await sharp(file.buffer).resize({ width: 300 }).webp({ quality: 60 }).toFile(thumbPath);
-
-                        thumbnailUrl = `/uploads/message-files/${thumbFileName}`;
                     } else {
                         // Non-image files: Just save to disk
                         const extension = path.extname(file.originalname);
@@ -83,7 +74,6 @@ export const uploadMessageFiles = (req: Request, res: Response, next: NextFuncti
                         fileName: file.originalname,
                         fileSize: file.size,
                         mimeType: finalMimeType,
-                        thumbnailUrl,
                     });
                 }
 

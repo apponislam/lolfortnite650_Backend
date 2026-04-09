@@ -52,6 +52,7 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
         // 🔴 HANDLE RECORDING COMPLETED EVENT (AUTOMATIC UPLOAD) 🔴
         if (event === "recording.completed") {
             const recordingData = body.payload.object;
+            const downloadToken = body.payload.download_token;
 
             console.log(`📹 Recording completed for meeting ${recordingData.id}`);
 
@@ -67,6 +68,7 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
                         total_size: recordingData.total_size,
                         recording_count: mp4Files.length,
                         recording_files: mp4Files,
+                        download_token: downloadToken,
                         drive_upload_status: "pending",
                     },
                 },
@@ -94,7 +96,7 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
                             const fileName = `meeting_${meeting.meetingId}_${file.recording_type}_${Date.now()}.mp4`;
 
                             // Upload to Google Drive
-                            const driveResult = await uploadToGoogleDrive(file.download_url, fileName);
+                            const driveResult = await uploadToGoogleDrive(file.download_url, fileName, meeting.download_token);
 
                             // Update database with Drive links
                             file.drive_file_id = driveResult.fileId || undefined;

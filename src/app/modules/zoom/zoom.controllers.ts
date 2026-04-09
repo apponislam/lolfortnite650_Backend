@@ -73,27 +73,27 @@ const getMeetingsByClass = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// const testDriveUpload = catchAsync(async (req: Request, res: Response) => {
-//     const { downloadUrl, fileName } = req.body;
+const testDriveUpload = catchAsync(async (req: Request, res: Response) => {
+    const { downloadUrl, fileName } = req.body;
 
-//     if (!downloadUrl || !fileName) {
-//         return sendResponse(res, {
-//             statusCode: httpStatus.BAD_REQUEST,
-//             success: false,
-//             message: "downloadUrl and fileName are required",
-//             data: null,
-//         });
-//     }
+    if (!downloadUrl || !fileName) {
+        return sendResponse(res, {
+            statusCode: httpStatus.BAD_REQUEST,
+            success: false,
+            message: "downloadUrl and fileName are required",
+            data: null,
+        });
+    }
 
-//     const result = await uploadToGoogleDrive(downloadUrl, fileName);
+    const result = await uploadToGoogleDrive(downloadUrl, fileName);
 
-//     sendResponse(res, {
-//         statusCode: httpStatus.OK,
-//         success: true,
-//         message: "Test upload to Google Drive initiated successfully",
-//         data: result,
-//     });
-// });
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Test upload to Google Drive initiated successfully",
+        data: result,
+    });
+});
 
 export const ZoomController = {
     createMeeting,
@@ -101,5 +101,5 @@ export const ZoomController = {
     getMyMeetings,
     getMeetingDetails,
     getMeetingsByClass,
-    // testDriveUpload,
+    testDriveUpload,
 };
