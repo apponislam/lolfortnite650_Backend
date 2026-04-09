@@ -91,6 +91,23 @@ const processClassPayment = async (payload: any) => {
             }
         }
 
+        // Update slot status to booked if slotId exists
+        if (classPayment.slotId) {
+            try {
+                const { Slot } = require("../slot/slot.model");
+                const { SlotStatus } = require("../slot/slot.interface");
+                if (Slot) {
+                    await Slot.findByIdAndUpdate(classPayment.slotId, {
+                        status: SlotStatus.BOOKED,
+                        lockedBy: null,
+                        lockedUntil: null,
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to update slot status in webhook:", err);
+            }
+        }
+
         // Trigger additional logic like completing the offer message
         if (classPayment.classType === "HOURLY_CLASS" && classPayment.messageId) {
             try {
