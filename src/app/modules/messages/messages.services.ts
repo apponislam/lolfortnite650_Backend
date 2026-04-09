@@ -284,13 +284,13 @@ export const sendMessage = async (senderId: string, payload: any) => {
  */
 export const acceptOffer = async (userId: string, messageId: string) => {
     const message = await MessageModel.findById(messageId);
-    if (!message || message.type !== "OFFER") {
+    if (!message || !["OFFER", "RESCHEDULED"].includes(message.type)) {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (message.senderId.toString() === userId) {
-        throw new ApiError(httpStatus.FORBIDDEN, "You cannot accept your own offer");
-    }
+    // if (message.senderId.toString() === userId) {
+    //     throw new ApiError(httpStatus.FORBIDDEN, "You cannot accept your own offer");
+    // }
 
     message.type = "ACCEPTED";
     await message.save();
@@ -346,9 +346,9 @@ export const rejectOffer = async (userId: string, messageId: string) => {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (message.senderId.toString() === userId) {
-        throw new ApiError(httpStatus.FORBIDDEN, "You cannot reject your own offer");
-    }
+    // if (message.senderId.toString() === userId) {
+    //     throw new ApiError(httpStatus.FORBIDDEN, "You cannot reject your own offer");
+    // }
 
     message.type = "REJECTED";
     await message.save();
@@ -377,9 +377,9 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (message.senderId.toString() === userId) {
-        throw new ApiError(httpStatus.FORBIDDEN, "You cannot reschedule your own offer");
-    }
+    // if (message.senderId.toString() === userId) {
+    //     throw new ApiError(httpStatus.FORBIDDEN, "You cannot reschedule your own offer");
+    // }
 
     let finalPrice = message.price;
     const slotData = await Slot.findById(slotId);
@@ -396,7 +396,11 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         }
     }
 
-    message.type = "RESCHEDULED";
+    const userData = await UserModel.findById(userId);
+    if (userData?.role === "TEACHER") {
+        message.type = "RESCHEDULED";
+    }
+
     message.slot = new Types.ObjectId(slotId) as any;
     message.price = finalPrice;
     await message.save();
