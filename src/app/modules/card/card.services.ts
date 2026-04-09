@@ -42,6 +42,9 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
         metadata,
     });
 
+    const successUrl = `${config.client_url}/payment/success?paymentId=${payment._id}`;
+    const errorUrl = `${config.client_url}/payment/error?paymentId=${payment._id}`;
+
     // If using saved card
     if (cardId) {
         const card = await CardModel.findOne({ _id: cardId, user: userId, isActive: true });
@@ -54,8 +57,8 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
             DisplayCurrencyIso: currency,
             CustomerEmail: user.email,
             InvoiceValue: amount,
-            CallBackUrl: `${config.client_url}/payment/success?paymentId=${payment._id}`,
-            ErrorUrl: `${config.client_url}/payment/error?paymentId=${payment._id}`,
+            CallBackUrl: successUrl,
+            ErrorUrl: errorUrl,
             Language: "en",
             CustomerReference: payment._id.toString(),
             Token: card.myfatoorahToken,
@@ -74,7 +77,12 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
             payment.paymentId = data.Data.PaymentId;
             payment.status = "PAID";
             await payment.save();
-            return { payment, invoiceURL: data.Data.InvoiceURL };
+            return {
+                payment,
+                invoiceURL: data.Data.InvoiceURL,
+                successUrl,
+                errorUrl,
+            };
         }
     }
 
@@ -85,8 +93,8 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
         CustomerEmail: user.email,
         InvoiceValue: amount,
         NotificationOption: "LNK",
-        CallBackUrl: `${config.client_url}/payment/success?paymentId=${payment._id}`,
-        ErrorUrl: `${config.client_url}/payment/error?paymentId=${payment._id}`,
+        CallBackUrl: successUrl,
+        ErrorUrl: errorUrl,
         Language: "en",
         CustomerReference: payment._id.toString(),
         UserDefinedField: saveCard ? `CK-${userId}` : "", // For saving card
@@ -111,6 +119,8 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
             paymentId: payment._id,
             invoiceId: data.Data.InvoiceId,
             paymentUrl: data.Data.InvoiceURL,
+            successUrl,
+            errorUrl,
         };
     }
 

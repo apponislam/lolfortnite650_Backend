@@ -98,13 +98,16 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 
     try {
         // Execute MyFatoorah Payment
+        const successUrl = `${config.client_url}/payment/success?paymentId=${classPayment._id}`;
+        const errorUrl = `${config.client_url}/payment/error?paymentId=${classPayment._id}`;
+
         const paymentResponse = await executeMyFatoorahPayment({
             amount: finalAmount,
             currency,
             customerName: student.name || "Customer",
             customerEmail: student.email || "test@test.com",
-            successUrl: `${config.client_url}/payment/success?paymentId=${classPayment._id}`,
-            errorUrl: `${config.client_url}/payment/error?paymentId=${classPayment._id}`,
+            successUrl,
+            errorUrl,
             customerReference: classPayment._id.toString(),
             // No need to send all metadata in UserDefinedField if it's already in our DB
             // metadata: { classType, classId, slotId, messageId, studentId: userId, teacherId },
@@ -126,6 +129,8 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
             paymentUrl: paymentResponse.Data.InvoiceURL,
             invoiceId: paymentResponse.Data.InvoiceId,
             classPaymentId: classPayment._id,
+            successUrl,
+            errorUrl,
         };
     } catch (error: any) {
         classPayment.status = "FAILED";
