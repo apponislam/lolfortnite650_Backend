@@ -213,15 +213,24 @@ export const sendMessage = async (senderId: string, payload: any) => {
 
     let finalType = type || "MESSAGE";
     let finalPrice = payload.price;
+    let classId = payload.classId;
 
-    // Calculate price based on slot hours if slot is provided
-    if (slot) {
-        const slotData = await Slot.findById(slot);
-        if (slotData) {
-            const teacherId = conversation.participantIds.find((p: any) => p.role === "TEACHER")?._id;
-            if (teacherId) {
-                const hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
-                if (hourlyClass) {
+    // Try to find teacher and their hourly class to set classId and calculate price
+    const teacherId = conversation.participantIds.find((p: any) => p.role === "TEACHER")?._id;
+    let hourlyClass: any = null;
+
+    if (teacherId) {
+        hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
+        if (hourlyClass) {
+            // Set classId for OFFER messages if not provided
+            if (finalType === "OFFER" && !classId) {
+                classId = hourlyClass._id;
+            }
+
+            // Calculate price based on slot hours if slot is provided
+            if (slot) {
+                const slotData = await Slot.findById(slot);
+                if (slotData) {
                     finalPrice = hourlyClass.pricePerHour * slotData.hours;
                 }
             }
@@ -236,6 +245,7 @@ export const sendMessage = async (senderId: string, payload: any) => {
         files,
         replyTo,
         slot,
+        classId,
         subject,
         price: finalPrice,
     };
@@ -393,6 +403,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         const hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
         if (hourlyClass) {
             finalPrice = hourlyClass.pricePerHour * slotData.hours;
+            message.classId = hourlyClass._id;
         }
     }
 

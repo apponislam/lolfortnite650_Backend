@@ -27,6 +27,7 @@ export interface Message {
     text?: string;
     files?: MessageFile[];
     subject?: string;
+    classId?: Types.ObjectId;
     price?: number;
     slot?: Types.ObjectId;
     replyTo?: Types.ObjectId | Message;

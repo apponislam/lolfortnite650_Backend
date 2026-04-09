@@ -88,6 +88,10 @@ const MessageSchema = new Schema<MessageDocument>(
         files: [MessageFileSchema],
         subject: String,
         price: Number,
+        classId: {
+            type: Schema.Types.ObjectId,
+            ref: "HourlyClass",
+        },
         slot: {
             type: Schema.Types.ObjectId,
             ref: "Slot",
