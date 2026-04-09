@@ -283,144 +283,111 @@ export const sendMessage = async (senderId: string, payload: any) => {
  * Accept an offer
  */
 export const acceptOffer = async (userId: string, messageId: string) => {
-    const originalMessage = await MessageModel.findById(messageId);
-    if (!originalMessage || originalMessage.type !== "OFFER") {
+    const message = await MessageModel.findById(messageId);
+    if (!message || message.type !== "OFFER") {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (originalMessage.senderId.toString() === userId) {
+    if (message.senderId.toString() === userId) {
         throw new ApiError(httpStatus.FORBIDDEN, "You cannot accept your own offer");
     }
 
-    const newMessage = await MessageModel.create({
-        conversationId: originalMessage.conversationId,
-        senderId: userId,
-        type: "ACCEPTED",
-        slot: originalMessage.slot,
-        subject: originalMessage.subject,
-        price: originalMessage.price,
-        replyTo: originalMessage._id,
-    });
+    message.type = "ACCEPTED";
+    await message.save();
 
-    await ConversationModel.findByIdAndUpdate(originalMessage.conversationId, {
-        lastMessage: newMessage._id,
-    });
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
-    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
-
-    const conversation = await ConversationModel.findById(originalMessage.conversationId);
+    const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        sendToUsers(conversation.participantIds, "message", newMessage);
+        sendToUsers(conversation.participantIds, "update", message);
         sendToUsers(conversation.participantIds, "notification", {
-            conversationId: originalMessage.conversationId,
-            message: newMessage,
+            conversationId: message.conversationId,
+            message: message,
         });
     }
-    sendToRoom(`conversation_${originalMessage.conversationId}`, "message", newMessage);
+    sendToRoom(`conversation_${message.conversationId}`, "update", message);
 
-    return newMessage;
+    return message;
 };
 
 /**
  * Complete an offer (Internal service - call when payment is successful)
  */
 export const completeOffer = async (messageId: string) => {
-    const originalMessage = await MessageModel.findById(messageId);
-    if (!originalMessage || !["OFFER", "RESCHEDULED", "ACCEPTED"].includes(originalMessage.type)) {
+    const message = await MessageModel.findById(messageId);
+    if (!message || !["OFFER", "RESCHEDULED", "ACCEPTED"].includes(message.type)) {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    const newMessage = await MessageModel.create({
-        conversationId: originalMessage.conversationId,
-        senderId: originalMessage.senderId, // Keep original sender as reference or system? usually keeps original context
-        type: "COMPLETED",
-        slot: originalMessage.slot,
-        subject: originalMessage.subject,
-        price: originalMessage.price,
-        replyTo: originalMessage._id,
-    });
+    message.type = "COMPLETED";
+    await message.save();
 
-    await ConversationModel.findByIdAndUpdate(originalMessage.conversationId, {
-        lastMessage: newMessage._id,
-    });
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
-    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
-
-    const conversation = await ConversationModel.findById(originalMessage.conversationId);
+    const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        sendToUsers(conversation.participantIds, "message", newMessage);
+        sendToUsers(conversation.participantIds, "update", message);
         sendToUsers(conversation.participantIds, "notification", {
-            conversationId: originalMessage.conversationId,
-            message: newMessage,
+            conversationId: message.conversationId,
+            message: message,
         });
     }
-    sendToRoom(`conversation_${originalMessage.conversationId}`, "message", newMessage);
+    sendToRoom(`conversation_${message.conversationId}`, "update", message);
 
-    return newMessage;
+    return message;
 };
 
 /**
  * Reject an offer
  */
 export const rejectOffer = async (userId: string, messageId: string) => {
-    const originalMessage = await MessageModel.findById(messageId);
-    if (!originalMessage || originalMessage.type !== "OFFER") {
+    const message = await MessageModel.findById(messageId);
+    if (!message || message.type !== "OFFER") {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (originalMessage.senderId.toString() === userId) {
+    if (message.senderId.toString() === userId) {
         throw new ApiError(httpStatus.FORBIDDEN, "You cannot reject your own offer");
     }
 
-    const newMessage = await MessageModel.create({
-        conversationId: originalMessage.conversationId,
-        senderId: userId,
-        type: "REJECTED",
-        slot: originalMessage.slot,
-        subject: originalMessage.subject,
-        price: originalMessage.price,
-        replyTo: originalMessage._id,
-    });
+    message.type = "REJECTED";
+    await message.save();
 
-    await ConversationModel.findByIdAndUpdate(originalMessage.conversationId, {
-        lastMessage: newMessage._id,
-    });
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
-    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
-
-    const conversation = await ConversationModel.findById(originalMessage.conversationId);
+    const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        sendToUsers(conversation.participantIds, "message", newMessage);
+        sendToUsers(conversation.participantIds, "update", message);
         sendToUsers(conversation.participantIds, "notification", {
-            conversationId: originalMessage.conversationId,
-            message: newMessage,
+            conversationId: message.conversationId,
+            message: message,
         });
     }
-    sendToRoom(`conversation_${originalMessage.conversationId}`, "message", newMessage);
+    sendToRoom(`conversation_${message.conversationId}`, "update", message);
 
-    return newMessage;
+    return message;
 };
 
 /**
  * Reschedule an offer
  */
 export const rescheduleOffer = async (userId: string, messageId: string, slotId: string) => {
-    const originalMessage = await MessageModel.findById(messageId);
-    if (!originalMessage || originalMessage.type !== "OFFER") {
+    const message = await MessageModel.findById(messageId);
+    if (!message || message.type !== "OFFER") {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
     }
 
-    if (originalMessage.senderId.toString() === userId) {
+    if (message.senderId.toString() === userId) {
         throw new ApiError(httpStatus.FORBIDDEN, "You cannot reschedule your own offer");
     }
 
-    let finalPrice = originalMessage.price;
+    let finalPrice = message.price;
     const slotData = await Slot.findById(slotId);
     if (!slotData) {
         throw new ApiError(httpStatus.NOT_FOUND, "New slot not found");
     }
 
-    const conversationData = await ConversationModel.findById(originalMessage.conversationId).populate("participantIds", "role");
+    const conversationData = await ConversationModel.findById(message.conversationId).populate("participantIds", "role");
     const teacherId = conversationData?.participantIds.find((p: any) => p.role === "TEACHER")?._id;
     if (teacherId) {
         const hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
@@ -429,33 +396,24 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         }
     }
 
-    const newMessage = await MessageModel.create({
-        conversationId: originalMessage.conversationId,
-        senderId: userId,
-        type: "RESCHEDULED",
-        slot: new Types.ObjectId(slotId),
-        subject: originalMessage.subject,
-        price: finalPrice,
-        replyTo: originalMessage._id,
-    });
+    message.type = "RESCHEDULED";
+    message.slot = new Types.ObjectId(slotId) as any;
+    message.price = finalPrice;
+    await message.save();
 
-    await ConversationModel.findByIdAndUpdate(originalMessage.conversationId, {
-        lastMessage: newMessage._id,
-    });
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
-    await newMessage.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
-
-    const conversation = await ConversationModel.findById(originalMessage.conversationId);
+    const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
-        sendToUsers(conversation.participantIds, "message", newMessage);
+        sendToUsers(conversation.participantIds, "update", message);
         sendToUsers(conversation.participantIds, "notification", {
-            conversationId: originalMessage.conversationId,
-            message: newMessage,
+            conversationId: message.conversationId,
+            message: message,
         });
     }
-    sendToRoom(`conversation_${originalMessage.conversationId}`, "message", newMessage);
+    sendToRoom(`conversation_${message.conversationId}`, "update", message);
 
-    return newMessage;
+    return message;
 };
 
 /**
