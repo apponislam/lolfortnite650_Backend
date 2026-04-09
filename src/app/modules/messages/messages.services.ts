@@ -63,7 +63,10 @@ const getUserConversations = async (userId: string, query: { page?: number; limi
     const conversations = await ConversationModel.find({
         participantIds: new Types.ObjectId(userId),
     })
-        .populate("lastMessage")
+        .populate({
+            path: "lastMessage",
+            populate: { path: "slot" },
+        })
         .populate("participantIds", "name email profileImage")
         .sort({ updatedAt: -1 })
         .skip(skip)
@@ -128,9 +131,10 @@ export const getMessages = async (conversationId: string, userId: string, query:
         .skip(skip)
         .limit(Number(limit))
         .populate("senderId", "name email profileImage")
+        .populate("slot")
         .populate({
             path: "replyTo",
-            populate: { path: "senderId", select: "name email profileImage" },
+            populate: [{ path: "senderId", select: "name email profileImage" }, { path: "slot" }],
         })
         .lean();
 
@@ -163,7 +167,10 @@ export const getConversationById = async (conversationId: string, userId: string
         participantIds: new Types.ObjectId(userId),
     })
         .populate("participantIds", "name email profileImage")
-        .populate("lastMessage")
+        .populate({
+            path: "lastMessage",
+            populate: { path: "slot" },
+        })
         .lean();
 
     if (!conversation) {
@@ -490,6 +497,16 @@ export const editMessage = async (userId: string, messageId: string, text: strin
     message.isEdited = true;
     message.editedAt = new Date();
     await message.save();
+
+    // Populate slot and sender details before returning and sending to socket
+    await message.populate([
+        { path: "senderId", select: "name email profileImage role" },
+        { path: "slot" },
+        {
+            path: "replyTo",
+            populate: { path: "senderId", select: "name email profileImage" },
+        },
+    ]);
 
     // Notify participants
     const conversation = await ConversationModel.findById(message.conversationId);
