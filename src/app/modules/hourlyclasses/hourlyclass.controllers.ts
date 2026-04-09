@@ -62,9 +62,23 @@ const getMyHourlyClass = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// Get hourly class by teacher ID
+const getHourlyClassByTeacherId = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await hourlyClassServices.getHourlyClassByTeacherId(id as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher's hourly class retrieved successfully",
+        data: result,
+    });
+});
+
 export const hourlyClassControllers = {
     createOrUpdateHourlyClass,
     getAllHourlyClasses,
     getHourlyClassById,
     getMyHourlyClass,
+    getHourlyClassByTeacherId,
 };

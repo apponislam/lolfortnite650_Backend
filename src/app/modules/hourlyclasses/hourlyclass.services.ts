@@ -183,24 +183,88 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
  * Get my hourly class
  */
 const getMyHourlyClass = async (userId: string) => {
-    const result = await HourlyClassModel.findOne({ createdBy: new Types.ObjectId(userId) });
-    return result;
+    const result = await HourlyClassModel.findOne({ createdBy: new Types.ObjectId(userId) }).populate("createdBy", "name email profileImage gender");
+    if (!result) return null;
+
+    // Get ratings for this specific class
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { class: result._id } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const formattedResult = result.toObject() as any;
+    formattedResult.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    formattedResult.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+
+    return formattedResult;
 };
 
 /**
  * Get single hourly class by ID
  */
 const getHourlyClassById = async (id: string) => {
-    const result = await HourlyClassModel.findById(id).populate("createdBy", "name email profileImage");
+    const result = await HourlyClassModel.findById(id).populate("createdBy", "name email profileImage gender");
     if (!result) {
         throw new ApiError(httpStatus.NOT_FOUND, "Hourly class not found");
     }
-    return result;
+
+    // Get ratings for this specific class
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { class: result._id } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const formattedResult = result.toObject() as any;
+    formattedResult.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    formattedResult.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+
+    return formattedResult;
+};
+
+/**
+ * Get hourly class by teacher ID
+ */
+const getHourlyClassByTeacherId = async (teacherId: string) => {
+    const result = await HourlyClassModel.findOne({ createdBy: new Types.ObjectId(teacherId) }).populate("createdBy", "name email profileImage gender");
+    if (!result) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Hourly class not found for this teacher");
+    }
+
+    // Get ratings for this specific class
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { class: result._id } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const formattedResult = result.toObject() as any;
+    formattedResult.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    formattedResult.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+
+    return formattedResult;
 };
 
 export const hourlyClassServices = {
     createOrUpdateHourlyClass,
     getAllHourlyClasses,
-    getHourlyClassById,
     getMyHourlyClass,
+    getHourlyClassById,
+    getHourlyClassByTeacherId,
 };

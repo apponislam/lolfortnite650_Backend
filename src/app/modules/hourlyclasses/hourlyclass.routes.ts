@@ -8,6 +8,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", checkAuth, hourlyClassControllers.getAllHourlyClasses);
+router.get("/teacher/:id", hourlyClassControllers.getHourlyClassByTeacherId);
 router.get("/:id", hourlyClassControllers.getHourlyClassById);
 
 // Teacher/Admin routes
