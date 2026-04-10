@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
 import { ClassPaymentModel } from "./classpayments.model";
-import { executeMyFatoorahPayment, getMyFatoorahPaymentStatus } from "./classpayments.utils";
+import { executeMyFatoorahPayment, getMyFatoorahPaymentStatus, initiateMyFatoorahPayment, initiateMyFatoorahSession } from "./classpayments.utils";
 import { UserModel } from "../auth/auth.model";
 import { ClassModel } from "../class/class.model";
 import { HourlyClassModel } from "../hourlyclasses/hourlyclass.model";
@@ -11,9 +11,9 @@ import { completeOffer } from "../messages/messages.services";
 import config from "../../config";
 
 /**
- * Initiate payment for a class (Regular or Hourly)
+ * Core payment preparation logic (Shared between standard and mobile)
  */
-export const initiateClassPayment = async (userId: string, payload: any) => {
+const preparePaymentData = async (userId: string, payload: any) => {
     const { classType, classId, slotId, messageId, amount, currency = "KWD" } = payload;
 
     const student = await UserModel.findById(userId);
@@ -28,7 +28,6 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         const classData = await ClassModel.findById(classId);
         if (!classData) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
-        // ... existing enrollment checks ...
         const alreadyEnrolled = await ClassPaymentModel.findOne({
             student: userId,
             classId: classId,
@@ -39,20 +38,18 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
             throw new ApiError(httpStatus.BAD_REQUEST, "You are already enrolled in this class");
         }
 
-        // Check if class is full
         if (classData.maxStudents && classData.enrolledStudents && classData.enrolledStudents >= classData.maxStudents) {
             throw new ApiError(httpStatus.BAD_REQUEST, "Class is already full");
         }
 
         teacherId = classData.createdBy;
         finalAmount = classData.price;
-        classDetailType = classData.classType; // This will be "GROUP" or "ONE_TO_ONE"
+        classDetailType = classData.classType;
     } else if (classType === "HOURLY_CLASS") {
         const hourlyClass = await HourlyClassModel.findById(classId);
         if (!hourlyClass) throw new ApiError(httpStatus.NOT_FOUND, "Hourly class not found");
         teacherId = hourlyClass.createdBy;
 
-        // If slot is provided, ensure amount is correct
         if (slotId) {
             const slotData = await Slot.findById(slotId);
             if (slotData) {
@@ -71,15 +68,12 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 
     if (!teacherId) throw new ApiError(httpStatus.BAD_REQUEST, "Teacher not found for this class");
 
-    // Get teacher percentage
     const teacher = await UserModel.findById(teacherId);
     const percentage = teacher?.percentage ?? 20;
 
-    // Calculate commission and teacher fee
     const commission = (finalAmount * percentage) / 100;
     const teacherFee = finalAmount - commission;
 
-    // Create record in ClassPayment first in PENDING state
     const classPayment = await ClassPaymentModel.create({
         student: userId,
         teacher: teacherId,
@@ -96,8 +90,17 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         metadata: payload,
     });
 
+    return { classPayment, student, finalAmount, currency };
+};
+
+/**
+ * Initiate standard payment (Web/Standard Redirect)
+ */
+export const initiateClassPayment = async (userId: string, payload: any) => {
+    const { classPayment, student, finalAmount, currency = "KWD" } = await preparePaymentData(userId, payload);
+    console.log(classPayment, student, finalAmount, currency);
+
     try {
-        // Execute MyFatoorah Payment
         const successUrl = `${config.client_url}/payment/success?paymentId=${classPayment._id}`;
         const errorUrl = `${config.client_url}/payment/error?paymentId=${classPayment._id}`;
 
@@ -109,8 +112,6 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
             successUrl,
             errorUrl,
             customerReference: classPayment._id.toString(),
-            // No need to send all metadata in UserDefinedField if it's already in our DB
-            // metadata: { classType, classId, slotId, messageId, studentId: userId, teacherId },
         });
 
         if (!paymentResponse.IsSuccess) {
@@ -119,7 +120,6 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
             throw new ApiError(httpStatus.BAD_GATEWAY, "Payment initiation failed");
         }
 
-        // Update record with MyFatoorah details
         classPayment.invoiceId = paymentResponse.Data.InvoiceId;
         classPayment.paymentUrl = paymentResponse.Data.InvoiceURL;
         classPayment.metadata = { ...payload, rawResponse: paymentResponse.Data };
@@ -136,6 +136,57 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
         classPayment.status = "FAILED";
         await classPayment.save();
         throw new ApiError(httpStatus.BAD_REQUEST, error.message || "Failed to initiate payment");
+    }
+};
+
+/**
+ * Initiate mobile SDK payment (Session + Payment Methods)
+ */
+export const initiateMobileClassPayment = async (userId: string, payload: any) => {
+    const { classPayment, finalAmount, currency } = await preparePaymentData(userId, payload);
+
+    try {
+        // ✅ STEP 1: Create the invoice (same as web payment)
+        const successUrl = `${config.client_url}/payment/success?paymentId=${classPayment._id}`;
+        const errorUrl = `${config.client_url}/payment/error?paymentId=${classPayment._id}`;
+
+        const invoiceResponse = await executeMyFatoorahPayment({
+            amount: finalAmount,
+            currency,
+            customerName: payload.customerName || "Customer",
+            customerEmail: payload.customerEmail || "test@test.com",
+            successUrl,
+            errorUrl,
+            customerReference: classPayment._id.toString(),
+        });
+
+        if (!invoiceResponse.IsSuccess) {
+            classPayment.status = "FAILED";
+            await classPayment.save();
+            throw new ApiError(httpStatus.BAD_GATEWAY, "Failed to create invoice");
+        }
+
+        // ✅ STEP 2: Save the invoice ID
+        classPayment.invoiceId = invoiceResponse.Data.InvoiceId;
+        await classPayment.save();
+
+        // ✅ STEP 3: Get session and payment methods (you already have this)
+        const [sessionResponse, methodsResponse] = await Promise.all([initiateMyFatoorahSession(userId), initiateMyFatoorahPayment(finalAmount, currency)]);
+
+        // ✅ STEP 4: Return INCLUDING invoiceId
+        return {
+            classPaymentId: classPayment._id,
+            invoiceId: invoiceResponse.Data.InvoiceId, // ← ADD THIS
+            amount: finalAmount,
+            currency: currency,
+            sessionId: sessionResponse?.Data?.SessionId,
+            countryCode: sessionResponse?.Data?.CountryCode,
+            paymentMethods: methodsResponse?.Data?.PaymentMethods,
+        };
+    } catch (error: any) {
+        classPayment.status = "FAILED";
+        await classPayment.save();
+        throw new ApiError(httpStatus.BAD_REQUEST, error.message || "Failed to initiate mobile session");
     }
 };
 
@@ -265,6 +316,7 @@ export const getTeacherClasses = async (teacherId: string, query: any) => {
 
 export const classPaymentService = {
     initiateClassPayment,
+    initiateMobileClassPayment,
     verifyClassPayment,
     getStudentClasses,
     getTeacherClasses,

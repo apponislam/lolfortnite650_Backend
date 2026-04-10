@@ -47,6 +47,54 @@ export const executeMyFatoorahPayment = async (data: { amount: number; currency:
 };
 
 /**
+ * Initiate Session for Mobile SDK (Apple Pay / Google Pay)
+ */
+export const initiateMyFatoorahSession = async (customerIdentifier?: string) => {
+    try {
+        const payload: any = {};
+        if (customerIdentifier) payload.CustomerIdentifier = customerIdentifier;
+
+        const response = await axios.post(`${MYFATOORAH_API_URL}/v2/InitiateSession`, payload, {
+            headers: {
+                Authorization: `Bearer ${MYFATOORAH_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error("MyFatoorah InitiateSession Error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Initiate Payment to get Payment Methods (for native selection UI)
+ */
+export const initiateMyFatoorahPayment = async (amount: number, currency: string = "KWD") => {
+    try {
+        const response = await axios.post(
+            `${MYFATOORAH_API_URL}/v2/InitiatePayment`,
+            {
+                InvoiceAmount: amount,
+                CurrencyIso: currency,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${MYFATOORAH_TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error: any) {
+        console.error("MyFatoorah InitiatePayment Error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
  * Get payment status from MyFatoorah
  */
 export const getMyFatoorahPaymentStatus = async (key: string, keyType: "PaymentId" | "InvoiceId" = "PaymentId") => {

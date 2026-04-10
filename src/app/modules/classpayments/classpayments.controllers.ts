@@ -20,6 +20,22 @@ const initiateClassPayment = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const initiateMobileClassPayment = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new Error("User not authenticated");
+    }
+
+    const result = await classPaymentService.initiateMobileClassPayment(userId, req.body);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Mobile payment initiated successfully",
+        data: result,
+    });
+});
+
 const verifyClassPayment = catchAsync(async (req: Request, res: Response) => {
     const { paymentId } = req.query;
 
@@ -59,6 +75,7 @@ const getTeacherClasses = catchAsync(async (req: Request, res: Response) => {
 
 export const ClassPaymentControllers = {
     initiateClassPayment,
+    initiateMobileClassPayment,
     verifyClassPayment,
     getStudentClasses,
     getTeacherClasses,

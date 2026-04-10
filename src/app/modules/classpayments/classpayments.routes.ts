@@ -8,6 +8,9 @@ const router = express.Router();
 // Initiate payment (only for authenticated students)
 router.post("/initiate-payment", auth, ClassPaymentControllers.initiateClassPayment);
 
+// Initiate mobile payment (with SessionId for SDK)
+router.post("/initiate-mobile-payment", auth, ClassPaymentControllers.initiateMobileClassPayment);
+
 // Get student/teacher classes
 router.get("/student", auth, ClassPaymentControllers.getStudentClasses);
 router.get("/teacher", auth, ClassPaymentControllers.getTeacherClasses);
