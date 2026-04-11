@@ -170,6 +170,7 @@ ClassSchema.index(
             description: 5,
         },
         name: "ClassSearchIndex",
+        language_override: "searchLanguageOverride",
     },
 );
 

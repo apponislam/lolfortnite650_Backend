@@ -71,6 +71,7 @@ hourlyClassSchema.index(
             description: 5,
         },
         name: "HourlyClassSearchIndex",
+        language_override: "searchLanguageOverride",
     },
 );
 
