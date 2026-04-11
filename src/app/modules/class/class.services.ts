@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { ClassModel } from "./class.model";
 import { ClassStatus } from "./class.interface";
+import { ClassPaymentModel } from "../classpayments/classpayments.model";
 
 const createClass = async (userId: string, payload: any) => {
     const data = {
@@ -133,9 +134,51 @@ const getClasses = async (query: any = {}, user?: any) => {
     };
 };
 
+const getMyClasses = async (userId: string, query: any = {}) => {
+    const { page = 1, limit = 10, status, classType, runningStatus } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = { createdBy: new Types.ObjectId(userId) };
+
+    if (status) filters.status = status;
+    if (classType) filters.classType = classType;
+    if (runningStatus) filters.runningStatus = runningStatus;
+
+    const result = await ClassModel.find(filters).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+
+    const total = await ClassModel.countDocuments(filters);
+    const totalPages = Math.ceil(total / Number(limit));
+
+    return {
+        data: result,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages,
+        },
+    };
+};
+
 const getClassById = async (classId: string) => {
-    const result = await ClassModel.findById(classId);
+    const result = await ClassModel.findById(classId).populate("createdBy", "name email profileImage");
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
+    return result;
+};
+
+const getMyClassById = async (classId: string, userId: string) => {
+    const cls = await ClassModel.findOne({ _id: classId, createdBy: userId }).populate("createdBy", "name email profileImage");
+    if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found or you are not the creator");
+
+    // Get enrolled students
+    const enrollments = await ClassPaymentModel.find({
+        classId: classId,
+        status: "PAID",
+    }).populate("student", "name email profileImage phone");
+
+    const result = cls.toObject() as any;
+    result.enrolledStudentsList = enrollments.map((e) => e.student);
+
     return result;
 };
 
@@ -178,19 +221,6 @@ const deleteClass = async (classId: string, userId: string, role?: string) => {
     return;
 };
 
-// const submitForReview = async (classId: string, userId: string) => {
-//     const cls = await ClassModel.findById(classId);
-//     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
-
-//     if (cls.createdBy.toString() !== userId) {
-//         throw new ApiError(httpStatus.FORBIDDEN, "Only the creator can submit for review");
-//     }
-
-//     cls.status = "PENDING";
-//     await cls.save();
-//     return cls;
-// };
-
 const setClassStatus = async (classId: string, status: ClassStatus) => {
     const cls = await ClassModel.findById(classId);
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
@@ -203,7 +233,9 @@ const setClassStatus = async (classId: string, status: ClassStatus) => {
 export const classServices = {
     createClass,
     getClasses,
+    getMyClasses,
     getClassById,
+    getMyClassById,
     updateClass,
     deleteClass,
     // submitForReview,

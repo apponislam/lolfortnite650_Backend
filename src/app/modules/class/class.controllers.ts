@@ -35,6 +35,18 @@ export const getClasses = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+export const getMyClasses = catchAsync(async (req: Request, res: Response) => {
+    const result = await classServices.getMyClasses(req.user._id, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My classes retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const getClassById = catchAsync(async (req: Request, res: Response) => {
     const result = await classServices.getClassById(req.params.classId as string);
 
@@ -42,6 +54,17 @@ export const getClassById = catchAsync(async (req: Request, res: Response) => {
         statusCode: httpStatus.OK,
         success: true,
         message: "Class retrieved successfully",
+        data: result,
+    });
+});
+
+export const getMyClassById = catchAsync(async (req: Request, res: Response) => {
+    const result = await classServices.getMyClassById(req.params.classId as string, req.user._id);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My class retrieved successfully",
         data: result,
     });
 });
@@ -73,17 +96,6 @@ export const deleteClass = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// const submitForReview = catchAsync(async (req: Request, res: Response) => {
-//     const result = await classServices.submitForReview(req.params.classId as string, req.user._id);
-
-//     sendResponse(res, {
-//         statusCode: httpStatus.OK,
-//         success: true,
-//         message: "Class submitted for review",
-//         data: result,
-//     });
-// });
-
 export const setStatus = catchAsync(async (req: Request, res: Response) => {
     const result = await classServices.setClassStatus(req.params.classId as string, req.body.status);
 
@@ -98,9 +110,10 @@ export const setStatus = catchAsync(async (req: Request, res: Response) => {
 export const classControllers = {
     createClass,
     getClasses,
+    getMyClasses,
     getClassById,
+    getMyClassById,
     updateClass,
     deleteClass,
-    // submitForReview,
     setStatus,
 };
