@@ -71,12 +71,12 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
         pipeline.push({ $unwind: "$tutorDetails" });
 
         // Create preference matching condition
-        const preferenceMatch: any = {
-            $or: [{ subjects: { $in: userSubjects } }, { language: { $in: userLanguages } }],
-        };
+        const preferenceMatch: any[] = [];
+        if (userSubjects.length > 0) preferenceMatch.push({ subjects: { $in: userSubjects } });
+        if (userLanguages.length > 0) preferenceMatch.push({ language: { $in: userLanguages } });
 
         if (teacherGender) {
-            preferenceMatch.$or.push({ "tutorDetails.gender": teacherGender.toUpperCase() });
+            preferenceMatch.push({ "tutorDetails.gender": teacherGender.toUpperCase() });
         }
 
         // Add a field to mark if it matches preferences
@@ -84,7 +84,7 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
             $addFields: {
                 isPreferred: {
                     $cond: {
-                        if: preferenceMatch,
+                        if: preferenceMatch.length > 0 ? { $or: preferenceMatch } : false,
                         then: 1,
                         else: 0,
                     },
