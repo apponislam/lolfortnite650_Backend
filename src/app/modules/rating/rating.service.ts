@@ -7,7 +7,7 @@ const createRating = async (payload: any) => {
 };
 
 const updateRating = async (ratingId: string, payload: any) => {
-    const rating = await RatingModel.findByIdAndUpdate(ratingId, payload, {
+    const rating = await RatingModel.findOneAndUpdate({ _id: ratingId, isDeleted: false }, payload, {
         returnDocument: "after",
         runValidators: true,
     });
@@ -16,20 +16,20 @@ const updateRating = async (ratingId: string, payload: any) => {
 };
 
 const deleteRating = async (ratingId: string) => {
-    const rating = await RatingModel.findByIdAndDelete(ratingId);
+    const rating = await RatingModel.findOneAndUpdate({ _id: ratingId, isDeleted: false }, { $set: { isDeleted: true } }, { returnDocument: "after" });
     if (!rating) throw new ApiError(404, "Rating not found");
     return rating;
 };
 
 const getRatingById = async (ratingId: string) => {
-    const rating = await RatingModel.findById(ratingId).populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
+    const rating = await RatingModel.findOne({ _id: ratingId, isDeleted: false }).populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
 
     if (!rating) throw new ApiError(404, "Rating not found");
     return rating;
 };
 
 const getRatings = async (filter: any = {}, options: any = {}) => {
-    const query = RatingModel.find(filter);
+    const query = RatingModel.find({ ...filter, isDeleted: false });
 
     if (options.sort) query.sort(options.sort);
     if (options.limit) query.limit(options.limit);
@@ -39,7 +39,7 @@ const getRatings = async (filter: any = {}, options: any = {}) => {
 };
 
 const getAverageRatingForTutor = async (tutorId: Types.ObjectId) => {
-    const result = await RatingModel.aggregate([{ $match: { tutor: tutorId } }, { $group: { _id: "$tutor", avgRating: { $avg: "$rating" } } }]);
+    const result = await RatingModel.aggregate([{ $match: { tutor: tutorId, isDeleted: false } }, { $group: { _id: "$tutor", avgRating: { $avg: "$rating" } } }]);
 
     return result[0]?.avgRating || 0;
 };

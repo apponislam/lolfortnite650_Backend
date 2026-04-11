@@ -14,6 +14,7 @@ const FAQSchema = new Schema<FAQDocument>(
         },
         createdBy: { type: Schema.Types.ObjectId, ref: "User" },
         isActive: { type: Boolean, default: true },
+        isDeleted: { type: Boolean, default: false },
     },
     {
         timestamps: true,

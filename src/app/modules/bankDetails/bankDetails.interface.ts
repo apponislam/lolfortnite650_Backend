@@ -20,6 +20,7 @@ export interface IBankAccount {
 
     isVerified: boolean;
     isDefault: boolean;
+    isDeleted: boolean;
 
     createdAt?: Date;
     updatedAt?: Date;

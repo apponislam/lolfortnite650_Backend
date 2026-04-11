@@ -22,4 +22,5 @@ export interface Class {
     images: string[];
     status: ClassStatus;
     createdBy: Types.ObjectId;
+    isDeleted: boolean;
 }

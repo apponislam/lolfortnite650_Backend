@@ -10,6 +10,8 @@ export interface Rating {
 
     reply?: string;
 
+    isDeleted: boolean;
+
     createdAt: Date;
     updatedAt: Date;
 }

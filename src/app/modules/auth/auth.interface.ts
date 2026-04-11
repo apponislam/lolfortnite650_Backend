@@ -25,6 +25,7 @@ export interface User {
     };
     isActive: boolean;
     isEmailVerified: boolean;
+    isDeleted: boolean;
     lastLogin?: Date;
     teacherApprovalStatus?: TeacherApprovalStatus;
     approvedBy?: mongoose.Types.ObjectId;

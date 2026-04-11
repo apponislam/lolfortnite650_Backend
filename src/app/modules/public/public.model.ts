@@ -14,6 +14,7 @@ const PolicySchema = new Schema<PolicyDocument>(
         title: { type: String, required: true, trim: true },
         content: { type: String, required: true },
         publishedAt: { type: Date },
+        isDeleted: { type: Boolean, default: false },
     },
     {
         timestamps: true,

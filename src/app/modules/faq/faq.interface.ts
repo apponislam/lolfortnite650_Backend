@@ -13,6 +13,7 @@ export interface IFAQ {
     audience: FAQAudienceEnum;
     createdBy?: Types.ObjectId;
     isActive: boolean;
+    isDeleted: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

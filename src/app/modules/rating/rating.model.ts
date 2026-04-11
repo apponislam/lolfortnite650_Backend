@@ -36,6 +36,11 @@ const ratingSchema = new Schema<Rating>(
             type: String,
             trim: true,
         },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

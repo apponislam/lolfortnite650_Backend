@@ -9,4 +9,5 @@ export interface IPolicy {
   title: string;
   content: string;
   publishedAt?: Date;
+  isDeleted: boolean;
 }

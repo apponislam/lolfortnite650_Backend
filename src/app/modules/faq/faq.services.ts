@@ -13,7 +13,7 @@ const createFAQ = async (userId: string, payload: any) => {
 };
 
 const getAllFAQs = async (query: any = {}) => {
-    const filter: any = {};
+    const filter: any = { isDeleted: false };
     if (query.audience) filter.audience = query.audience;
     if (query.isActive !== undefined) filter.isActive = query.isActive === "true";
 
@@ -22,7 +22,7 @@ const getAllFAQs = async (query: any = {}) => {
 };
 
 const getActiveFAQs = async (audience?: FAQAudienceEnum) => {
-    const filter: any = { isActive: true };
+    const filter: any = { isActive: true, isDeleted: false };
     if (audience) {
         filter.audience = audience;
     }
@@ -31,14 +31,14 @@ const getActiveFAQs = async (audience?: FAQAudienceEnum) => {
 };
 
 const getFAQById = async (faqId: string) => {
-    const faq = await FAQModel.findById(faqId);
+    const faq = await FAQModel.findOne({ _id: faqId, isDeleted: false });
     if (!faq) throw new ApiError(httpStatus.NOT_FOUND, "FAQ not found");
     return faq;
 };
 
 const updateFAQ = async (faqId: string, payload: any) => {
-    const faq = await FAQModel.findByIdAndUpdate(
-        faqId,
+    const faq = await FAQModel.findOneAndUpdate(
+        { _id: faqId, isDeleted: false },
         { $set: payload },
         { returnDocument: "after", runValidators: true },
     );
@@ -47,7 +47,7 @@ const updateFAQ = async (faqId: string, payload: any) => {
 };
 
 const toggleFAQStatus = async (faqId: string) => {
-    const faq = await FAQModel.findById(faqId);
+    const faq = await FAQModel.findOne({ _id: faqId, isDeleted: false });
     if (!faq) throw new ApiError(httpStatus.NOT_FOUND, "FAQ not found");
     faq.isActive = !faq.isActive;
     await faq.save();
@@ -55,7 +55,11 @@ const toggleFAQStatus = async (faqId: string) => {
 };
 
 const deleteFAQ = async (faqId: string) => {
-    const faq = await FAQModel.findByIdAndDelete(faqId);
+    const faq = await FAQModel.findOneAndUpdate(
+        { _id: faqId, isDeleted: false },
+        { $set: { isDeleted: true, isActive: false } },
+        { returnDocument: "after" },
+    );
     if (!faq) throw new ApiError(httpStatus.NOT_FOUND, "FAQ not found");
     return faq;
 };

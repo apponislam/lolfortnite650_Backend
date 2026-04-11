@@ -67,6 +67,11 @@ const UserSchema = new Schema<User>(
             default: false,
         },
 
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+
         lastLogin: {
             type: Date,
         },

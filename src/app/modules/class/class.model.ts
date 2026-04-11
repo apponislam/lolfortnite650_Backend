@@ -98,6 +98,11 @@ const ClassSchema = new Schema<ClassDocument>(
             ref: "User",
             required: [true, "Creator user ID is required"],
         },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

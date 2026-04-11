@@ -20,7 +20,7 @@ const getClasses = async (query: any = {}, user?: any) => {
     const { page = 1, limit = 10, status, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const filters: any = {};
+    const filters: any = { isDeleted: false };
 
     // Text Search
     if (search) {
@@ -138,7 +138,7 @@ const getMyClasses = async (userId: string, query: any = {}) => {
     const { page = 1, limit = 10, status, classType, runningStatus } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const filters: any = { createdBy: new Types.ObjectId(userId) };
+    const filters: any = { createdBy: new Types.ObjectId(userId), isDeleted: false };
 
     if (status) filters.status = status;
     if (classType) filters.classType = classType;
@@ -161,13 +161,13 @@ const getMyClasses = async (userId: string, query: any = {}) => {
 };
 
 const getClassById = async (classId: string) => {
-    const result = await ClassModel.findById(classId).populate("createdBy", "name email profileImage");
+    const result = await ClassModel.findOne({ _id: classId, isDeleted: false }).populate("createdBy", "name email profileImage");
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
     return result;
 };
 
 const getMyClassById = async (classId: string, userId: string) => {
-    const cls = await ClassModel.findOne({ _id: classId, createdBy: userId }).populate("createdBy", "name email profileImage");
+    const cls = await ClassModel.findOne({ _id: classId, createdBy: userId, isDeleted: false }).populate("createdBy", "name email profileImage");
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found or you are not the creator");
 
     // Get enrolled students
@@ -183,7 +183,7 @@ const getMyClassById = async (classId: string, userId: string) => {
 };
 
 const updateClass = async (classId: string, userId: string, payload: any) => {
-    const cls = await ClassModel.findById(classId);
+    const cls = await ClassModel.findOne({ _id: classId, isDeleted: false });
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
     if (cls.createdBy.toString() !== userId) {
@@ -210,14 +210,15 @@ const updateClass = async (classId: string, userId: string, payload: any) => {
 };
 
 const deleteClass = async (classId: string, userId: string, role?: string) => {
-    const cls = await ClassModel.findById(classId);
+    const cls = await ClassModel.findOne({ _id: classId, isDeleted: false });
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
     if (cls.createdBy.toString() !== userId && role !== "ADMIN" && role !== "SUPER_ADMIN") {
         throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to delete this class");
     }
 
-    await ClassModel.deleteOne({ _id: classId });
+    cls.isDeleted = true;
+    await cls.save();
     return;
 };
 
