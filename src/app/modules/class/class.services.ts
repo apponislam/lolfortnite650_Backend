@@ -154,6 +154,59 @@ const getClasses = async (query: any = {}, user?: any) => {
     };
 };
 
+const getAllClassesForAdmin = async (query: any = {}) => {
+    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = { isDeleted: false };
+
+    if (status) filters.status = status;
+    if (classType) filters.classType = classType;
+    if (runningStatus) filters.runningStatus = runningStatus;
+
+    if (search) {
+        filters.$text = { $search: search };
+    }
+
+    const sort: any = {};
+    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    const result = await ClassModel.find(filters).sort(sort).skip(skip).limit(Number(limit)).populate("createdBy", "name email profileImage").lean();
+
+    // Add rating stats for each class
+    const resultWithRatings = await Promise.all(
+        result.map(async (cls: any) => {
+            const ratingStats = await RatingModel.aggregate([
+                { $match: { class: cls._id, isDeleted: false } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: "$rating" },
+                        ratingCount: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            cls.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+            cls.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+            return cls;
+        }),
+    );
+
+    const total = await ClassModel.countDocuments(filters);
+    const totalPages = Math.ceil(total / Number(limit));
+
+    return {
+        data: resultWithRatings,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages,
+        },
+    };
+};
+
 const getMyClasses = async (userId: string, query: any = {}) => {
     const { page = 1, limit = 10, status, classType, runningStatus } = query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -305,6 +358,7 @@ const setClassStatus = async (classId: string, status: ClassStatus) => {
 export const classServices = {
     createClass,
     getClasses,
+    getAllClassesForAdmin,
     getMyClasses,
     getClassById,
     getMyClassById,

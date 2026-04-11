@@ -16,6 +16,7 @@ import { ClassPaymentRoutes } from "../modules/classpayments/classpayments.route
 import { WithdrawRoutes } from "../modules/withdraw/withdraw.routes";
 import { DashboardRoutes } from "../modules/dashboard/dashboard.routes";
 import { userRoutes } from "../modules/user/user.routes";
+import { ratingRoutes } from "../modules/rating/rating.routes";
 
 const router = express.Router();
 
@@ -72,6 +73,10 @@ const moduleRoutes = [
     {
         path: "/hourly-classes",
         route: hourlyClassRoutes,
+    },
+    {
+        path: "/ratings",
+        route: ratingRoutes,
     },
     {
         path: "/class-payments",

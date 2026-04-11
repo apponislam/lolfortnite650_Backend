@@ -8,6 +8,7 @@ import { uploadClassImages } from "../../middlewares/uploadClassImages";
 const router = Router();
 
 router.get("/", checkAuth, classControllers.getClasses);
+router.get("/admin/all", auth, authorize(["ADMIN", "SUPER_ADMIN"]), classControllers.getAllClassesForAdmin);
 router.get("/my-classes", auth, authorize(["TEACHER"]), classControllers.getMyClasses);
 router.get("/my-classes/:classId", auth, authorize(["TEACHER"]), classControllers.getMyClassById);
 router.get("/:classId", classControllers.getClassById);

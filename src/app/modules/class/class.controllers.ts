@@ -35,6 +35,18 @@ export const getClasses = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+export const getAllClassesForAdmin = catchAsync(async (req: Request, res: Response) => {
+    const result = await classServices.getAllClassesForAdmin(req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "All classes retrieved successfully for admin",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const getMyClasses = catchAsync(async (req: Request, res: Response) => {
     const result = await classServices.getMyClasses(req.user._id, req.query);
 
@@ -110,6 +122,7 @@ export const setStatus = catchAsync(async (req: Request, res: Response) => {
 export const classControllers = {
     createClass,
     getClasses,
+    getAllClassesForAdmin,
     getMyClasses,
     getClassById,
     getMyClassById,
