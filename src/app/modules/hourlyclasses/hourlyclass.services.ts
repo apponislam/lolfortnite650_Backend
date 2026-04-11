@@ -130,7 +130,7 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
         result.map(async (item) => {
             // Get ratings for this specific class
             const ratingStats = await RatingModel.aggregate([
-                { $match: { class: item._id } },
+                { $match: { class: item._id, isDeleted: false } },
                 {
                     $group: {
                         _id: null,
@@ -188,7 +188,7 @@ const getMyHourlyClass = async (userId: string) => {
 
     // Get ratings for this specific class
     const ratingStats = await RatingModel.aggregate([
-        { $match: { class: result._id } },
+        { $match: { class: result._id, isDeleted: false } },
         {
             $group: {
                 _id: null,
@@ -216,7 +216,7 @@ const getHourlyClassById = async (id: string) => {
 
     // Get ratings for this specific class
     const ratingStats = await RatingModel.aggregate([
-        { $match: { class: result._id } },
+        { $match: { class: result._id, isDeleted: false } },
         {
             $group: {
                 _id: null,

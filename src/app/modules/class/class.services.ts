@@ -4,6 +4,7 @@ import ApiError from "../../../errors/ApiError";
 import { ClassModel } from "./class.model";
 import { ClassStatus } from "./class.interface";
 import { ClassPaymentModel } from "../classpayments/classpayments.model";
+import { RatingModel } from "../rating/rating.model";
 
 const createClass = async (userId: string, payload: any) => {
     const data = {
@@ -119,11 +120,31 @@ const getClasses = async (query: any = {}, user?: any) => {
         select: "name email profileImage",
     });
 
+    // Add rating stats for each class
+    const resultWithRatings = await Promise.all(
+        populatedResult.map(async (cls: any) => {
+            const ratingStats = await RatingModel.aggregate([
+                { $match: { class: cls._id, isDeleted: false } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: "$rating" },
+                        ratingCount: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            cls.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+            cls.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+            return cls;
+        }),
+    );
+
     const total = await ClassModel.countDocuments(filters);
     const totalPages = Math.ceil(total / Number(limit));
 
     return {
-        data: populatedResult,
+        data: resultWithRatings,
         meta: {
             page: Number(page),
             limit: Number(limit),
@@ -145,11 +166,31 @@ const getMyClasses = async (userId: string, query: any = {}) => {
 
     const result = await ClassModel.find(filters).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 
+    // Add rating stats for each class
+    const resultWithRatings = await Promise.all(
+        result.map(async (cls: any) => {
+            const ratingStats = await RatingModel.aggregate([
+                { $match: { class: cls._id, isDeleted: false } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: "$rating" },
+                        ratingCount: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            cls.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+            cls.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+            return cls;
+        }),
+    );
+
     const total = await ClassModel.countDocuments(filters);
     const totalPages = Math.ceil(total / Number(limit));
 
     return {
-        data: result,
+        data: resultWithRatings,
         meta: {
             page: Number(page),
             limit: Number(limit),
@@ -162,7 +203,24 @@ const getMyClasses = async (userId: string, query: any = {}) => {
 const getClassById = async (classId: string) => {
     const result = await ClassModel.findOne({ _id: classId, isDeleted: false, status: "APPROVED" }).populate("createdBy", "name email profileImage");
     if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found or not approved");
-    return result;
+
+    // Get ratings for this specific class
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { class: result._id, isDeleted: false } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const formattedResult = result.toObject() as any;
+    formattedResult.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    formattedResult.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+
+    return formattedResult;
 };
 
 const getMyClassById = async (classId: string, userId: string) => {
@@ -175,8 +233,22 @@ const getMyClassById = async (classId: string, userId: string) => {
         status: "PAID",
     }).populate("student", "name email profileImage phone");
 
+    // Get ratings for this specific class
+    const ratingStats = await RatingModel.aggregate([
+        { $match: { class: cls._id, isDeleted: false } },
+        {
+            $group: {
+                _id: null,
+                averageRating: { $avg: "$rating" },
+                ratingCount: { $sum: 1 },
+            },
+        },
+    ]);
+
     const result = cls.toObject() as any;
     result.enrolledStudentsList = enrollments.map((e) => e.student);
+    result.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+    result.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
 
     return result;
 };
