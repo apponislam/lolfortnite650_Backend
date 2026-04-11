@@ -8,7 +8,7 @@ const createClass = async (userId: string, payload: any) => {
     const data = {
         ...payload,
         createdBy: new Types.ObjectId(userId),
-        status: "DRAFT" as ClassStatus,
+        status: "PENDING" as ClassStatus,
     };
 
     const result = await ClassModel.create(data);
@@ -178,18 +178,18 @@ const deleteClass = async (classId: string, userId: string, role?: string) => {
     return;
 };
 
-const submitForReview = async (classId: string, userId: string) => {
-    const cls = await ClassModel.findById(classId);
-    if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
+// const submitForReview = async (classId: string, userId: string) => {
+//     const cls = await ClassModel.findById(classId);
+//     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
-    if (cls.createdBy.toString() !== userId) {
-        throw new ApiError(httpStatus.FORBIDDEN, "Only the creator can submit for review");
-    }
+//     if (cls.createdBy.toString() !== userId) {
+//         throw new ApiError(httpStatus.FORBIDDEN, "Only the creator can submit for review");
+//     }
 
-    cls.status = "PENDING";
-    await cls.save();
-    return cls;
-};
+//     cls.status = "PENDING";
+//     await cls.save();
+//     return cls;
+// };
 
 const setClassStatus = async (classId: string, status: ClassStatus) => {
     const cls = await ClassModel.findById(classId);
@@ -206,6 +206,6 @@ export const classServices = {
     getClassById,
     updateClass,
     deleteClass,
-    submitForReview,
+    // submitForReview,
     setClassStatus,
 };

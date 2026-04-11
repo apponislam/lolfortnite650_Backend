@@ -73,16 +73,16 @@ export const deleteClass = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-export const submitForReview = catchAsync(async (req: Request, res: Response) => {
-    const result = await classServices.submitForReview(req.params.classId as string, req.user._id);
+// const submitForReview = catchAsync(async (req: Request, res: Response) => {
+//     const result = await classServices.submitForReview(req.params.classId as string, req.user._id);
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Class submitted for review",
-        data: result,
-    });
-});
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "Class submitted for review",
+//         data: result,
+//     });
+// });
 
 export const setStatus = catchAsync(async (req: Request, res: Response) => {
     const result = await classServices.setClassStatus(req.params.classId as string, req.body.status);
@@ -101,6 +101,6 @@ export const classControllers = {
     getClassById,
     updateClass,
     deleteClass,
-    submitForReview,
+    // submitForReview,
     setStatus,
 };

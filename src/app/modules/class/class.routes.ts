@@ -15,7 +15,7 @@ router.post("/", auth, authorize(["TEACHER"]), uploadClassImages("images", 5), c
 router.patch("/:classId", auth, authorize(["TEACHER"]), uploadClassImages("images", 5), classControllers.updateClass);
 router.delete("/:classId", auth, authorize(["TEACHER", "ADMIN", "SUPER_ADMIN"]), classControllers.deleteClass);
 
-router.post("/:classId/submit-review", auth, authorize(["TEACHER"]), classControllers.submitForReview);
+// router.post("/:classId/submit-review", auth, authorize(["TEACHER"]), classControllers.submitForReview);
 router.patch("/:classId/status", auth, authorize(["ADMIN", "SUPER_ADMIN"]), classControllers.setStatus);
 
 export const ClassRoutes = router;
