@@ -20,7 +20,7 @@ const getClasses = async (query: any = {}, user?: any) => {
     const { page = 1, limit = 10, status, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const filters: any = { isDeleted: false };
+    const filters: any = { isDeleted: false, status: "APPROVED" };
 
     // Text Search
     if (search) {
@@ -28,7 +28,6 @@ const getClasses = async (query: any = {}, user?: any) => {
     }
 
     // Exact or partial matches
-    if (status) filters.status = status;
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
     if (subject) filters.subject = { $regex: subject, $options: "i" };
@@ -161,8 +160,8 @@ const getMyClasses = async (userId: string, query: any = {}) => {
 };
 
 const getClassById = async (classId: string) => {
-    const result = await ClassModel.findOne({ _id: classId, isDeleted: false }).populate("createdBy", "name email profileImage");
-    if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
+    const result = await ClassModel.findOne({ _id: classId, isDeleted: false, status: "APPROVED" }).populate("createdBy", "name email profileImage");
+    if (!result) throw new ApiError(httpStatus.NOT_FOUND, "Class not found or not approved");
     return result;
 };
 
