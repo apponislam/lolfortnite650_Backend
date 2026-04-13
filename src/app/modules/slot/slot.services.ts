@@ -188,8 +188,84 @@ const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
     }
 };
 
+// const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Promise<{ generated: number; skipped: number }> => {
+//     const teacherAvailability = await TeacherAvailability.findOne({ teacher: teacherId });
+
+//     if (!teacherAvailability) {
+//         throw new Error("Teacher availability not found");
+//     }
+
+//     const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+//     let totalGenerated = 0;
+//     let totalSkipped = 0;
+
+//     for (let i = 1; i <= days; i++) {
+//         const targetDate = new Date();
+//         targetDate.setDate(targetDate.getDate() + i);
+//         targetDate.setHours(0, 0, 0, 0);
+
+//         const dayOfWeek = DAYS_OF_WEEK[targetDate.getDay()];
+
+//         const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
+
+//         if (!dayAvailability || dayAvailability.slots.length === 0) continue;
+
+//         const slotsToCreate: ISlot[] = [];
+
+//         for (const slot of dayAvailability.slots) {
+//             const [startH, startM] = slot.startTime.split(":").map(Number);
+//             const [endH, endM] = slot.endTime.split(":").map(Number);
+
+//             if (startH * 60 + startM >= endH * 60 + endM) continue;
+
+//             const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+//             const hours = Math.ceil(durationMinutes / 60);
+
+//             slotsToCreate.push({
+//                 teacher: new Types.ObjectId(teacherId),
+//                 date: new Date(targetDate),
+//                 startTime: slot.startTime,
+//                 endTime: slot.endTime,
+//                 hours,
+//                 status: SlotStatus.AVAILABLE,
+//                 lockedBy: null,
+//                 lockedUntil: null,
+//                 booking: null,
+//                 version: 0,
+//             });
+//         }
+
+//         const bulkOps = slotsToCreate.map((slot) => ({
+//             updateOne: {
+//                 filter: {
+//                     teacher: slot.teacher,
+//                     date: slot.date,
+//                     startTime: slot.startTime,
+//                 },
+//                 update: { $setOnInsert: slot },
+//                 upsert: true,
+//             },
+//         }));
+
+//         if (bulkOps.length > 0) {
+//             const result = await Slot.bulkWrite(bulkOps);
+
+//             totalGenerated += result.upsertedCount;
+//             totalSkipped += slotsToCreate.length - result.upsertedCount;
+//         }
+//     }
+
+//     return {
+//         generated: totalGenerated,
+//         skipped: totalSkipped,
+//     };
+// };
+
 const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Promise<{ generated: number; skipped: number }> => {
-    const teacherAvailability = await TeacherAvailability.findOne({ teacher: teacherId });
+    const teacherAvailability = await TeacherAvailability.findOne({
+        teacher: teacherId,
+    });
 
     if (!teacherAvailability) {
         throw new Error("Teacher availability not found");
@@ -200,18 +276,20 @@ const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Pro
     let totalGenerated = 0;
     let totalSkipped = 0;
 
+    const bulkOps: any[] = [];
+
+    const baseDate = new Date();
+    baseDate.setHours(0, 0, 0, 0);
+
     for (let i = 1; i <= days; i++) {
-        const targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + i);
-        targetDate.setHours(0, 0, 0, 0);
+        const targetDate = new Date(baseDate);
+        targetDate.setDate(baseDate.getDate() + i);
 
         const dayOfWeek = DAYS_OF_WEEK[targetDate.getDay()];
 
         const dayAvailability = teacherAvailability.availability.find((a) => a.day === dayOfWeek);
 
         if (!dayAvailability || dayAvailability.slots.length === 0) continue;
-
-        const slotsToCreate: ISlot[] = [];
 
         for (const slot of dayAvailability.slots) {
             const [startH, startM] = slot.startTime.split(":").map(Number);
@@ -220,11 +298,12 @@ const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Pro
             if (startH * 60 + startM >= endH * 60 + endM) continue;
 
             const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+
             const hours = Math.ceil(durationMinutes / 60);
 
-            slotsToCreate.push({
+            const slotDoc = {
                 teacher: new Types.ObjectId(teacherId),
-                date: new Date(targetDate),
+                date: targetDate,
                 startTime: slot.startTime,
                 endTime: slot.endTime,
                 hours,
@@ -233,27 +312,28 @@ const generateSlotsForTeacher = async (teacherId: string, days: number = 1): Pro
                 lockedUntil: null,
                 booking: null,
                 version: 0,
+            };
+
+            bulkOps.push({
+                updateOne: {
+                    filter: {
+                        teacher: slotDoc.teacher,
+                        date: slotDoc.date,
+                        startTime: slotDoc.startTime,
+                    },
+                    update: { $setOnInsert: slotDoc },
+                    upsert: true,
+                },
             });
         }
+    }
 
-        const bulkOps = slotsToCreate.map((slot) => ({
-            updateOne: {
-                filter: {
-                    teacher: slot.teacher,
-                    date: slot.date,
-                    startTime: slot.startTime,
-                },
-                update: { $setOnInsert: slot },
-                upsert: true,
-            },
-        }));
+    // 🔥 SINGLE DB CALL
+    if (bulkOps.length > 0) {
+        const result = await Slot.bulkWrite(bulkOps);
 
-        if (bulkOps.length > 0) {
-            const result = await Slot.bulkWrite(bulkOps);
-
-            totalGenerated += result.upsertedCount;
-            totalSkipped += slotsToCreate.length - result.upsertedCount;
-        }
+        totalGenerated = result.upsertedCount;
+        totalSkipped = bulkOps.length - result.upsertedCount;
     }
 
     return {
