@@ -125,15 +125,75 @@ const updateSlotStatus = async (slotId: string, status: SlotStatus): Promise<ISl
     return slot.toObject() as ISlot;
 };
 
-const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
-    const session: ClientSession = await Slot.startSession();
-    session.startTransaction();
+// const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
+//     const session: ClientSession = await Slot.startSession();
+//     session.startTransaction();
 
+//     try {
+//         const now = new Date();
+
+//         // 1️⃣ Release expired locks
+//         await Slot.updateMany(
+//             {
+//                 status: SlotStatus.LOCKED,
+//                 lockedUntil: { $lt: now },
+//             },
+//             {
+//                 $set: {
+//                     status: SlotStatus.AVAILABLE,
+//                     lockedBy: null,
+//                     lockedUntil: null,
+//                 },
+//                 $inc: { version: 1 },
+//             },
+//             { session },
+//         );
+
+//         // 2️⃣ Expired pending bookings
+//         // const expiredBookings: IBooking[] = await Booking.find({
+//         //     status: BookingStatus.PENDING,
+//         //     expiresAt: { $lt: now },
+//         // }).session(session);
+
+//         // if (expiredBookings.length > 0) {
+//         //     const expiredSlotIds = expiredBookings.map((b) => b.slot);
+
+//         //     // Mark bookings as expired
+//         //     await Booking.updateMany({ _id: { $in: expiredBookings.map((b) => b._id) } }, { $set: { status: BookingStatus.EXPIRED } }, { session });
+
+//         //     // Release slots that were locked by expired bookings
+//         //     await Slot.updateMany(
+//         //         {
+//         //             _id: { $in: expiredSlotIds },
+//         //             status: SlotStatus.LOCKED,
+//         //         },
+//         //         {
+//         //             $set: {
+//         //                 status: SlotStatus.AVAILABLE,
+//         //                 lockedBy: null,
+//         //                 lockedUntil: null,
+//         //             },
+//         //             $inc: { version: 1 },
+//         //         },
+//         //         { session },
+//         //     );
+//         // }
+
+//         await session.commitTransaction();
+//     } catch (error) {
+//         await session.abortTransaction();
+//         throw error;
+//     } finally {
+//         session.endSession();
+//     }
+// };
+
+const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
     try {
         const now = new Date();
 
         // 1️⃣ Release expired locks
-        await Slot.updateMany(
+        const lockResult = await Slot.updateMany(
             {
                 status: SlotStatus.LOCKED,
                 lockedUntil: { $lt: now },
@@ -146,45 +206,15 @@ const cleanupExpiredLocksAndBookings = async (): Promise<void> => {
                 },
                 $inc: { version: 1 },
             },
-            { session },
         );
 
-        // 2️⃣ Expired pending bookings
-        // const expiredBookings: IBooking[] = await Booking.find({
-        //     status: BookingStatus.PENDING,
-        //     expiresAt: { $lt: now },
-        // }).session(session);
+        if (lockResult.modifiedCount > 0) {
+            console.log(`🔓 Released ${lockResult.modifiedCount} expired locks`);
+        }
 
-        // if (expiredBookings.length > 0) {
-        //     const expiredSlotIds = expiredBookings.map((b) => b.slot);
-
-        //     // Mark bookings as expired
-        //     await Booking.updateMany({ _id: { $in: expiredBookings.map((b) => b._id) } }, { $set: { status: BookingStatus.EXPIRED } }, { session });
-
-        //     // Release slots that were locked by expired bookings
-        //     await Slot.updateMany(
-        //         {
-        //             _id: { $in: expiredSlotIds },
-        //             status: SlotStatus.LOCKED,
-        //         },
-        //         {
-        //             $set: {
-        //                 status: SlotStatus.AVAILABLE,
-        //                 lockedBy: null,
-        //                 lockedUntil: null,
-        //             },
-        //             $inc: { version: 1 },
-        //         },
-        //         { session },
-        //     );
-        // }
-
-        await session.commitTransaction();
+        // 2️⃣ (Optional) Handle expired bookings later if needed
     } catch (error) {
-        await session.abortTransaction();
-        throw error;
-    } finally {
-        session.endSession();
+        console.error("❌ Cleanup failed:", error);
     }
 };
 
