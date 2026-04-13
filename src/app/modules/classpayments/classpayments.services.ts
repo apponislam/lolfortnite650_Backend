@@ -322,7 +322,7 @@ const getTeacherClasses = async (teacherId: string, query: any) => {
  * Get hourly class teacher payments (all, previous, upcoming)
  */
 const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
-    const { page = 1, limit = 10, type = "all" } = query;
+    const { page = 1, limit = 10, timeframe = "all" } = query;
     const skip = (Number(page) - 1) * Number(limit);
     const now = new Date();
 
@@ -358,16 +358,16 @@ const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
         },
     ];
 
-    if (type === "previous") {
+    if (timeframe === "previous") {
         pipeline.push({ $match: { slotDateTime: { $lt: now } } });
-    } else if (type === "upcoming") {
+    } else if (timeframe === "upcoming") {
         pipeline.push({ $match: { slotDateTime: { $gte: now } } });
     }
 
     // Clone pipeline for count before pagination
     const countPipeline = [...pipeline, { $count: "total" }];
 
-    pipeline.push({ $sort: { slotDateTime: type === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $sort: { slotDateTime: timeframe === "upcoming" ? 1 : -1 } });
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: Number(limit) });
 
@@ -439,7 +439,7 @@ const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
  * Get hourly class student payments (all, previous, upcoming)
  */
 const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
-    const { page = 1, limit = 10, type = "all" } = query;
+    const { page = 1, limit = 10, timeframe = "all" } = query;
     const skip = (Number(page) - 1) * Number(limit);
     const now = new Date();
 
@@ -475,16 +475,16 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
         },
     ];
 
-    if (type === "previous") {
+    if (timeframe === "previous") {
         pipeline.push({ $match: { slotDateTime: { $lt: now } } });
-    } else if (type === "upcoming") {
+    } else if (timeframe === "upcoming") {
         pipeline.push({ $match: { slotDateTime: { $gte: now } } });
     }
 
     // Clone pipeline for count before pagination
     const countPipeline = [...pipeline, { $count: "total" }];
 
-    pipeline.push({ $sort: { slotDateTime: type === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $sort: { slotDateTime: timeframe === "upcoming" ? 1 : -1 } });
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: Number(limit) });
 
