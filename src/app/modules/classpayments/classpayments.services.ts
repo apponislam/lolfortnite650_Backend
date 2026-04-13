@@ -378,31 +378,59 @@ const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
                 from: "users",
                 localField: "student",
                 foreignField: "_id",
-                as: "student",
+                as: "studentData",
             },
         },
-        { $unwind: "$student" },
+        { $unwind: "$studentData" },
         {
-            $project: {
-                "student.password": 0,
+            $addFields: {
+                student: {
+                    _id: "$studentData._id",
+                    name: "$studentData.name",
+                    email: "$studentData.email",
+                    profileImage: "$studentData.profileImage",
+                },
             },
         },
     );
+
+    // Join with HourlyClass details
+    pipeline.push(
+        {
+            $lookup: {
+                from: "hourlyclasses",
+                localField: "classId",
+                foreignField: "_id",
+                as: "hourlyClassData",
+            },
+        },
+        { $unwind: "$hourlyClassData" },
+        {
+            $addFields: {
+                classDetails: {
+                    subjects: "$hourlyClassData.subjects",
+                    curriculum: "$hourlyClassData.curriculum",
+                    pricePerHour: "$hourlyClassData.pricePerHour",
+                    description: "$hourlyClassData.description",
+                },
+            },
+        },
+    );
+
+    // Cleanup extra fields from lookup
+    pipeline.push({
+        $project: {
+            studentData: 0,
+            hourlyClassData: 0,
+        },
+    });
 
     const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
 
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
-    // Populate HourlyClass details
-    const populatedResult = await Promise.all(
-        result.map(async (item: any) => {
-            item.classDetails = await HourlyClassModel.findById(item.classId).select("subjects curriculum pricePerHour description");
-            return item;
-        }),
-    );
-
     return {
-        data: populatedResult,
+        data: result,
         meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
     };
 };
@@ -467,31 +495,59 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
                 from: "users",
                 localField: "teacher",
                 foreignField: "_id",
-                as: "teacher",
+                as: "teacherData",
             },
         },
-        { $unwind: "$teacher" },
+        { $unwind: "$teacherData" },
         {
-            $project: {
-                "teacher.password": 0,
+            $addFields: {
+                teacher: {
+                    _id: "$teacherData._id",
+                    name: "$teacherData.name",
+                    email: "$teacherData.email",
+                    profileImage: "$teacherData.profileImage",
+                },
             },
         },
     );
+
+    // Join with HourlyClass details
+    pipeline.push(
+        {
+            $lookup: {
+                from: "hourlyclasses",
+                localField: "classId",
+                foreignField: "_id",
+                as: "hourlyClassData",
+            },
+        },
+        { $unwind: "$hourlyClassData" },
+        {
+            $addFields: {
+                classDetails: {
+                    subjects: "$hourlyClassData.subjects",
+                    curriculum: "$hourlyClassData.curriculum",
+                    pricePerHour: "$hourlyClassData.pricePerHour",
+                    description: "$hourlyClassData.description",
+                },
+            },
+        },
+    );
+
+    // Cleanup extra fields from lookup
+    pipeline.push({
+        $project: {
+            teacherData: 0,
+            hourlyClassData: 0,
+        },
+    });
 
     const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
 
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
-    // Populate HourlyClass details
-    const populatedResult = await Promise.all(
-        result.map(async (item: any) => {
-            item.classDetails = await HourlyClassModel.findById(item.classId).select("subjects curriculum pricePerHour description");
-            return item;
-        }),
-    );
-
     return {
-        data: populatedResult,
+        data: result,
         meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
     };
 };
