@@ -15,6 +15,10 @@ router.post("/initiate-mobile-payment", auth, ClassPaymentControllers.initiateMo
 router.get("/student", auth, ClassPaymentControllers.getStudentClasses);
 router.get("/teacher", auth, ClassPaymentControllers.getTeacherClasses);
 
+// Get hourly class teacher/student payments (all, previous, upcoming)
+router.get("/hourly-teacher", auth, ClassPaymentControllers.getHourlyClassTeacherPayments);
+router.get("/hourly-student", auth, ClassPaymentControllers.getHourlyClassStudentPayments);
+
 // Verify payment status (callback from MyFatoorah)
 router.get("/verify-payment", ClassPaymentControllers.verifyClassPayment);
 

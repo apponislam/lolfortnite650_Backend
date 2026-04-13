@@ -73,10 +73,36 @@ const getTeacherClasses = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getHourlyClassTeacherPayments = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const result = await classPaymentService.getHourlyClassTeacherPayments(userId!, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Hourly class teacher payments retrieved successfully",
+        data: result,
+    });
+});
+
+const getHourlyClassStudentPayments = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const result = await classPaymentService.getHourlyClassStudentPayments(userId!, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Hourly class student payments retrieved successfully",
+        data: result,
+    });
+});
+
 export const ClassPaymentControllers = {
     initiateClassPayment,
     initiateMobileClassPayment,
     verifyClassPayment,
     getStudentClasses,
     getTeacherClasses,
+    getHourlyClassTeacherPayments,
+    getHourlyClassStudentPayments,
 };

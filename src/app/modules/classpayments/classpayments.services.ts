@@ -318,10 +318,190 @@ const getTeacherClasses = async (teacherId: string, query: any) => {
     };
 };
 
+/**
+ * Get hourly class teacher payments (all, previous, upcoming)
+ */
+const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
+    const { page = 1, limit = 10, type = "all" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const now = new Date();
+
+    const filters: any = {
+        teacher: new Types.ObjectId(teacherId),
+        status: "PAID",
+        classType: "HOURLY_CLASS",
+    };
+
+    const pipeline: any[] = [
+        { $match: filters },
+        {
+            $lookup: {
+                from: "slots",
+                localField: "slotId",
+                foreignField: "_id",
+                as: "slotDetails",
+            },
+        },
+        { $unwind: "$slotDetails" },
+        {
+            $addFields: {
+                slotDateTime: {
+                    $dateFromParts: {
+                        year: { $year: "$slotDetails.date" },
+                        month: { $month: "$slotDetails.date" },
+                        day: { $dayOfMonth: "$slotDetails.date" },
+                        hour: { $toInt: { $arrayElemAt: [{ $split: ["$slotDetails.startTime", ":"] }, 0] } },
+                        minute: { $toInt: { $arrayElemAt: [{ $split: ["$slotDetails.startTime", ":"] }, 1] } },
+                    },
+                },
+            },
+        },
+    ];
+
+    if (type === "previous") {
+        pipeline.push({ $match: { slotDateTime: { $lt: now } } });
+    } else if (type === "upcoming") {
+        pipeline.push({ $match: { slotDateTime: { $gte: now } } });
+    }
+
+    // Clone pipeline for count before pagination
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push({ $sort: { slotDateTime: type === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+
+    // Join with student
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "student",
+                foreignField: "_id",
+                as: "student",
+            },
+        },
+        { $unwind: "$student" },
+        {
+            $project: {
+                "student.password": 0,
+            },
+        },
+    );
+
+    const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    // Populate HourlyClass details
+    const populatedResult = await Promise.all(
+        result.map(async (item: any) => {
+            item.classDetails = await HourlyClassModel.findById(item.classId).select("subjects curriculum pricePerHour description");
+            return item;
+        }),
+    );
+
+    return {
+        data: populatedResult,
+        meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
+    };
+};
+
+/**
+ * Get hourly class student payments (all, previous, upcoming)
+ */
+const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
+    const { page = 1, limit = 10, type = "all" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const now = new Date();
+
+    const filters: any = {
+        student: new Types.ObjectId(studentId),
+        status: "PAID",
+        classType: "HOURLY_CLASS",
+    };
+
+    const pipeline: any[] = [
+        { $match: filters },
+        {
+            $lookup: {
+                from: "slots",
+                localField: "slotId",
+                foreignField: "_id",
+                as: "slotDetails",
+            },
+        },
+        { $unwind: "$slotDetails" },
+        {
+            $addFields: {
+                slotDateTime: {
+                    $dateFromParts: {
+                        year: { $year: "$slotDetails.date" },
+                        month: { $month: "$slotDetails.date" },
+                        day: { $dayOfMonth: "$slotDetails.date" },
+                        hour: { $toInt: { $arrayElemAt: [{ $split: ["$slotDetails.startTime", ":"] }, 0] } },
+                        minute: { $toInt: { $arrayElemAt: [{ $split: ["$slotDetails.startTime", ":"] }, 1] } },
+                    },
+                },
+            },
+        },
+    ];
+
+    if (type === "previous") {
+        pipeline.push({ $match: { slotDateTime: { $lt: now } } });
+    } else if (type === "upcoming") {
+        pipeline.push({ $match: { slotDateTime: { $gte: now } } });
+    }
+
+    // Clone pipeline for count before pagination
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push({ $sort: { slotDateTime: type === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+
+    // Join with teacher
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "teacher",
+                foreignField: "_id",
+                as: "teacher",
+            },
+        },
+        { $unwind: "$teacher" },
+        {
+            $project: {
+                "teacher.password": 0,
+            },
+        },
+    );
+
+    const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    // Populate HourlyClass details
+    const populatedResult = await Promise.all(
+        result.map(async (item: any) => {
+            item.classDetails = await HourlyClassModel.findById(item.classId).select("subjects curriculum pricePerHour description");
+            return item;
+        }),
+    );
+
+    return {
+        data: populatedResult,
+        meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
+    };
+};
+
 export const classPaymentService = {
     initiateClassPayment,
     initiateMobileClassPayment,
     verifyClassPayment,
     getStudentClasses,
     getTeacherClasses,
+    getHourlyClassTeacherPayments,
+    getHourlyClassStudentPayments,
 };
