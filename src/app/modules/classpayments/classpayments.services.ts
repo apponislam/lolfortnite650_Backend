@@ -96,7 +96,7 @@ const preparePaymentData = async (userId: string, payload: any) => {
 /**
  * Initiate standard payment (Web/Standard Redirect)
  */
-export const initiateClassPayment = async (userId: string, payload: any) => {
+const initiateClassPayment = async (userId: string, payload: any) => {
     const { classPayment, student, finalAmount, currency = "KWD" } = await preparePaymentData(userId, payload);
     console.log(classPayment, student, finalAmount, currency);
 
@@ -142,7 +142,7 @@ export const initiateClassPayment = async (userId: string, payload: any) => {
 /**
  * Initiate mobile SDK payment (Session + Payment Methods)
  */
-export const initiateMobileClassPayment = async (userId: string, payload: any) => {
+const initiateMobileClassPayment = async (userId: string, payload: any) => {
     const { classPayment, finalAmount, currency } = await preparePaymentData(userId, payload);
 
     try {
@@ -193,7 +193,7 @@ export const initiateMobileClassPayment = async (userId: string, payload: any) =
 /**
  * Verify payment status (usually called from success callback or webhook)
  */
-export const verifyClassPayment = async (internalPaymentId: string) => {
+const verifyClassPayment = async (internalPaymentId: string) => {
     // 1. Find the class payment record by our internal ID
     const classPayment = await ClassPaymentModel.findById(internalPaymentId);
     if (!classPayment) {
@@ -256,12 +256,14 @@ export const verifyClassPayment = async (internalPaymentId: string) => {
 /**
  * Get student's enrolled classes
  */
-export const getStudentClasses = async (studentId: string, query: any) => {
-    const { page = 1, limit = 10, status } = query;
+const getStudentClasses = async (studentId: string, query: any) => {
+    const { page = 1, limit = 10 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const filters: any = { student: new Types.ObjectId(studentId) };
-    if (status) filters.status = status;
+    const filters: any = {
+        student: new Types.ObjectId(studentId),
+        status: "PAID",
+    };
 
     const result = await ClassPaymentModel.find(filters).populate("teacher", "name email profileImage").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 
@@ -287,12 +289,14 @@ export const getStudentClasses = async (studentId: string, query: any) => {
 /**
  * Get teacher's classes/bookings
  */
-export const getTeacherClasses = async (teacherId: string, query: any) => {
-    const { page = 1, limit = 10, status } = query;
+const getTeacherClasses = async (teacherId: string, query: any) => {
+    const { page = 1, limit = 10 } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const filters: any = { teacher: new Types.ObjectId(teacherId) };
-    if (status) filters.status = status;
+    const filters: any = {
+        teacher: new Types.ObjectId(teacherId),
+        status: "PAID",
+    };
 
     const result = await ClassPaymentModel.find(filters).populate("student", "name email profileImage").populate("slotId").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 

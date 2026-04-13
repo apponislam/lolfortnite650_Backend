@@ -100,12 +100,7 @@ const updateSlotStatusController = catchAsync(async (req: Request, res: Response
     const { status } = req.body;
 
     if (!status || !Object.values(SlotStatus).includes(status)) {
-        return sendResponse(res, {
-            statusCode: httpStatus.BAD_REQUEST,
-            success: false,
-            message: "Invalid slot status",
-            data: null,
-        });
+        throw new ApiError(httpStatus.BAD_REQUEST, "Slot status is not supported");
     }
 
     const slot = await slotServices.updateSlotStatus(slotId as string, status as SlotStatus);
