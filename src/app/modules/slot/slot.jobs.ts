@@ -220,9 +220,13 @@ export class SlotJobs {
                 }
 
                 this.isCleaning = true;
+
+                console.log("🧹 Running hourly cleanup...");
+
                 try {
-                    console.log("🧹 Running hourly cleanup...");
-                    await slotServices.cleanupExpiredLocksAndBookings();
+                    await Promise.race([slotServices.cleanupExpiredLocksAndBookings(), new Promise((_, reject) => setTimeout(() => reject(new Error("Cleanup timeout")), 60000))]);
+                } catch (err) {
+                    console.error("❌ Cleanup failed or timeout:", err);
                 } finally {
                     this.isCleaning = false;
                 }
