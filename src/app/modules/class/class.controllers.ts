@@ -5,7 +5,6 @@ import { Request, Response } from "express";
 import { classServices } from "./class.services";
 
 export const createClass = catchAsync(async (req: Request, res: Response) => {
-    console.log("main data", req.body.data);
     const payload = JSON.parse(req.body.data);
 
     // Attach uploaded images

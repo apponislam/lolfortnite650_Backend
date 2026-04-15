@@ -18,7 +18,7 @@ const createClass = async (userId: string, payload: any) => {
 };
 
 const getClasses = async (query: any = {}, user?: any) => {
-    const { page = 1, limit = 10, status, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
+    const { page = 1, limit = 10, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false, status: "APPROVED" };

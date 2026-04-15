@@ -23,6 +23,6 @@ router.get("/student/hourly", auth, ClassPaymentControllers.getHourlyClassStuden
 router.get("/verify-payment", ClassPaymentControllers.verifyClassPayment);
 
 // Webhook for MyFatoorah (Dedicated file)
-router.post("/webhook", ClassPaymentWebhookControllers.handleMyFatoorahWebhook);
+// router.post("/webhook", ClassPaymentWebhookControllers.handleMyFatoorahWebhook);
 
 export const ClassPaymentRoutes = router;
