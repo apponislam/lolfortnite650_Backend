@@ -37,9 +37,12 @@ const initiateMobileClassPayment = catchAsync(async (req: Request, res: Response
 });
 
 const verifyClassPayment = catchAsync(async (req: Request, res: Response) => {
-    const { paymentId } = req.query;
+    const { classPaymentId, paymentId } = req.query;
 
-    const result = await classPaymentService.verifyClassPayment(paymentId as string);
+    // Use our internal classPaymentId if provided, otherwise fallback to paymentId (for webhooks/older flows)
+    const idToVerify = (classPaymentId as string) || (paymentId as string);
+
+    const result = await classPaymentService.verifyClassPayment(idToVerify);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

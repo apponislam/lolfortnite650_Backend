@@ -25,7 +25,7 @@ const getClasses = async (query: any = {}, user?: any) => {
 
     // Text Search
     if (search) {
-        filters.$text = { $search: search };
+        filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
     }
 
     // Exact or partial matches
@@ -96,17 +96,9 @@ const getClasses = async (query: any = {}, user?: any) => {
             },
         });
 
-        if (search) {
-            // Text score sort if searching
-            pipeline.push({
-                $sort: { score: { $meta: "textScore" }, randomSort: 1 },
-            });
-        } else {
-            // Default random sort
-            pipeline.push({
-                $sort: { randomSort: 1 },
-            });
-        }
+        pipeline.push({
+            $sort: { randomSort: 1 },
+        });
     }
 
     // Pagination
@@ -166,7 +158,7 @@ const getAllClassesForAdmin = async (query: any = {}) => {
     if (runningStatus) filters.runningStatus = runningStatus;
 
     if (search) {
-        filters.$text = { $search: search };
+        filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
     }
 
     const sort: any = {};

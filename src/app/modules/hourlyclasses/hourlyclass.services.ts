@@ -34,7 +34,7 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
 
     // Text Search
     if (search) {
-        filters.$text = { $search: search };
+        filters.$or = [{ subjects: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }, { curriculum: { $regex: search, $options: "i" } }];
     }
 
     // Exact or partial matches
@@ -108,15 +108,9 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
             },
         });
 
-        if (search) {
-            pipeline.push({
-                $sort: { score: { $meta: "textScore" }, randomSort: 1 },
-            });
-        } else {
-            pipeline.push({
-                $sort: { randomSort: 1 },
-            });
-        }
+        pipeline.push({
+            $sort: { randomSort: 1 },
+        });
     }
 
     // Pagination

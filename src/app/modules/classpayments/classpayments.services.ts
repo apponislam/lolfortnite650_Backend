@@ -101,8 +101,8 @@ const initiateClassPayment = async (userId: string, payload: any) => {
     console.log(classPayment, student, finalAmount, currency);
 
     try {
-        const successUrl = `${config.client_url}/payment/success?paymentId=${classPayment._id}`;
-        const errorUrl = `${config.client_url}/payment/error?paymentId=${classPayment._id}`;
+        const successUrl = `${config.client_url}/payment/success?classPaymentId=${classPayment._id}`;
+        const errorUrl = `${config.client_url}/payment/error?classPaymentId=${classPayment._id}`;
 
         const paymentResponse = await executeMyFatoorahPayment({
             amount: finalAmount,
@@ -147,8 +147,8 @@ const initiateMobileClassPayment = async (userId: string, payload: any) => {
 
     try {
         // ✅ STEP 1: Create the invoice (same as web payment)
-        const successUrl = `${config.client_url}/payment/success?paymentId=${classPayment._id}`;
-        const errorUrl = `${config.client_url}/payment/error?paymentId=${classPayment._id}`;
+        const successUrl = `${config.client_url}/payment/success?classPaymentId=${classPayment._id}`;
+        const errorUrl = `${config.client_url}/payment/error?classPaymentId=${classPayment._id}`;
 
         const invoiceResponse = await executeMyFatoorahPayment({
             amount: finalAmount,
