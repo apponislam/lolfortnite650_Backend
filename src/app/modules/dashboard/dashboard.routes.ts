@@ -5,6 +5,9 @@ import { dashboardControllers } from "./dashboard.controllers";
 
 const router = Router();
 
+// Public dashboard stats
+router.get("/public-stats", dashboardControllers.getPublicUserStats);
+
 // Admin-only dashboard stats
 router.get("/admin-stats", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getAdminDashboardStats);
 router.get("/monthly-registration", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyRegistrationStats);

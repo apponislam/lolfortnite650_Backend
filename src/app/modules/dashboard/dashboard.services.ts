@@ -484,6 +484,16 @@ const getAllClassPayments = async (query: any) => {
     };
 };
 
+const getPublicUserStats = async () => {
+    const totalTeachers = await UserModel.countDocuments({ role: "TEACHER" });
+    const totalStudents = await UserModel.countDocuments({ role: "STUDENT" });
+
+    return {
+        totalTeachers,
+        totalStudents,
+    };
+};
+
 export const dashboardServices = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -492,6 +502,7 @@ export const dashboardServices = {
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
     getTeacherOverviewStats,
+    getPublicUserStats,
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
     getTeacherFinancialStats,

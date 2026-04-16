@@ -134,6 +134,17 @@ const getAllClassPayments = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getPublicUserStats = catchAsync(async (req: Request, res: Response) => {
+    const result = await dashboardServices.getPublicUserStats();
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Public user stats retrieved successfully",
+        data: result,
+    });
+});
+
 export const dashboardControllers = {
     getAdminDashboardStats,
     getMonthlyRegistrationStats,
@@ -142,6 +153,7 @@ export const dashboardControllers = {
     getMonthlyWithdrawStats,
     getTeacherDashboardStats,
     getTeacherOverviewStats,
+    getPublicUserStats,
     getTeacherRatingStats,
     getTeacherWeeklyEarningStats,
     getTeacherFinancialStats,
