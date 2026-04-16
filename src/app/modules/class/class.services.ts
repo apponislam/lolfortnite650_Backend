@@ -18,7 +18,7 @@ const createClass = async (userId: string, payload: any) => {
 };
 
 const getClasses = async (query: any = {}, user?: any) => {
-    const { page = 1, limit = 10, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull } = query;
+    const { page = 1, limit = 10, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull, tutorGender } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false, status: "APPROVED" };
@@ -31,6 +31,7 @@ const getClasses = async (query: any = {}, user?: any) => {
     // Exact or partial matches
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
+    if (tutorGender) filters.tutorGender = tutorGender;
     if (subject) filters.subject = { $regex: subject, $options: "i" };
     if (level) filters.level = level;
     if (language) filters.language = language;
@@ -148,7 +149,7 @@ const getClasses = async (query: any = {}, user?: any) => {
 };
 
 const getAllClassesForAdmin = async (query: any = {}) => {
-    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc" } = query;
+    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc", tutorGender } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false };
@@ -156,6 +157,7 @@ const getAllClassesForAdmin = async (query: any = {}) => {
     if (status) filters.status = status;
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
+    if (tutorGender) filters.tutorGender = tutorGender;
 
     if (search) {
         filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
