@@ -31,11 +31,31 @@ const getClasses = async (query: any = {}, user?: any) => {
     // Exact or partial matches
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
-    if (tutorGender) filters.tutorGender = tutorGender;
-    if (subject) filters.subject = { $regex: subject, $options: "i" };
-    if (level) filters.level = level;
-    if (language) filters.language = language;
-    if (curriculum) filters.curriculum = curriculum;
+
+    if (tutorGender) {
+        const genderArray = Array.isArray(tutorGender) ? tutorGender : [tutorGender];
+        filters.tutorGender = { $in: genderArray.map((g: string) => g.toUpperCase()) };
+    }
+
+    if (subject) {
+        const subjectArray = Array.isArray(subject) ? subject : [subject];
+        filters.subject = { $in: subjectArray.map((s: string) => new RegExp(s, "i")) };
+    }
+
+    if (level) {
+        const levelArray = Array.isArray(level) ? level : [level];
+        filters.level = { $in: levelArray };
+    }
+
+    if (language) {
+        const languageArray = Array.isArray(language) ? language : [language];
+        filters.language = { $in: languageArray };
+    }
+
+    if (curriculum) {
+        const curriculumArray = Array.isArray(curriculum) ? curriculum : [curriculum];
+        filters.curriculum = { $in: curriculumArray };
+    }
 
     // Filter by isFull
     if (isFull === "true") {
@@ -149,7 +169,7 @@ const getClasses = async (query: any = {}, user?: any) => {
 };
 
 const getAllClassesForAdmin = async (query: any = {}) => {
-    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc", tutorGender } = query;
+    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc", tutorGender, subject, level, language, curriculum } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false };
@@ -157,7 +177,31 @@ const getAllClassesForAdmin = async (query: any = {}) => {
     if (status) filters.status = status;
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
-    if (tutorGender) filters.tutorGender = tutorGender;
+
+    if (tutorGender) {
+        const genderArray = Array.isArray(tutorGender) ? tutorGender : [tutorGender];
+        filters.tutorGender = { $in: genderArray.map((g: string) => g.toUpperCase()) };
+    }
+
+    if (subject) {
+        const subjectArray = Array.isArray(subject) ? subject : [subject];
+        filters.subject = { $in: subjectArray.map((s: string) => new RegExp(s, "i")) };
+    }
+
+    if (level) {
+        const levelArray = Array.isArray(level) ? level : [level];
+        filters.level = { $in: levelArray };
+    }
+
+    if (language) {
+        const languageArray = Array.isArray(language) ? language : [language];
+        filters.language = { $in: languageArray };
+    }
+
+    if (curriculum) {
+        const curriculumArray = Array.isArray(curriculum) ? curriculum : [curriculum];
+        filters.curriculum = { $in: curriculumArray };
+    }
 
     if (search) {
         filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];

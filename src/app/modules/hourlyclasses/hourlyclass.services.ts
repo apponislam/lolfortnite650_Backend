@@ -27,7 +27,7 @@ const createOrUpdateHourlyClass = async (userId: string, payload: Partial<Hourly
  * Get all hourly classes (with filters, search, and pagination)
  */
 const getAllHourlyClasses = async (query: any, user?: any) => {
-    const { page = 1, limit = 10, subjects, curriculum, language, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc" } = query;
+    const { page = 1, limit = 10, subjects, curriculum, language, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", tutorGender } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = {};
@@ -42,8 +42,16 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
         const subjectArray = Array.isArray(subjects) ? subjects : [subjects];
         filters.subjects = { $in: subjectArray.map((s: string) => new RegExp(s, "i")) };
     }
-    if (curriculum) filters.curriculum = { $regex: curriculum, $options: "i" };
-    if (language) filters.language = { $regex: language, $options: "i" };
+
+    if (curriculum) {
+        const curriculumArray = Array.isArray(curriculum) ? curriculum : [curriculum];
+        filters.curriculum = { $in: curriculumArray.map((c: string) => new RegExp(c, "i")) };
+    }
+
+    if (language) {
+        const languageArray = Array.isArray(language) ? language : [language];
+        filters.language = { $in: languageArray.map((l: string) => new RegExp(l, "i")) };
+    }
 
     // Price range
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -55,20 +63,38 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
     // Pipeline stages
     const pipeline: any[] = [{ $match: filters }];
 
-    // Handle Sorting and Randomization with Preferences
-    if (user && user.preferences) {
-        const { subjects: userSubjects = [], languages: userLanguages = [], teacherGender } = user.preferences;
-
-        // Populate createdBy first to check its gender in the pipeline
+    // If tutorGender filter is requested, we need the lookup
+    if (tutorGender) {
         pipeline.push({
             $lookup: {
-                from: "users", // the user collection name
+                from: "users",
                 localField: "createdBy",
                 foreignField: "_id",
                 as: "tutorDetails",
             },
         });
         pipeline.push({ $unwind: "$tutorDetails" });
+
+        const genderArray = Array.isArray(tutorGender) ? tutorGender : [tutorGender];
+        pipeline.push({ $match: { "tutorDetails.gender": { $in: genderArray.map((g: string) => g.toUpperCase()) } } });
+    }
+
+    // Handle Sorting and Randomization with Preferences
+    if (user && user.preferences) {
+        const { subjects: userSubjects = [], languages: userLanguages = [], teacherGender } = user.preferences;
+
+        // If not already populated for tutorGender filter
+        if (!tutorGender) {
+            pipeline.push({
+                $lookup: {
+                    from: "users", // the user collection name
+                    localField: "createdBy",
+                    foreignField: "_id",
+                    as: "tutorDetails",
+                },
+            });
+            pipeline.push({ $unwind: "$tutorDetails" });
+        }
 
         // Create preference matching condition
         const preferenceMatch: any[] = [];
@@ -153,10 +179,12 @@ const getAllHourlyClasses = async (query: any, user?: any) => {
 
     // If tutorDetails wasn't joined (non-auth user), populate manually
     if (!user || !user.preferences) {
-        await HourlyClassModel.populate(formattedResult, {
-            path: "createdBy",
-            select: "name email profileImage gender",
-        });
+        if (!tutorGender) {
+            await HourlyClassModel.populate(formattedResult, {
+                path: "createdBy",
+                select: "name email profileImage gender",
+            });
+        }
     }
 
     const total = await HourlyClassModel.countDocuments(filters);
