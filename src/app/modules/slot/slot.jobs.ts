@@ -177,6 +177,8 @@ export class SlotJobs {
 
         console.log("🚀 Starting calendar automation...");
 
+        this.startCleanupLoop();
+
         // 1. DAILY at 2 AM
         cron.schedule(
             "0 2 * * *",
@@ -364,5 +366,26 @@ export class SlotJobs {
         } catch (error) {
             console.error("❌ Lock cleanup failed:", error);
         }
+    }
+
+    private static startCleanupLoop() {
+        const run = async () => {
+            if (this.isCleaning) return;
+
+            this.isCleaning = true;
+            console.log("🧹 Running cleanup...");
+
+            setImmediate(async () => {
+                try {
+                    await slotServices.cleanupExpiredLocksAndBookings();
+                } catch (err) {
+                    console.error("❌ Cleanup error:", err);
+                } finally {
+                    this.isCleaning = false;
+                }
+            });
+        };
+
+        setInterval(run, 60 * 60 * 1000); // every 1 hour
     }
 }

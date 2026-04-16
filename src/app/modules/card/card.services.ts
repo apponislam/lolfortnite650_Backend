@@ -42,8 +42,8 @@ const initiateCardPayment = async (userId: string, payload: IInitiateCardPayment
         metadata,
     });
 
-    const successUrl = `${config.client_url}/payment/success?paymentId=${payment._id}`;
-    const errorUrl = `${config.client_url}/payment/error?paymentId=${payment._id}`;
+    const successUrl = `${config.client_url}/payment/success?classPaymentId=${payment._id}`;
+    const errorUrl = `${config.client_url}/payment/error?classPaymentId=${payment._id}`;
 
     // If using saved card
     if (cardId) {
