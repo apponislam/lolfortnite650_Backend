@@ -374,9 +374,10 @@ const updateClass = async (classId: string, userId: string, payload: any) => {
 
 const deleteClass = async (classId: string, userId: string, role?: string) => {
     const cls = await ClassModel.findOne({ _id: classId, isDeleted: false });
+
     if (!cls) throw new ApiError(httpStatus.NOT_FOUND, "Class not found");
 
-    if (cls.createdBy.toString() !== userId && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    if (cls.createdBy.toString() !== userId && role !== "TEACHER" && role !== "ADMIN" && role !== "SUPER_ADMIN") {
         throw new ApiError(httpStatus.FORBIDDEN, "Not authorized to delete this class");
     }
 
