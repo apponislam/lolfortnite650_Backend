@@ -17,6 +17,7 @@ import { WithdrawRoutes } from "../modules/withdraw/withdraw.routes";
 import { DashboardRoutes } from "../modules/dashboard/dashboard.routes";
 import { userRoutes } from "../modules/user/user.routes";
 import { ratingRoutes } from "../modules/rating/rating.routes";
+import { CatalogRoutes } from "../modules/catalog/catalog.routes";
 
 const router = express.Router();
 
@@ -93,6 +94,10 @@ const moduleRoutes = [
     {
         path: "/users",
         route: userRoutes,
+    },
+    {
+        path: "/catalogs",
+        route: CatalogRoutes,
     },
 ];
 
