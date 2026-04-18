@@ -98,7 +98,7 @@ const preparePaymentData = async (userId: string, payload: any) => {
  */
 const initiateClassPayment = async (userId: string, payload: any) => {
     const { classPayment, student, finalAmount, currency = "KWD" } = await preparePaymentData(userId, payload);
-    console.log(classPayment, student, finalAmount, currency);
+    // console.log(classPayment, student, finalAmount, currency);
 
     try {
         const successUrl = `${config.client_url}/payment/success?classPaymentId=${classPayment._id}`;

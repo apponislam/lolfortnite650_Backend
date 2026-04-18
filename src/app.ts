@@ -15,7 +15,7 @@ app.post("/api/v1/class-payments/webhook", express.raw({ type: "application/json
 app.post("/api/v1/zoom/webhook", express.raw({ type: "application/json" }), ZoomWebhook);
 
 const corsOptions = {
-    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://10.10.7.58:3000", "http://10.10.7.58:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://10.10.7.58:3000", "http://10.10.7.58:3001", "http://10.10.7.58:3050"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
