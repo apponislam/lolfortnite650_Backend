@@ -4,6 +4,7 @@ import { TeacherAvailability } from "../availability/availability.model";
 import { SlotStatus } from "./slot.interface";
 import { Slot } from "./slot.model";
 import { slotServices } from "./slot.services";
+import { slotCleanupQueue } from "./slot.queue";
 
 export class SlotJobs {
     private static isInitialized = false;
@@ -40,41 +41,54 @@ export class SlotJobs {
         );
 
         // 2. EVERY 5 MINUTES
-        cron.schedule(
-            "*/5 * * * *",
-            async () => {
-                try {
-                    await this.cleanupExpiredLocks();
-                } catch (err) {
-                    console.error("❌ Lock cleanup error:", err);
-                }
-            },
-            { timezone: "Asia/Dhaka" },
-        );
+        // cron.schedule(
+        //     "*/5 * * * *",
+        //     async () => {
+        //         try {
+        //             await this.cleanupExpiredLocks();
+        //         } catch (err) {
+        //             console.error("❌ Lock cleanup error:", err);
+        //         }
+        //     },
+        //     { timezone: "Asia/Dhaka" },
+        // );
 
         // 3. EVERY HOUR
-        cron.schedule(
-            "0 * * * *",
-            async () => {
-                if (this.isCleaning) {
-                    console.log("⏳ Cleanup already running, skipping...");
-                    return;
-                }
+        // cron.schedule(
+        //     "0 * * * *",
+        //     async () => {
+        //         if (this.isCleaning) {
+        //             console.log("⏳ Cleanup already running, skipping...");
+        //             return;
+        //         }
 
-                this.isCleaning = true;
+        //         this.isCleaning = true;
+        //         console.log("🧹 Running hourly cleanup...");
 
-                console.log("🧹 Running hourly cleanup...");
+        //         try {
+        //             await slotServices.cleanupExpiredLocksAndBookings();
+        //         } catch (err) {
+        //             console.error("❌ Cleanup failed:", err);
+        //         } finally {
+        //             this.isCleaning = false;
+        //         }
+        //     },
+        //     { timezone: "Asia/Dhaka" },
+        // );
 
-                try {
-                    await Promise.race([slotServices.cleanupExpiredLocksAndBookings(), new Promise((_, reject) => setTimeout(() => reject(new Error("Cleanup timeout")), 60000))]);
-                } catch (err) {
-                    console.error("❌ Cleanup failed or timeout:", err);
-                } finally {
-                    this.isCleaning = false;
-                }
-            },
-            { timezone: "Asia/Dhaka" },
-        );
+        cron.schedule("0 * * * *", async () => {
+            console.log("📩 Adding cleanup job...");
+
+            await slotCleanupQueue.add(
+                "cleanup-expired-locks",
+                {
+                    triggeredAt: new Date(),
+                },
+                {
+                    removeOnComplete: true,
+                },
+            );
+        });
 
         // 4. DAILY at 3 AM
         cron.schedule(
@@ -183,30 +197,30 @@ export class SlotJobs {
     }
 
     // 🔓 CLEAN LOCKS
-    private static async cleanupExpiredLocks() {
-        try {
-            const now = new Date();
+    // private static async cleanupExpiredLocks() {
+    //     try {
+    //         const now = new Date();
 
-            const result = await Slot.updateMany(
-                {
-                    status: "locked",
-                    lockedUntil: { $lt: now },
-                },
-                {
-                    status: "available",
-                    lockedBy: null,
-                    lockedUntil: null,
-                    $inc: { version: 1 },
-                },
-            );
+    //         const result = await Slot.updateMany(
+    //             {
+    //                 status: "locked",
+    //                 lockedUntil: { $lt: now },
+    //             },
+    //             {
+    //                 status: "available",
+    //                 lockedBy: null,
+    //                 lockedUntil: null,
+    //                 $inc: { version: 1 },
+    //             },
+    //         );
 
-            if (result.modifiedCount > 0) {
-                console.log(`🔓 Released ${result.modifiedCount} expired locks`);
-            }
-        } catch (error) {
-            console.error("❌ Lock cleanup failed:", error);
-        }
-    }
+    //         if (result.modifiedCount > 0) {
+    //             console.log(`🔓 Released ${result.modifiedCount} expired locks`);
+    //         }
+    //     } catch (error) {
+    //         console.error("❌ Lock cleanup failed:", error);
+    //     }
+    // }
 
     // private static startCleanupLoop() {
     //     const run = async () => {
