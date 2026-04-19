@@ -67,7 +67,7 @@ const getUserConversations = async (userId: string, query: { page?: number; limi
             path: "lastMessage",
             populate: { path: "slot" },
         })
-        .populate("participantIds", "name email profileImage")
+        .populate("participantIds", "name email profileImage role")
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(Number(limit))
@@ -166,7 +166,7 @@ export const getConversationById = async (conversationId: string, userId: string
         _id: conversationId,
         participantIds: new Types.ObjectId(userId),
     })
-        .populate("participantIds", "name email profileImage")
+        .populate("participantIds", "name email profileImage role")
         .populate({
             path: "lastMessage",
             populate: { path: "slot" },
