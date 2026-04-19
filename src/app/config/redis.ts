@@ -9,6 +9,15 @@ export const redisConnection = new Redis({
     maxRetriesPerRequest: null,
 });
 
+redisConnection
+    .ping()
+    .then((res) => {
+        console.log("🟢 Redis connected:", res);
+    })
+    .catch((err) => {
+        console.error("🔴 Redis connection failed:", err.message);
+    });
+
 export const connectDB = async () => {
     try {
         await mongoose.connect(config.mongodb_url as string);
