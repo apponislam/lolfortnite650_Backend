@@ -3,8 +3,24 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>BACKEND | Server Running</title>
+        <!-- Corrected Tab Title to your site name -->
+        <title>Educate | Backend Engine</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap" rel="stylesheet" />
+
         <style>
+            :root {
+                --brand: #0a47c2;
+                --brand-glow: rgba(10, 71, 194, 0.4);
+                --bg: #030712;
+                --surface: rgba(255, 255, 255, 0.02);
+                --border: rgba(255, 255, 255, 0.08);
+                --text-main: #ffffff;
+                --text-dim: #94a3b8;
+            }
+
             * {
                 margin: 0;
                 padding: 0;
@@ -12,164 +28,234 @@
             }
 
             body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                background: linear-gradient(135deg, #0f172a 0%, #1e1e3a 50%, #0f172a 100%);
-                color: #e2e8f0;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 2rem;
-                flex: 1;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                background: var(--bg);
+                color: var(--text-main);
+                height: 100vh;
+                width: 100vw;
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                align-items: center;
             }
 
-            header {
+            /* Animated Mesh Background */
+            .mesh {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                background: radial-gradient(at 0% 0%, rgba(10, 71, 194, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(10, 71, 194, 0.1) 0px, transparent 50%);
+            }
+
+            .container {
+                width: 90%;
+                max-width: 1000px;
                 text-align: center;
-                margin-bottom: 3rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 3rem;
             }
 
-            .logo {
-                font-size: 3rem;
-                font-weight: 900;
-                background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+            /* Logo Section */
+            .brand-logo {
+                font-size: 1.5rem;
+                font-weight: 800;
+                letter-spacing: 0.1em;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                opacity: 0.8;
+            }
+
+            .logo-square {
+                width: 24px;
+                height: 24px;
+                background: var(--brand);
+                border-radius: 4px;
+                box-shadow: 0 0 20px var(--brand-glow);
+            }
+
+            /* Hero Content */
+            .hero h1 {
+                font-size: clamp(3rem, 10vw, 8rem);
+                font-weight: 800;
+                line-height: 0.9;
+                letter-spacing: -0.04em;
+                margin-bottom: 1.5rem;
+                background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.4) 100%);
                 background-clip: text;
-                text-transform: uppercase;
-                letter-spacing: 2px;
-                margin-bottom: 0.5rem;
+                -webkit-text-fill-color: transparent;
             }
 
-            .tagline {
-                color: #94a3b8;
-                font-size: 1rem;
+            .hero p {
+                color: var(--text-dim);
+                font-size: 1.1rem;
+                max-width: 500px;
+                margin: 0 auto;
+                line-height: 1.6;
             }
 
-            .status-card {
-                background: rgba(30, 41, 59, 0.5);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(100, 116, 139, 0.3);
-                border-radius: 24px;
-                padding: 3rem;
-                text-align: center;
-                margin-bottom: 2rem;
+            /* Status Indicator */
+            .status-pill {
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border);
+                border-radius: 100px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                letter-spacing: 0.05em;
+                color: var(--brand);
             }
 
-            .status-dot {
-                width: 16px;
-                height: 16px;
-                background: #22c55e;
+            .pulse {
+                width: 8px;
+                height: 8px;
+                background: #00f2fe;
                 border-radius: 50%;
-                animation: pulse 2s infinite;
-                margin: 0 auto 1.5rem;
+                box-shadow: 0 0 12px #00f2fe;
+                animation: pulse-animation 2s infinite;
             }
 
-            @keyframes pulse {
-                0%,
-                100% {
+            @keyframes pulse-animation {
+                0% {
+                    transform: scale(0.95);
                     opacity: 1;
                 }
                 50% {
+                    transform: scale(1.2);
                     opacity: 0.5;
+                }
+                100% {
+                    transform: scale(0.95);
+                    opacity: 1;
                 }
             }
 
-            h1 {
-                font-size: 2.5rem;
-                margin-bottom: 1rem;
-                color: #ffffff;
-            }
-
-            .server-info {
-                color: #94a3b8;
-                font-size: 1.1rem;
-                line-height: 1.8;
-            }
-
-            .timestamp {
-                color: #64748b;
-                font-size: 0.9rem;
+            /* Info Bar */
+            .info-bar {
+                display: flex;
+                gap: 4rem;
                 margin-top: 2rem;
-                padding-top: 2rem;
-                border-top: 1px solid rgba(148, 163, 184, 0.2);
+                padding: 2rem;
+                border-top: 1px solid var(--border);
+                border-bottom: 1px solid var(--border);
+            }
+
+            .info-item {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                text-align: left;
+            }
+
+            .info-item label {
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                color: var(--text-dim);
+                font-weight: 700;
+                letter-spacing: 0.1em;
+            }
+
+            .info-item span {
+                font-size: 1rem;
+                font-weight: 500;
             }
 
             footer {
-                text-align: center;
-                color: #64748b;
-                font-size: 0.9rem;
+                position: fixed;
+                bottom: 3rem;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                gap: 2rem;
+                color: var(--text-dim);
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+            #time {
+                font-family: monospace;
+                color: var(--brand);
             }
 
             @media (max-width: 768px) {
-                .logo {
-                    font-size: 2.5rem;
+                .info-bar {
+                    flex-direction: column;
+                    gap: 2rem;
+                    padding: 2rem 0;
                 }
-
-                h1 {
-                    font-size: 2rem;
-                }
-
-                .status-card {
-                    padding: 2rem;
+                .hero h1 {
+                    font-size: 4rem;
                 }
             }
         </style>
     </head>
     <body>
+        <div class="mesh"></div>
+
         <div class="container">
-            <header>
-                <div class="logo">BACKEND</div>
-                <p class="tagline">Node.js • Express • TypeScript</p>
-            </header>
+            <div class="status-pill">
+                <div class="pulse"></div>
+                SYSTEM_STABLE
+            </div>
 
-            <main>
-                <div class="status-card">
-                    <div class="status-dot"></div>
-                    <h1>Server is Running</h1>
-                    <div class="server-info">
-                        <p>Status: <span style="color: #22c55e">● Online</span></p>
-                        <p>Port: 5000</p>
-                        <p>Environment: Production</p>
-                    </div>
-                    <div class="timestamp" id="timestamp"></div>
+            <div class="brand-logo">
+                <div class="logo-square"></div>
+                EDUCATE
+            </div>
+
+            <div class="hero">
+                <h1>Active.</h1>
+                <p>The core engine for Educate platform is running in optimized production mode.</p>
+            </div>
+
+            <div class="info-bar">
+                <div class="info-item">
+                    <label>Environment</label>
+                    <span>Production</span>
                 </div>
-            </main>
-
-            <footer>
-                <p>&copy; <span id="current-year"></span> Backend Server</p>
-            </footer>
+                <div class="info-item">
+                    <label>Port</label>
+                    <span>5000</span>
+                </div>
+                <div class="info-item">
+                    <label>Uptime</label>
+                    <span id="time">00:00:00</span>
+                </div>
+            </div>
         </div>
 
+        <footer>
+            <span>&copy; <span id="year"></span> EDUCATE PLATFORM</span>
+            <span>|</span>
+            <span>BUILD_VERSION: 1.0.0</span>
+        </footer>
+
         <script>
-            // Set current year
-            document.getElementById("current-year").textContent = new Date().getFullYear();
+            document.getElementById("year").textContent = new Date().getFullYear();
 
-            // Update timestamp
-            function updateTimestamp() {
-                const now = new Date();
-                const timeString = now.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                });
-                const dateString = now.toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                });
-                document.getElementById("timestamp").textContent = `${dateString} ${timeString}`;
+            // Simple uptime counter simulation
+            let seconds = 0;
+            function updateUptime() {
+                seconds++;
+                const h = Math.floor(seconds / 3600)
+                    .toString()
+                    .padStart(2, "0");
+                const m = Math.floor((seconds % 3600) / 60)
+                    .toString()
+                    .padStart(2, "0");
+                const s = (seconds % 60).toString().padStart(2, "0");
+                document.getElementById("time").textContent = `${h}:${m}:${s}`;
             }
-
-            updateTimestamp();
-            setInterval(updateTimestamp, 1000);
+            setInterval(updateUptime, 1000);
         </script>
     </body>
 </html>
