@@ -7,7 +7,6 @@ import { UserModel } from "../auth/auth.model";
 import { ClassModel } from "../class/class.model";
 import { HourlyClassModel } from "../hourlyclasses/hourlyclass.model";
 import { Slot } from "../slot/slot.model";
-import { completeOffer } from "../messages/messages.services";
 import config from "../../config";
 
 /**
@@ -394,6 +393,29 @@ const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
         },
     );
 
+    // Join with teacher
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "teacher",
+                foreignField: "_id",
+                as: "teacherData",
+            },
+        },
+        { $unwind: "$teacherData" },
+        {
+            $addFields: {
+                teacher: {
+                    _id: "$teacherData._id",
+                    name: "$teacherData.name",
+                    email: "$teacherData.email",
+                    profileImage: "$teacherData.profileImage",
+                },
+            },
+        },
+    );
+
     // Join with HourlyClass details
     pipeline.push(
         {
@@ -421,6 +443,7 @@ const getHourlyClassTeacherPayments = async (teacherId: string, query: any) => {
     pipeline.push({
         $project: {
             studentData: 0,
+            teacherData: 0,
             hourlyClassData: 0,
         },
     });
@@ -511,6 +534,29 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
         },
     );
 
+    // Join with student
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "student",
+                foreignField: "_id",
+                as: "studentData",
+            },
+        },
+        { $unwind: "$studentData" },
+        {
+            $addFields: {
+                student: {
+                    _id: "$studentData._id",
+                    name: "$studentData.name",
+                    email: "$studentData.email",
+                    profileImage: "$studentData.profileImage",
+                },
+            },
+        },
+    );
+
     // Join with HourlyClass details
     pipeline.push(
         {
@@ -538,6 +584,7 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
     pipeline.push({
         $project: {
             teacherData: 0,
+            studentData: 0,
             hourlyClassData: 0,
         },
     });
@@ -615,10 +662,34 @@ const getNormalClassTeacherPayments = async (teacherId: string, query: any) => {
         },
     );
 
+    // Join with teacher
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "teacher",
+                foreignField: "_id",
+                as: "teacherData",
+            },
+        },
+        { $unwind: "$teacherData" },
+        {
+            $addFields: {
+                teacher: {
+                    _id: "$teacherData._id",
+                    name: "$teacherData.name",
+                    email: "$teacherData.email",
+                    profileImage: "$teacherData.profileImage",
+                },
+            },
+        },
+    );
+
     // Cleanup extra fields from lookup
     pipeline.push({
         $project: {
             studentData: 0,
+            teacherData: 0,
         },
     });
 
@@ -695,10 +766,34 @@ const getNormalClassStudentPayments = async (studentId: string, query: any) => {
         },
     );
 
+    // Join with student
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "student",
+                foreignField: "_id",
+                as: "studentData",
+            },
+        },
+        { $unwind: "$studentData" },
+        {
+            $addFields: {
+                student: {
+                    _id: "$studentData._id",
+                    name: "$studentData.name",
+                    email: "$studentData.email",
+                    profileImage: "$studentData.profileImage",
+                },
+            },
+        },
+    );
+
     // Cleanup extra fields from lookup
     pipeline.push({
         $project: {
             teacherData: 0,
+            studentData: 0,
         },
     });
 
