@@ -8,6 +8,9 @@ import sendResponse from "../../../utils/sendResponse";
 import { completeOffer } from "../messages/messages.services";
 import ApiError from "../../../errors/ApiError";
 import { UserModel } from "../auth/auth.model";
+import { ClassModel } from "../class/class.model";
+import { Slot } from "../slot/slot.model";
+import { SlotStatus } from "../slot/slot.interface";
 
 const MF_WEBHOOK_SECRET = config.myfatoorah.webhook_secret;
 
@@ -79,13 +82,9 @@ const processClassPayment = async (payload: any) => {
         // Increment enrolledStudents for regular classes
         if (classPayment.classType === "CLASS") {
             try {
-                // Using a relative path that should be correct in the compiled output
-                const { ClassModel } = require("../class/class.model");
-                if (ClassModel) {
-                    await ClassModel.findByIdAndUpdate(classPayment.classId, {
-                        $inc: { enrolledStudents: 1 },
-                    });
-                }
+                await ClassModel.findByIdAndUpdate(classPayment.classId, {
+                    $inc: { enrolledStudents: 1 },
+                });
             } catch (err) {
                 console.error("Failed to increment enrolledStudents in webhook:", err);
             }
@@ -94,15 +93,11 @@ const processClassPayment = async (payload: any) => {
         // Update slot status to booked if slotId exists
         if (classPayment.slotId) {
             try {
-                const { Slot } = require("../slot/slot.model");
-                const { SlotStatus } = require("../slot/slot.interface");
-                if (Slot) {
-                    await Slot.findByIdAndUpdate(classPayment.slotId, {
-                        status: SlotStatus.BOOKED,
-                        lockedBy: null,
-                        lockedUntil: null,
-                    });
-                }
+                await Slot.findByIdAndUpdate(classPayment.slotId, {
+                    status: SlotStatus.BOOKED,
+                    lockedBy: null,
+                    lockedUntil: null,
+                });
             } catch (err) {
                 console.error("Failed to update slot status in webhook:", err);
             }

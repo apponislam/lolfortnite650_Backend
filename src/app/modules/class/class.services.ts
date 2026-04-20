@@ -57,10 +57,11 @@ const getClasses = async (query: any = {}, user?: any) => {
         filters.curriculum = { $in: curriculumArray };
     }
 
-    // Filter by isFull
+    // Filter by isFull (Defaults to false if not provided)
     if (isFull === "true") {
         filters.$expr = { $gte: ["$enrolledStudents", "$maxStudents"] };
-    } else if (isFull === "false") {
+    } else {
+        // Default: only show classes that are NOT full
         filters.$expr = { $lt: ["$enrolledStudents", "$maxStudents"] };
     }
 

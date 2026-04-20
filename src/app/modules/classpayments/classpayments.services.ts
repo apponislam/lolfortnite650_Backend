@@ -226,25 +226,25 @@ const verifyClassPayment = async (internalPaymentId: string) => {
         await classPayment.save();
 
         // Add balance to teacher (use teacherFee, not amount!)
-        await UserModel.findByIdAndUpdate(classPayment.teacher, {
-            $inc: { balance: classPayment.teacherFee },
-        });
+        // await UserModel.findByIdAndUpdate(classPayment.teacher, {
+        //     $inc: { balance: classPayment.teacherFee },
+        // });
 
-        // Increment enrolledStudents for regular classes
-        if (classPayment.classType === "CLASS") {
-            await ClassModel.findByIdAndUpdate(classPayment.classId, {
-                $inc: { enrolledStudents: 1 },
-            });
-        }
+        // // Increment enrolledStudents for regular classes
+        // if (classPayment.classType === "CLASS") {
+        //     await ClassModel.findByIdAndUpdate(classPayment.classId, {
+        //         $inc: { enrolledStudents: 1 },
+        //     });
+        // }
 
         // If it's an hourly class related to an offer, complete the offer in messages
-        if (classPayment.classType === "HOURLY_CLASS" && classPayment.messageId) {
-            try {
-                await completeOffer(classPayment.messageId.toString());
-            } catch (err) {
-                console.error("Failed to complete offer message after payment:", err);
-            }
-        }
+        // if (classPayment.classType === "HOURLY_CLASS" && classPayment.messageId) {
+        //     try {
+        //         await completeOffer(classPayment.messageId.toString());
+        //     } catch (err) {
+        //         console.error("Failed to complete offer message after payment:", err);
+        //     }
+        // }
     } else if (invoiceStatus === "Failed" || transactionStatus === "Failed") {
         classPayment.status = "FAILED";
         await classPayment.save();
