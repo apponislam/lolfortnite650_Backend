@@ -179,7 +179,8 @@ const resendOtp = catchAsync(async (req: Request, res: Response) => {
 });
 
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-    await authServices.resetPassword(req.body.token, req.body.newPassword);
+    const token = (req.query.token as string) || req.body.token;
+    await authServices.resetPassword(token, req.body.newPassword);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
