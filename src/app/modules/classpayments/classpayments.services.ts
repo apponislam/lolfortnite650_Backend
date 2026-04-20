@@ -552,6 +552,166 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
     };
 };
 
+/**
+ * Get normal class teacher payments (all, previous, upcoming)
+ */
+const getNormalClassTeacherPayments = async (teacherId: string, query: any) => {
+    const { page = 1, limit = 10, timeframe = "all" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = {
+        teacher: new Types.ObjectId(teacherId),
+        status: "PAID",
+        classType: "CLASS",
+    };
+
+    const pipeline: any[] = [
+        { $match: filters },
+        // Join with Class details
+        {
+            $lookup: {
+                from: "classes",
+                localField: "classId",
+                foreignField: "_id",
+                as: "classDetails",
+            },
+        },
+        { $unwind: "$classDetails" },
+    ];
+
+    if (timeframe === "previous") {
+        pipeline.push({ $match: { "classDetails.runningStatus": "COMPLETED" } });
+    } else if (timeframe === "upcoming") {
+        pipeline.push({ $match: { "classDetails.runningStatus": "RUNNING" } });
+    }
+
+    // Clone pipeline for count before pagination
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push({ $sort: { createdAt: timeframe === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+
+    // Join with student
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "student",
+                foreignField: "_id",
+                as: "studentData",
+            },
+        },
+        { $unwind: "$studentData" },
+        {
+            $addFields: {
+                student: {
+                    _id: "$studentData._id",
+                    name: "$studentData.name",
+                    email: "$studentData.email",
+                    profileImage: "$studentData.profileImage",
+                },
+            },
+        },
+    );
+
+    // Cleanup extra fields from lookup
+    pipeline.push({
+        $project: {
+            studentData: 0,
+        },
+    });
+
+    const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    return {
+        data: result,
+        meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
+    };
+};
+
+/**
+ * Get normal class student payments (all, previous, upcoming)
+ */
+const getNormalClassStudentPayments = async (studentId: string, query: any) => {
+    const { page = 1, limit = 10, timeframe = "all" } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = {
+        student: new Types.ObjectId(studentId),
+        status: "PAID",
+        classType: "CLASS",
+    };
+
+    const pipeline: any[] = [
+        { $match: filters },
+        // Join with Class details
+        {
+            $lookup: {
+                from: "classes",
+                localField: "classId",
+                foreignField: "_id",
+                as: "classDetails",
+            },
+        },
+        { $unwind: "$classDetails" },
+    ];
+
+    if (timeframe === "previous") {
+        pipeline.push({ $match: { "classDetails.runningStatus": "COMPLETED" } });
+    } else if (timeframe === "upcoming") {
+        pipeline.push({ $match: { "classDetails.runningStatus": "RUNNING" } });
+    }
+
+    // Clone pipeline for count before pagination
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push({ $sort: { createdAt: timeframe === "upcoming" ? 1 : -1 } });
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+
+    // Join with teacher
+    pipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "teacher",
+                foreignField: "_id",
+                as: "teacherData",
+            },
+        },
+        { $unwind: "$teacherData" },
+        {
+            $addFields: {
+                teacher: {
+                    _id: "$teacherData._id",
+                    name: "$teacherData.name",
+                    email: "$teacherData.email",
+                    profileImage: "$teacherData.profileImage",
+                },
+            },
+        },
+    );
+
+    // Cleanup extra fields from lookup
+    pipeline.push({
+        $project: {
+            teacherData: 0,
+        },
+    });
+
+    const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
+
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    return {
+        data: result,
+        meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
+    };
+};
+
 export const classPaymentService = {
     initiateClassPayment,
     initiateMobileClassPayment,
@@ -560,4 +720,6 @@ export const classPaymentService = {
     getTeacherClasses,
     getHourlyClassTeacherPayments,
     getHourlyClassStudentPayments,
+    getNormalClassTeacherPayments,
+    getNormalClassStudentPayments,
 };

@@ -19,6 +19,10 @@ router.get("/teacher", auth, ClassPaymentControllers.getTeacherClasses);
 router.get("/teacher/hourly", auth, ClassPaymentControllers.getHourlyClassTeacherPayments);
 router.get("/student/hourly", auth, ClassPaymentControllers.getHourlyClassStudentPayments);
 
+// Get normal class teacher/student payments (all, previous, upcoming)
+router.get("/teacher/normal", auth, ClassPaymentControllers.getNormalClassTeacherPayments);
+router.get("/student/normal", auth, ClassPaymentControllers.getNormalClassStudentPayments);
+
 // Verify payment status (callback from MyFatoorah)
 router.get("/verify-payment", ClassPaymentControllers.verifyClassPayment);
 

@@ -60,7 +60,8 @@ const getStudentClasses = catchAsync(async (req: Request, res: Response) => {
         statusCode: httpStatus.OK,
         success: true,
         message: "Student classes retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -72,7 +73,8 @@ const getTeacherClasses = catchAsync(async (req: Request, res: Response) => {
         statusCode: httpStatus.OK,
         success: true,
         message: "Teacher classes retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -84,7 +86,8 @@ const getHourlyClassTeacherPayments = catchAsync(async (req: Request, res: Respo
         statusCode: httpStatus.OK,
         success: true,
         message: "Hourly class teacher payments retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -96,7 +99,34 @@ const getHourlyClassStudentPayments = catchAsync(async (req: Request, res: Respo
         statusCode: httpStatus.OK,
         success: true,
         message: "Hourly class student payments retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
+const getNormalClassTeacherPayments = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const result = await classPaymentService.getNormalClassTeacherPayments(userId!, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Normal class teacher payments retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
+const getNormalClassStudentPayments = catchAsync(async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const result = await classPaymentService.getNormalClassStudentPayments(userId!, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Normal class student payments retrieved successfully",
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -108,4 +138,6 @@ export const ClassPaymentControllers = {
     getTeacherClasses,
     getHourlyClassTeacherPayments,
     getHourlyClassStudentPayments,
+    getNormalClassTeacherPayments,
+    getNormalClassStudentPayments,
 };
