@@ -58,6 +58,18 @@ export const getMyClasses = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+export const getTeacherEnrolledClasses = catchAsync(async (req: Request, res: Response) => {
+    const result = await classServices.getTeacherEnrolledClasses(req.user._id, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Teacher enrolled classes retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const getClassById = catchAsync(async (req: Request, res: Response) => {
     const result = await classServices.getClassById(req.params.classId as string);
 
@@ -123,6 +135,7 @@ export const classControllers = {
     getClasses,
     getAllClassesForAdmin,
     getMyClasses,
+    getTeacherEnrolledClasses,
     getClassById,
     getMyClassById,
     updateClass,

@@ -257,7 +257,57 @@ const getMyClasses = async (userId: string, query: any = {}) => {
     if (classType) filters.classType = classType;
     if (runningStatus) filters.runningStatus = runningStatus;
 
-    const result = await ClassModel.find(filters).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+    const result = await ClassModel.find(filters).populate("createdBy", "name email profileImage").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+
+    // Add rating stats for each class
+    const resultWithRatings = await Promise.all(
+        result.map(async (cls: any) => {
+            const ratingStats = await RatingModel.aggregate([
+                { $match: { class: cls._id, isDeleted: false } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: "$rating" },
+                        ratingCount: { $sum: 1 },
+                    },
+                },
+            ]);
+
+            cls.averageRating = ratingStats.length > 0 ? Number(ratingStats[0].averageRating.toFixed(1)) : 0;
+            cls.ratingCount = ratingStats.length > 0 ? ratingStats[0].ratingCount : 0;
+            return cls;
+        }),
+    );
+
+    const total = await ClassModel.countDocuments(filters);
+    const totalPages = Math.ceil(total / Number(limit));
+
+    return {
+        data: resultWithRatings,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages,
+        },
+    };
+};
+
+const getTeacherEnrolledClasses = async (userId: string, query: any = {}) => {
+    const { page = 1, limit = 10, status, classType, runningStatus } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = {
+        createdBy: new Types.ObjectId(userId),
+        isDeleted: false,
+        enrolledStudents: { $gt: 0 },
+    };
+
+    if (status) filters.status = status;
+    if (classType) filters.classType = classType;
+    if (runningStatus) filters.runningStatus = runningStatus;
+
+    const result = await ClassModel.find(filters).populate("createdBy", "name email profileImage").sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
 
     // Add rating stats for each class
     const resultWithRatings = await Promise.all(
@@ -401,6 +451,7 @@ export const classServices = {
     getClasses,
     getAllClassesForAdmin,
     getMyClasses,
+    getTeacherEnrolledClasses,
     getClassById,
     getMyClassById,
     updateClass,
