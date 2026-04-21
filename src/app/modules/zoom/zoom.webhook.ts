@@ -49,6 +49,22 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
             });
         }
 
+        // 🔴 HANDLE MEETING STARTED EVENT 🔴
+        if (event === "meeting.started") {
+            const meetingId = body.payload.object.id;
+            console.log(`🎬 Meeting started: ${meetingId}`);
+            await ZoomModel.findOneAndUpdate({ meetingId }, { $set: { status: "started" } });
+            return res.status(httpStatus.OK).json({ success: true });
+        }
+
+        // 🔴 HANDLE MEETING ENDED EVENT 🔴
+        if (event === "meeting.ended") {
+            const meetingId = body.payload.object.id;
+            console.log(`🛑 Meeting ended: ${meetingId}`);
+            await ZoomModel.findOneAndUpdate({ meetingId }, { $set: { status: "ended" } });
+            return res.status(httpStatus.OK).json({ success: true });
+        }
+
         // 🔴 HANDLE RECORDING COMPLETED EVENT (AUTOMATIC UPLOAD) 🔴
         if (event === "recording.completed") {
             const recordingData = body.payload.object;
