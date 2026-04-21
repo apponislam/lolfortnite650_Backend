@@ -16,7 +16,7 @@ router.get("/details/:meetingId", auth, ZoomController.getMeetingDetails);
 // Get meetings by class ID
 router.get("/class-meetings/:classId", auth, ZoomController.getMeetingsByClass);
 
-// Test Google Drive upload
-router.post("/test-drive-upload", auth, ZoomController.testDriveUpload);
+// Manual update for recordings and Drive upload
+router.post("/update-recordings/:meetingId", auth, ZoomController.updateMeetingRecordings);
 
 export const zoomRoutes = router;

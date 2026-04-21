@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import { ClassModel } from "../class/class.model";
 import { ClassPaymentModel } from "../classpayments/classpayments.model";
 import { sendZoomMeetingInvitation } from "../../../utils/emailTemplates";
+import { uploadToGoogleDrive } from "./googleDrive.service";
 
 const getAccessToken = async (): Promise<string> => {
     const auth = Buffer.from(`${config.zoom.client_id!}:${config.zoom.client_secret!}`).toString("base64");
@@ -30,7 +31,7 @@ const getAccessToken = async (): Promise<string> => {
 };
 
 const createMeeting = async (meetingData: any, userId: string) => {
-    const { classId, ...zoomPayload } = meetingData;
+    const { classId, duration = 60, timezone = "UTC", ...zoomPayload } = meetingData;
 
     if (!classId) {
         throw new ApiError(httpStatus.BAD_REQUEST, "Class ID is required");
@@ -52,12 +53,31 @@ const createMeeting = async (meetingData: any, userId: string) => {
 
     const token = await getAccessToken();
 
+    // Default Zoom settings
+    const defaultSettings = {
+        host_video: true,
+        participant_video: true,
+        join_before_host: false,
+        mute_upon_entry: true,
+        watermark: false,
+        use_pmi: false,
+        approval_type: 0,
+        audio: "both",
+        auto_recording: "cloud",
+    };
+
     try {
         const response = await axios.post(
             `https://api.zoom.us/v2/users/me/meetings`,
             {
                 type: 2, // Default to scheduled meeting
+                duration,
+                timezone,
                 ...zoomPayload,
+                settings: {
+                    ...defaultSettings,
+                    ...zoomPayload.settings, // Allow override if provided
+                },
             },
             {
                 headers: {
@@ -109,38 +129,103 @@ const createMeeting = async (meetingData: any, userId: string) => {
     }
 };
 
-const updateMeetingRecordings = async (meetingId: string) => {
+const updateMeetingRecordings = async (meetingId: string, payload?: any) => {
     const token = await getAccessToken();
 
     try {
-        const response = await axios.get(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        let recordingData;
+        let downloadToken;
 
-        const recordingData = response.data;
+        if (payload && payload.object) {
+            recordingData = payload.object;
+            downloadToken = payload.download_token;
+        } else {
+            const response = await axios.get(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            recordingData = response.data;
+            downloadToken = recordingData.download_token;
+        }
+
+        console.log(`📹 Recording details found for meeting ${meetingId}`);
 
         // 🔴 FILTER ONLY MP4 FILES 🔴
         const mp4Files = recordingData.recording_files?.filter((file: any) => file.file_type === "MP4") || [];
+        console.log(`Found ${recordingData.recording_files?.length || 0} total files, keeping ${mp4Files.length} MP4 files`);
 
-        // Update the meeting record with recording details
-        const result = await ZoomModel.findOneAndUpdate(
-            { meetingId: parseInt(meetingId) },
+        // Save recording info to database
+        await ZoomModel.findOneAndUpdate(
+            { meetingId: Number(meetingId) },
             {
                 $set: {
                     total_size: recordingData.total_size,
                     recording_count: mp4Files.length,
                     recording_files: mp4Files,
+                    download_token: downloadToken,
+                    drive_upload_status: "pending",
                 },
             },
-            { returnDocument: "after" },
         );
 
-        return result;
+        // 🔴 AUTOMATICALLY UPLOAD TO GOOGLE DRIVE 🔴
+        // Don't await - let it run in background
+        (async () => {
+            try {
+                const meeting: any = await ZoomModel.findOne({ meetingId: Number(meetingId) });
+
+                if (!meeting || !meeting.recording_files) {
+                    console.log("No recording files found");
+                    return;
+                }
+
+                console.log(`Starting upload for ${meeting.recording_files.length} files...`);
+
+                // Upload each recording file
+                for (const file of meeting.recording_files) {
+                    if (!file.uploaded_to_drive && file.download_url) {
+                        console.log(`Uploading: ${file.recording_type} - ${file.file_type}`);
+
+                        // Generate filename
+                        const fileName = `meeting_${meeting.meetingId}_${file.recording_type}_${Date.now()}.mp4`;
+
+                        // Upload to Google Drive
+                        const driveResult = await uploadToGoogleDrive(file.download_url, fileName, meeting.download_token);
+
+                        // Update database with Drive links
+                        file.drive_file_id = driveResult.fileId || undefined;
+                        file.drive_web_link = driveResult.webLink || undefined;
+                        file.uploaded_to_drive = true;
+
+                        console.log(`✅ Uploaded: ${driveResult.webLink}`);
+                    }
+                }
+
+                // Mark all as completed
+                await ZoomModel.findOneAndUpdate(
+                    { meetingId: Number(meetingId) },
+                    {
+                        $set: {
+                            recording_files: meeting.recording_files,
+                            drive_upload_status: "completed",
+                        },
+                    },
+                );
+
+                console.log(`🎉 All files uploaded for meeting ${meetingId}`);
+            } catch (error) {
+                console.error("Drive upload failed:", error);
+                await ZoomModel.findOneAndUpdate({ meetingId: Number(meetingId) }, { $set: { drive_upload_status: "failed" } });
+            }
+        })();
+
+        return { message: "Recording details found, uploading to Drive in background" };
     } catch (error: any) {
-        if (error.response && error.response.status === 404) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Recordings not found for this meeting yet");
+        if (axios.isAxiosError(error)) {
+            const zoomError = error.response?.data;
+            console.error("Zoom API Error Details:", JSON.stringify(zoomError, null, 2));
+            throw new ApiError(error.response?.status || httpStatus.INTERNAL_SERVER_ERROR, zoomError?.message || "Zoom API Request Failed");
         }
         throw error;
     }

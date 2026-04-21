@@ -21,14 +21,15 @@ const createMeeting = catchAsync(async (req: Request, res: Response) => {
 
 const updateMeetingRecordings = catchAsync(async (req: Request, res: Response) => {
     const { meetingId } = req.params;
+    const payload = req.body;
 
-    const result = await ZoomService.updateMeetingRecordings(meetingId as string);
+    const result = await ZoomService.updateMeetingRecordings(meetingId as string, payload);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: "Meeting recording details updated successfully",
-        data: result,
+        message: result.message || "Meeting recording details updated successfully",
+        data: null,
     });
 });
 
@@ -73,33 +74,10 @@ const getMeetingsByClass = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const testDriveUpload = catchAsync(async (req: Request, res: Response) => {
-    const { downloadUrl, fileName } = req.body;
-
-    if (!downloadUrl || !fileName) {
-        return sendResponse(res, {
-            statusCode: httpStatus.BAD_REQUEST,
-            success: false,
-            message: "downloadUrl and fileName are required",
-            data: null,
-        });
-    }
-
-    const result = await uploadToGoogleDrive(downloadUrl, fileName);
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Test upload to Google Drive initiated successfully",
-        data: result,
-    });
-});
-
 export const ZoomController = {
     createMeeting,
     updateMeetingRecordings,
     getMyMeetings,
     getMeetingDetails,
     getMeetingsByClass,
-    testDriveUpload,
 };
