@@ -807,6 +807,34 @@ const getNormalClassStudentPayments = async (studentId: string, query: any) => {
     };
 };
 
+// make here man
+const getAllStudents = async (classId: string, query: any) => {
+    const { page = 1, limit = 10 } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filters: any = {
+        classId: new Types.ObjectId(classId),
+        status: "PAID",
+    };
+
+    const payments = await ClassPaymentModel.find(filters).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate("student", "name email phone profileImage").lean();
+
+    const total = await ClassPaymentModel.countDocuments(filters);
+
+    // Extract student data from payments
+    const students = payments.map((payment: any) => payment.student).filter((student) => student !== null);
+
+    return {
+        data: students,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages: Math.ceil(total / Number(limit)),
+        },
+    };
+};
+
 export const classPaymentService = {
     initiateClassPayment,
     initiateMobileClassPayment,
@@ -817,4 +845,5 @@ export const classPaymentService = {
     getHourlyClassStudentPayments,
     getNormalClassTeacherPayments,
     getNormalClassStudentPayments,
+    getAllStudents,
 };

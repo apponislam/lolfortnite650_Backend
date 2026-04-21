@@ -130,6 +130,20 @@ const getNormalClassStudentPayments = catchAsync(async (req: Request, res: Respo
     });
 });
 
+// make here man
+const getAllStudents = catchAsync(async (req: Request, res: Response) => {
+    const { classid } = req.params;
+    const result = await classPaymentService.getAllStudents(classid as string, req.query);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Students retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const ClassPaymentControllers = {
     initiateClassPayment,
     initiateMobileClassPayment,
@@ -140,4 +154,5 @@ export const ClassPaymentControllers = {
     getHourlyClassStudentPayments,
     getNormalClassTeacherPayments,
     getNormalClassStudentPayments,
+    getAllStudents,
 };
