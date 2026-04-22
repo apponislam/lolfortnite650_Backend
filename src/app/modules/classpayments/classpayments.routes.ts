@@ -1,6 +1,5 @@
 import express from "express";
 import { ClassPaymentControllers } from "./classpayments.controllers";
-import { ClassPaymentWebhookControllers } from "./classpayments.webhook";
 import auth from "../../middlewares/auth";
 
 const router = express.Router();
