@@ -9,7 +9,8 @@ const router = Router();
 router.get("/public-stats", dashboardControllers.getPublicUserStats);
 
 // Admin-only dashboard stats
-router.get("/admin-stats", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getAdminDashboardStats);
+// router.get("/admin-stats", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getAdminDashboardStats);
+router.get("/admin-stats", dashboardControllers.getAdminDashboardStats);
 router.get("/monthly-registration", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getMonthlyRegistrationStats);
 router.get("/user-distribution", auth, authorize(["ADMIN", "SUPER_ADMIN"]), dashboardControllers.getUserRoleDistribution);
 
