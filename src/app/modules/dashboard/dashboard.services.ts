@@ -185,6 +185,7 @@ const getTeacherDashboardStats = async (teacherId: string) => {
     const activeClasses = await ClassModel.countDocuments({
         createdBy: new Types.ObjectId(teacherId),
         runningStatus: "RUNNING",
+        isDeleted: false,
     });
 
     // 2. Count Total Students (Sum of enrolledStudents across all teacher's classes)
