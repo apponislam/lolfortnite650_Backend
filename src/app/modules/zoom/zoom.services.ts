@@ -53,17 +53,19 @@ const createMeeting = async (meetingData: any, userId: string) => {
 
     const token = await getAccessToken();
 
-    // Default Zoom settings
+    // Default Zoom settings (Fiverr Style: No host login required)
     const defaultSettings = {
         host_video: true,
         participant_video: true,
-        join_before_host: false,
+        join_before_host: true, // Allow teacher/students to start without you
+        jbh_time: 0,            // Join anytime
+        waiting_room: false,    // No one gets stuck waiting for a host
         mute_upon_entry: true,
         watermark: false,
         use_pmi: false,
         approval_type: 0,
         audio: "both",
-        auto_recording: "cloud",
+        auto_recording: "cloud", // Recording saves to YOUR account
     };
 
     try {
