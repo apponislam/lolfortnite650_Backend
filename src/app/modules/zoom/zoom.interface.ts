@@ -20,6 +20,7 @@ export interface IZoom {
         host_video: boolean;
         participant_video: boolean;
         join_before_host: boolean;
+        waiting_room: boolean;
         mute_upon_entry: boolean;
         watermark: boolean;
         use_pmi: boolean;

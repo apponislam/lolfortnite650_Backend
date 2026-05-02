@@ -58,15 +58,19 @@ const createMeeting = async (meetingData: any, userId: string) => {
         host_video: true,
         participant_video: true,
         join_before_host: true, // Allow teacher/students to start without you
-        jbh_time: 0, // Join anytime
-        waiting_room: false, // No one gets stuck waiting for a host
+        jbh_time: 0, // Join anytime (0 = any time)
+        waiting_room: false, // Disable waiting room so users join directly
         mute_upon_entry: true,
         watermark: false,
         use_pmi: false,
-        approval_type: 0,
+        approval_type: 0, // 0 = Automatically approve
         audio: "both",
         auto_recording: "cloud", // Recording saves to YOUR account
+        meeting_authentication: false, // Don't require Zoom login
     };
+
+    // Ensure a password exists to satisfy Zoom's security requirements (Passcode OR Waiting Room)
+    const password = zoomPayload.password || Math.random().toString(36).slice(-8);
 
     try {
         const response = await axios.post(
@@ -75,6 +79,7 @@ const createMeeting = async (meetingData: any, userId: string) => {
                 type: 2, // Default to scheduled meeting
                 duration,
                 timezone,
+                password, // Include the generated/provided password
                 ...zoomPayload,
                 settings: {
                     ...defaultSettings,
@@ -218,7 +223,8 @@ const updateMeetingRecordings = async (meetingId: string, payload?: any) => {
                 console.log(`🎉 All files uploaded for meeting ${meetingId}`);
 
                 // 🗑️ Delete recording from Zoom after successful Drive upload
-                await deleteZoomRecording(meetingId);
+                // Use UUID if available, otherwise use numeric ID
+                await deleteZoomRecording(meeting.uuid || meetingId);
             } catch (error) {
                 console.error("Drive upload failed:", error);
                 await ZoomModel.findOneAndUpdate({ meetingId: Number(meetingId) }, { $set: { drive_upload_status: "failed" } });
@@ -292,17 +298,21 @@ const getMeetingsByClass = async (classId: string, query: any) => {
 const deleteZoomRecording = async (meetingId: string | number) => {
     const token = await getAccessToken();
     try {
-        await axios.delete(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
+        // Zoom recommends double-encoding the UUID if it contains slashes or begins with a slash
+        const encodedId = encodeURIComponent(encodeURIComponent(meetingId.toString()));
+
+        await axios.delete(`https://api.zoom.us/v2/meetings/${encodedId}/recordings`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
             params: {
-                action: "trash", // This moves it to Zoom trash. Use "delete" for permanent.
+                action: "trash",
             },
         });
         console.log(`🗑️ Zoom recordings for meeting ${meetingId} moved to trash`);
     } catch (error: any) {
-        console.error(`❌ Failed to delete Zoom recordings for meeting ${meetingId}:`, error.message);
+        const zoomError = error.response?.data;
+        console.error(`❌ Failed to delete Zoom recordings for meeting ${meetingId}:`, zoomError ? JSON.stringify(zoomError) : error.message);
     }
 };
 

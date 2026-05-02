@@ -65,6 +65,7 @@ const ZoomSchema = new Schema<IZoom>(
             host_video: { type: Boolean, default: true },
             participant_video: { type: Boolean, default: true },
             join_before_host: { type: Boolean, default: false },
+            waiting_room: { type: Boolean, default: false },
             mute_upon_entry: { type: Boolean, default: true },
             watermark: { type: Boolean, default: false },
             use_pmi: { type: Boolean, default: false },

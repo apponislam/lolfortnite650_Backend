@@ -139,7 +139,8 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
                     console.log(`🎉 All files uploaded for meeting ${recordingData.id}`);
 
                     // 🗑️ Delete recording from Zoom after successful Drive upload
-                    await ZoomService.deleteZoomRecording(recordingData.id);
+                    // Use UUID if available, otherwise use numeric ID
+                    await ZoomService.deleteZoomRecording(recordingData.uuid || recordingData.id);
                 } catch (error) {
                     console.error("Drive upload failed:", error);
                     await ZoomModel.findOneAndUpdate({ meetingId: recordingData.id }, { $set: { drive_upload_status: "failed" } });
