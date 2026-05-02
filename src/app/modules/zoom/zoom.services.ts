@@ -57,33 +57,35 @@ const createMeeting = async (meetingData: any, userId: string) => {
     const defaultSettings = {
         host_video: true,
         participant_video: true,
-        join_before_host: true, // Allow teacher/students to start without you
-        jbh_time: 0, // Join anytime (0 = any time)
-        waiting_room: false, // Disable waiting room so users join directly
+        join_before_host: true,
+        jbh_time: 0,
+        waiting_room: false,
         mute_upon_entry: true,
         watermark: false,
         use_pmi: false,
-        approval_type: 0, // 0 = Automatically approve
+        approval_type: 2, // No registration
+        registration_type: 2, // No registration
         audio: "both",
-        auto_recording: "cloud", // Recording saves to YOUR account
-        meeting_authentication: false, // Don't require Zoom login
+        auto_recording: "cloud",
+        meeting_authentication: false,
+        enforce_login: false,
+        // Critical: bypass waiting room for all
+        bypass_waiting_room_whitelist: "*",
     };
-
-    // Ensure a password exists to satisfy Zoom's security requirements (Passcode OR Waiting Room)
-    const password = zoomPayload.password || Math.random().toString(36).slice(-8);
 
     try {
         const response = await axios.post(
             `https://api.zoom.us/v2/users/me/meetings`,
             {
-                type: 2, // Default to scheduled meeting
+                type: 2,
                 duration,
                 timezone,
-                password, // Include the generated/provided password
-                ...zoomPayload,
+                ...zoomPayload, // Contains password if provided by frontend
                 settings: {
                     ...defaultSettings,
-                    ...zoomPayload.settings, // Allow override if provided
+                    ...(zoomPayload.settings || {}),
+                    waiting_room: false, // Force false again inside settings
+                    join_before_host: true, // Force true again inside settings
                 },
             },
             {
@@ -306,10 +308,10 @@ const deleteZoomRecording = async (meetingId: string | number) => {
                 Authorization: `Bearer ${token}`,
             },
             params: {
-                action: "trash",
+                action: "delete",
             },
         });
-        console.log(`🗑️ Zoom recordings for meeting ${meetingId} moved to trash`);
+        console.log(`🗑️ Zoom recordings for meeting ${meetingId} permanently deleted`);
     } catch (error: any) {
         const zoomError = error.response?.data;
         console.error(`❌ Failed to delete Zoom recordings for meeting ${meetingId}:`, zoomError ? JSON.stringify(zoomError) : error.message);
