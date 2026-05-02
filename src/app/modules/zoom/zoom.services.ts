@@ -58,8 +58,8 @@ const createMeeting = async (meetingData: any, userId: string) => {
         host_video: true,
         participant_video: true,
         join_before_host: true, // Allow teacher/students to start without you
-        jbh_time: 0,            // Join anytime
-        waiting_room: false,    // No one gets stuck waiting for a host
+        jbh_time: 0, // Join anytime
+        waiting_room: false, // No one gets stuck waiting for a host
         mute_upon_entry: true,
         watermark: false,
         use_pmi: false,
@@ -216,6 +216,9 @@ const updateMeetingRecordings = async (meetingId: string, payload?: any) => {
                 );
 
                 console.log(`🎉 All files uploaded for meeting ${meetingId}`);
+
+                // 🗑️ Delete recording from Zoom after successful Drive upload
+                await deleteZoomRecording(meetingId);
             } catch (error) {
                 console.error("Drive upload failed:", error);
                 await ZoomModel.findOneAndUpdate({ meetingId: Number(meetingId) }, { $set: { drive_upload_status: "failed" } });
@@ -286,10 +289,28 @@ const getMeetingsByClass = async (classId: string, query: any) => {
     };
 };
 
+const deleteZoomRecording = async (meetingId: string | number) => {
+    const token = await getAccessToken();
+    try {
+        await axios.delete(`https://api.zoom.us/v2/meetings/${meetingId}/recordings`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                action: "trash", // This moves it to Zoom trash. Use "delete" for permanent.
+            },
+        });
+        console.log(`🗑️ Zoom recordings for meeting ${meetingId} moved to trash`);
+    } catch (error: any) {
+        console.error(`❌ Failed to delete Zoom recordings for meeting ${meetingId}:`, error.message);
+    }
+};
+
 export const ZoomService = {
     createMeeting,
     updateMeetingRecordings,
     getMyMeetings,
     getMeetingDetails,
     getMeetingsByClass,
+    deleteZoomRecording,
 };

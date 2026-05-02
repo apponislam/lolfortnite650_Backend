@@ -6,6 +6,8 @@ import { ZoomModel } from "./zoom.model";
 import sendResponse from "../../../utils/sendResponse";
 import { uploadToGoogleDrive } from "./googleDrive.service";
 
+import { ZoomService } from "./zoom.services";
+
 export const ZoomWebhook = async (req: Request, res: Response) => {
     try {
         const rawBody = req.body.toString("utf-8");
@@ -135,6 +137,9 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
                     );
 
                     console.log(`🎉 All files uploaded for meeting ${recordingData.id}`);
+
+                    // 🗑️ Delete recording from Zoom after successful Drive upload
+                    await ZoomService.deleteZoomRecording(recordingData.id);
                 } catch (error) {
                     console.error("Drive upload failed:", error);
                     await ZoomModel.findOneAndUpdate({ meetingId: recordingData.id }, { $set: { drive_upload_status: "failed" } });
