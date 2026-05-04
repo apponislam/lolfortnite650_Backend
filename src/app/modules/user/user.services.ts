@@ -190,10 +190,26 @@ const getSingleUser = async (userId: string) => {
     return userObj;
 };
 
+const updateUserCommission = async (userId: string, percentage: number) => {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    if (percentage < 0 || percentage > 100) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Percentage must be between 0 and 100");
+    }
+
+    user.percentage = percentage;
+    await user.save();
+    return user;
+};
+
 export const userServices = {
     getAllTeachersWithStats,
     getAllStudentsWithStats,
     updateUserStatus,
     toggleUserActiveStatus,
     getSingleUser,
+    updateUserCommission,
 };

@@ -14,6 +14,8 @@ router.patch("/teacher-status/:id", auth, authorize(["ADMIN", "SUPER_ADMIN"]), u
 
 router.patch("/toggle-active/:id", auth, authorize(["ADMIN", "SUPER_ADMIN"]), userControllers.toggleUserActive);
 
+router.patch("/commission/:id", auth, authorize(["ADMIN", "SUPER_ADMIN"]), userControllers.updateCommission);
+
 router.get("/:id", auth, userControllers.getSingleUser);
 
 export const userRoutes = router;

@@ -67,10 +67,24 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateCommission = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { percentage } = req.body;
+    const result = await userServices.updateUserCommission(id as string, percentage);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User commission updated successfully",
+        data: result,
+    });
+});
+
 export const userControllers = {
     getAllTeachers,
     getAllStudents,
     updateTeacherStatus,
     toggleUserActive,
     getSingleUser,
+    updateCommission,
 };
