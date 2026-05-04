@@ -381,7 +381,7 @@ export const rejectOffer = async (userId: string, messageId: string) => {
 /**
  * Reschedule an offer
  */
-export const rescheduleOffer = async (userId: string, messageId: string, slotId: string) => {
+export const rescheduleOffer = async (userId: string, messageId: string, slotId: string, price?: number) => {
     const message = await MessageModel.findById(messageId);
     if (!message || message.type !== "OFFER") {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
@@ -391,7 +391,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
     //     throw new ApiError(httpStatus.FORBIDDEN, "You cannot reschedule your own offer");
     // }
 
-    let finalPrice = message.price;
+    let finalPrice = price || message.price;
     const slotData = await Slot.findById(slotId);
     if (!slotData) {
         throw new ApiError(httpStatus.NOT_FOUND, "New slot not found");
@@ -402,7 +402,9 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
     if (teacherId) {
         const hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
         if (hourlyClass) {
-            finalPrice = hourlyClass.pricePerHour * slotData.hours;
+            if (!price) {
+                finalPrice = hourlyClass.pricePerHour * slotData.hours;
+            }
             message.classId = hourlyClass._id;
         }
     }
