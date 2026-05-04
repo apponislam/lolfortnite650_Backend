@@ -18,14 +18,27 @@ export const createConversation = async (
 ) => {
     const { participantIds } = payload;
 
-    // Ensure unique participants (including current user)
+    // 1. Verify that the current user is a STUDENT
+    const currentUser = await UserModel.findById(currentUserId);
+    if (!currentUser || currentUser.role !== "STUDENT") {
+        throw new ApiError(httpStatus.FORBIDDEN, "Only students can initiate a conversation");
+    }
+
+    // 2. Ensure unique participants (including current user)
     const allParticipants = Array.from(new Set([currentUserId, ...participantIds])).map((id) => new Types.ObjectId(id));
 
     if (allParticipants.length !== 2) {
         throw new ApiError(httpStatus.BAD_REQUEST, "Conversation must have exactly 2 participants");
     }
 
-    // Check if conversation already exists between these two users
+    // 3. Verify that the other participant is a TEACHER
+    const otherUserId = participantIds.find((id) => id !== currentUserId);
+    const otherUser = await UserModel.findById(otherUserId);
+    if (!otherUser || otherUser.role !== "TEACHER") {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Conversations can only be initiated with a teacher");
+    }
+
+    // 4. Check if conversation already exists between these two users
     const existing = await ConversationModel.findOne({
         participantIds: { $all: allParticipants, $size: 2 },
     });
