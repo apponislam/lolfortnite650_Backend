@@ -194,7 +194,7 @@ export const getConversationById = async (conversationId: string, userId: string
  * Send a new message
  */
 export const sendMessage = async (senderId: string, payload: any) => {
-    const { conversationId, text, type, files, replyTo, slot, subject } = payload;
+    const { conversationId, text, type, files, replyTo, slot, subject, price } = payload;
 
     // Verify conversation exists and user is part of it
     const conversation = await ConversationModel.findOne({
@@ -212,7 +212,7 @@ export const sendMessage = async (senderId: string, payload: any) => {
     }
 
     let finalType = type || "MESSAGE";
-    let finalPrice = payload.price;
+    let finalPrice = price;
     let classId = payload.classId;
 
     // Try to find teacher and their hourly class to set classId and calculate price
@@ -227,8 +227,8 @@ export const sendMessage = async (senderId: string, payload: any) => {
                 classId = hourlyClass._id;
             }
 
-            // Calculate price based on slot hours if slot is provided
-            if (slot) {
+            // Calculate price based on slot hours if slot is provided and price not already provided
+            if (slot && !finalPrice) {
                 const slotData = await Slot.findById(slot);
                 if (slotData) {
                     finalPrice = hourlyClass.pricePerHour * slotData.hours;
