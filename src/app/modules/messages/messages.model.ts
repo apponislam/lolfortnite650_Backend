@@ -92,6 +92,10 @@ const MessageSchema = new Schema<MessageDocument>(
             type: Schema.Types.ObjectId,
             ref: "HourlyClass",
         },
+        teacherId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
         slot: {
             type: Schema.Types.ObjectId,
             ref: "Slot",

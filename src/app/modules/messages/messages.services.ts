@@ -78,7 +78,7 @@ const getUserConversations = async (userId: string, query: { page?: number; limi
     })
         .populate({
             path: "lastMessage",
-            populate: { path: "slot" },
+            populate: [{ path: "slot" }, { path: "teacherId", select: "name email profileImage role" }],
         })
         .populate("participantIds", "name email profileImage role")
         .sort({ updatedAt: -1 })
@@ -145,9 +145,10 @@ export const getMessages = async (conversationId: string, userId: string, query:
         .limit(Number(limit))
         .populate("senderId", "name email profileImage")
         .populate("slot")
+        .populate("teacherId", "name email profileImage role")
         .populate({
             path: "replyTo",
-            populate: [{ path: "senderId", select: "name email profileImage" }, { path: "slot" }],
+            populate: [{ path: "senderId", select: "name email profileImage" }, { path: "slot" }, { path: "teacherId", select: "name email profileImage role" }],
         })
         .lean();
 
@@ -182,7 +183,7 @@ export const getConversationById = async (conversationId: string, userId: string
         .populate("participantIds", "name email profileImage role")
         .populate({
             path: "lastMessage",
-            populate: { path: "slot" },
+            populate: [{ path: "slot" }, { path: "teacherId", select: "name email profileImage role" }],
         })
         .lean();
 
@@ -228,8 +229,9 @@ export const sendMessage = async (senderId: string, payload: any) => {
     let finalPrice = price;
     let classId = payload.classId;
 
-    // Try to find teacher and their hourly class to set classId and calculate price
+    // 1. Get teacherId from conversation participants (1 line)
     const teacherId = conversation.participantIds.find((p: any) => p.role === "TEACHER")?._id;
+
     let hourlyClass: any = null;
 
     if (teacherId) {
@@ -259,6 +261,7 @@ export const sendMessage = async (senderId: string, payload: any) => {
         replyTo,
         slot,
         classId,
+        teacherId,
         subject,
         price: finalPrice,
     };
@@ -279,6 +282,7 @@ export const sendMessage = async (senderId: string, payload: any) => {
     await message.populate([
         { path: "senderId", select: "name email profileImage role" },
         { path: "slot" },
+        { path: "teacherId", select: "name email profileImage role" },
         {
             path: "replyTo",
             populate: { path: "senderId", select: "name email profileImage" },
@@ -318,7 +322,7 @@ export const acceptOffer = async (userId: string, messageId: string) => {
     message.type = "ACCEPTED";
     await message.save();
 
-    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "teacherId", select: "name email profileImage role" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
@@ -345,7 +349,7 @@ export const completeOffer = async (messageId: string) => {
     message.type = "COMPLETED";
     await message.save();
 
-    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "teacherId", select: "name email profileImage role" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
@@ -376,7 +380,7 @@ export const rejectOffer = async (userId: string, messageId: string) => {
     message.type = "REJECTED";
     await message.save();
 
-    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "teacherId", select: "name email profileImage role" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
@@ -413,6 +417,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
     const conversationData = await ConversationModel.findById(message.conversationId).populate("participantIds", "role");
     const teacherId = conversationData?.participantIds.find((p: any) => p.role === "TEACHER")?._id;
     if (teacherId) {
+        message.teacherId = teacherId;
         const hourlyClass = await HourlyClassModel.findOne({ createdBy: teacherId });
         if (hourlyClass) {
             if (!price) {
@@ -431,7 +436,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
     message.price = finalPrice;
     await message.save();
 
-    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
+    await message.populate([{ path: "senderId", select: "name email profileImage role" }, { path: "slot" }, { path: "teacherId", select: "name email profileImage role" }, { path: "replyTo", populate: { path: "senderId", select: "name email profileImage" } }]);
 
     const conversation = await ConversationModel.findById(message.conversationId);
     if (conversation) {
@@ -490,6 +495,7 @@ export const editMessage = async (userId: string, messageId: string, text: strin
     await message.populate([
         { path: "senderId", select: "name email profileImage role" },
         { path: "slot" },
+        { path: "teacherId", select: "name email profileImage role" },
         {
             path: "replyTo",
             populate: { path: "senderId", select: "name email profileImage" },
