@@ -38,6 +38,8 @@ export interface User {
         radiusKm?: number;
     };
 
+    driveFolderId?: string;
+
     preferences?: {
         subjects?: string[];
         curriculum?: string[];

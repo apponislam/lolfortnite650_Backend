@@ -17,7 +17,45 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: "v3", auth });
 
-export const uploadToGoogleDrive = async (downloadUrl: string, fileName: string, downloadToken?: string, retryCount = 0): Promise<any> => {
+/**
+ * Get or create a folder in Google Drive
+ */
+const getOrCreateFolder = async (folderName: string, parentId: string): Promise<string> => {
+    try {
+        // Search for existing folder
+        const response = await drive.files.list({
+            q: `name = '${folderName}' and '${parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+            fields: "files(id, name)",
+            spaces: "drive",
+            supportsAllDrives: true,
+            includeItemsFromAllDrives: true,
+        });
+
+        if (response.data.files && response.data.files.length > 0) {
+            return response.data.files[0].id!;
+        }
+
+        // Create new folder
+        const fileMetadata = {
+            name: folderName,
+            mimeType: "application/vnd.google-apps.folder",
+            parents: [parentId],
+        };
+
+        const folder = await drive.files.create({
+            requestBody: fileMetadata,
+            fields: "id",
+            supportsAllDrives: true,
+        });
+
+        return folder.data.id!;
+    } catch (error) {
+        console.error("Error in getOrCreateFolder:", error);
+        throw error;
+    }
+};
+
+export const uploadToGoogleDrive = async (downloadUrl: string, fileName: string, downloadToken?: string, folderName?: string, existingFolderId?: string, retryCount = 0): Promise<any> => {
     const localFilePath = path.join(tempDir, fileName);
     try {
         console.log(`📥 Starting local download: ${fileName}`);
@@ -38,28 +76,40 @@ export const uploadToGoogleDrive = async (downloadUrl: string, fileName: string,
 
         console.log(`✅ Local download complete: ${localFilePath}`);
 
-        // 2. Check folder access
+        // 2. Check folder access and get target parent folder
         if (!config.drive.folder_id) {
             throw new Error("Google Drive Folder ID is not defined");
         }
 
+        let targetFolderId = existingFolderId || config.drive.folder_id;
+
         try {
+            // Verify access to the target folder
             await drive.files.get({
-                fileId: config.drive.folder_id,
+                fileId: targetFolderId,
                 fields: "id, name",
                 supportsAllDrives: true,
             });
+
+            // If we don't have an existingFolderId but we have a folderName, create/get it
+            if (!existingFolderId && folderName) {
+                targetFolderId = await getOrCreateFolder(folderName, config.drive.folder_id);
+            }
         } catch (error: any) {
-            console.error(`❌ FOLDER ACCESS ERROR: The service account cannot see the folder ID ${config.drive.folder_id}`);
-            console.error("Please share the folder with: zoom-drive-uploader@educate-492716.iam.gserviceaccount.com");
-            throw error;
+            console.warn(`⚠️ Target folder ${targetFolderId} not accessible, falling back to main folder`);
+            // If the saved folder ID is broken, fallback to search/create by name
+            if (folderName) {
+                targetFolderId = await getOrCreateFolder(folderName, config.drive.folder_id);
+            } else {
+                targetFolderId = config.drive.folder_id;
+            }
         }
 
         // 3. Upload from local disk to Google Drive
-        console.log(`📤 Uploading to Google Drive: ${fileName}`);
+        console.log(`📤 Uploading to Google Drive: ${fileName} to folder: ${targetFolderId}`);
         const fileMetadata = {
             name: fileName,
-            parents: [config.drive.folder_id],
+            parents: [targetFolderId],
         };
 
         const media = {
@@ -89,6 +139,7 @@ export const uploadToGoogleDrive = async (downloadUrl: string, fileName: string,
         return {
             fileId: driveResponse.data.id,
             webLink: driveResponse.data.webViewLink,
+            folderId: targetFolderId,
         };
     } catch (error: any) {
         console.error(`❌ Upload error (Attempt ${retryCount + 1}):`, error.message);
@@ -100,7 +151,7 @@ export const uploadToGoogleDrive = async (downloadUrl: string, fileName: string,
             const delay = Math.pow(2, retryCount) * 2000;
             console.log(`🔄 Retrying in ${delay / 1000}s...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
-            return uploadToGoogleDrive(downloadUrl, fileName, downloadToken, retryCount + 1);
+            return uploadToGoogleDrive(downloadUrl, fileName, downloadToken, folderName, existingFolderId, retryCount + 1);
         }
 
         throw error;

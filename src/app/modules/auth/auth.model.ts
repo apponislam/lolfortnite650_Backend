@@ -98,6 +98,10 @@ const UserSchema = new Schema<User>(
             radiusKm: Number,
         },
 
+        driveFolderId: {
+            type: String,
+        },
+
         preferences: {
             subjects: [String],
             curriculum: [String],

@@ -7,6 +7,7 @@ import sendResponse from "../../../utils/sendResponse";
 import { uploadToGoogleDrive } from "./googleDrive.service";
 
 import { ZoomService } from "./zoom.services";
+import { UserModel } from "../auth/auth.model";
 
 export const ZoomWebhook = async (req: Request, res: Response) => {
     try {
@@ -96,14 +97,19 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
             // Don't await - let it run in background
             (async () => {
                 try {
-                    const meeting = await ZoomModel.findOne({ meetingId: recordingData.id });
+                    const meeting = await ZoomModel.findOne({ meetingId: recordingData.id }).populate("createdBy", "name email driveFolderId");
 
                     if (!meeting || !meeting.recording_files) {
                         console.log("No recording files found");
                         return;
                     }
 
-                    console.log(`Starting upload for ${meeting.recording_files.length} files...`);
+                    const teacher = meeting.createdBy as any;
+                    const teacherName = teacher?.name || "Unknown Teacher";
+                    const teacherEmail = teacher?.email || "";
+                    let teacherFolderId = teacher?.driveFolderId;
+
+                    console.log(`Starting upload for ${meeting.recording_files.length} files for teacher: ${teacherName} (${teacherEmail})...`);
 
                     // Upload each recording file
                     for (const file of meeting.recording_files) {
@@ -113,13 +119,21 @@ export const ZoomWebhook = async (req: Request, res: Response) => {
                             // Generate filename
                             const fileName = `meeting_${meeting.meetingId}_${file.recording_type}_${Date.now()}.mp4`;
 
-                            // Upload to Google Drive
-                            const driveResult = await uploadToGoogleDrive(file.download_url, fileName, meeting.download_token);
+                            // Upload to Google Drive (with teacher info and current folder ID)
+                            const folderName = `${teacherName} (${teacherEmail})`;
+                            const driveResult = await uploadToGoogleDrive(file.download_url, fileName, meeting.download_token, folderName, teacherFolderId);
 
                             // Update database with Drive links
                             file.drive_file_id = driveResult.fileId || undefined;
                             file.drive_web_link = driveResult.webLink || undefined;
                             file.uploaded_to_drive = true;
+
+                            // If a new folder was created, save its ID to the teacher's profile
+                            if (driveResult.folderId && driveResult.folderId !== teacherFolderId) {
+                                teacherFolderId = driveResult.folderId;
+                                await UserModel.findByIdAndUpdate(teacher._id, { $set: { driveFolderId: teacherFolderId } });
+                                console.log(`📁 Saved new Drive folder ID for teacher: ${teacherFolderId}`);
+                            }
 
                             console.log(`✅ Uploaded: ${driveResult.webLink}`);
                         }
