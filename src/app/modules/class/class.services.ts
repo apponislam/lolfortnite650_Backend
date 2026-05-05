@@ -18,14 +18,15 @@ const createClass = async (userId: string, payload: any) => {
 };
 
 const getClasses = async (query: any = {}, user?: any) => {
-    const { page = 1, limit = 10, classType, runningStatus, subject, level, language, curriculum, search, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull, tutorGender } = query;
+    const { page = 1, limit = 10, classType, runningStatus, subject, level, language, curriculum, search, searchTerm, minPrice, maxPrice, sortBy = "createdAt", sortOrder = "desc", isFull, tutorGender } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false, status: "APPROVED" };
 
-    // Text Search
-    if (search) {
-        filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
+    // Text Search (Support both 'search' and 'searchTerm')
+    const finalSearch = search || searchTerm;
+    if (finalSearch) {
+        filters.$or = [{ subject: { $regex: finalSearch, $options: "i" } }, { description: { $regex: finalSearch, $options: "i" } }];
     }
 
     // Exact or partial matches
@@ -170,7 +171,7 @@ const getClasses = async (query: any = {}, user?: any) => {
 };
 
 const getAllClassesForAdmin = async (query: any = {}) => {
-    const { page = 1, limit = 10, status, classType, runningStatus, search, sortBy = "createdAt", sortOrder = "desc", tutorGender, subject, level, language, curriculum } = query;
+    const { page = 1, limit = 10, status, classType, runningStatus, search, searchTerm, sortBy = "createdAt", sortOrder = "desc", tutorGender, subject, level, language, curriculum } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const filters: any = { isDeleted: false };
@@ -204,8 +205,9 @@ const getAllClassesForAdmin = async (query: any = {}) => {
         filters.curriculum = { $in: curriculumArray };
     }
 
-    if (search) {
-        filters.$or = [{ subject: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
+    const finalSearch = search || searchTerm;
+    if (finalSearch) {
+        filters.$or = [{ subject: { $regex: finalSearch, $options: "i" } }, { description: { $regex: finalSearch, $options: "i" } }];
     }
 
     const sort: any = {};
