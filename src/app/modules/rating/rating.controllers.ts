@@ -54,6 +54,7 @@ const getRatings = catchAsync(async (req: Request, res: Response) => {
     if (req.query.student) filter.student = req.query.student;
 
     const options: any = {};
+    if (req.query.page) options.page = Number(req.query.page);
     if (req.query.limit) options.limit = Number(req.query.limit);
     if (req.query.skip) options.skip = Number(req.query.skip);
     if (req.query.sort) options.sort = req.query.sort;
@@ -64,7 +65,8 @@ const getRatings = catchAsync(async (req: Request, res: Response) => {
         statusCode: 200,
         success: true,
         message: "Ratings retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 

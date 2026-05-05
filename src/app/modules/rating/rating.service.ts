@@ -29,13 +29,28 @@ const getRatingById = async (ratingId: string) => {
 };
 
 const getRatings = async (filter: any = {}, options: any = {}) => {
+    const { page = 1, limit = 10, skip = 0, sort } = options;
+    const finalSkip = skip || (Number(page) - 1) * Number(limit);
+
     const query = RatingModel.find({ ...filter, isDeleted: false });
 
-    if (options.sort) query.sort(options.sort);
-    if (options.limit) query.limit(options.limit);
-    if (options.skip) query.skip(options.skip);
+    if (sort) query.sort(sort);
+    query.limit(Number(limit));
+    query.skip(Number(finalSkip));
 
-    return query.populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
+    const data = await query.populate("student", "name email profileImage").populate("tutor", "name profileImage").populate("class", "subject");
+    const total = await RatingModel.countDocuments({ ...filter, isDeleted: false });
+    const totalPages = Math.ceil(total / Number(limit));
+
+    return {
+        data,
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages,
+        },
+    };
 };
 
 const getAverageRatingForTutor = async (tutorId: Types.ObjectId) => {
