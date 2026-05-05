@@ -7,6 +7,7 @@ import { UserModel } from "../auth/auth.model";
 import { ClassModel } from "../class/class.model";
 import { HourlyClassModel } from "../hourlyclasses/hourlyclass.model";
 import { Slot } from "../slot/slot.model";
+import { RatingModel } from "../rating/rating.model";
 import config from "../../config";
 
 /**
@@ -591,10 +592,25 @@ const getHourlyClassStudentPayments = async (studentId: string, query: any) => {
 
     const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
 
+    // Check if student has already rated the hourly class for each payment record
+    const resultWithRatingStatus = await Promise.all(
+        result.map(async (payment: any) => {
+            const rating = await RatingModel.findOne({
+                student: new Types.ObjectId(studentId),
+                class: payment.classId,
+                isDeleted: false,
+            });
+            return {
+                ...payment,
+                ratingSend: !!rating,
+            };
+        }),
+    );
+
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     return {
-        data: result,
+        data: resultWithRatingStatus,
         meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
     };
 };
@@ -799,10 +815,25 @@ const getNormalClassStudentPayments = async (studentId: string, query: any) => {
 
     const [result, totalResult] = await Promise.all([ClassPaymentModel.aggregate(pipeline), ClassPaymentModel.aggregate(countPipeline)]);
 
+    // Check if student has already rated the class for each payment record
+    const resultWithRatingStatus = await Promise.all(
+        result.map(async (payment: any) => {
+            const rating = await RatingModel.findOne({
+                student: new Types.ObjectId(studentId),
+                class: payment.classId,
+                isDeleted: false,
+            });
+            return {
+                ...payment,
+                ratingSend: !!rating,
+            };
+        }),
+    );
+
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     return {
-        data: result,
+        data: resultWithRatingStatus,
         meta: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
     };
 };
