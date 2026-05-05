@@ -10,7 +10,7 @@ const createClass = async (userId: string, payload: any) => {
     const data = {
         ...payload,
         createdBy: new Types.ObjectId(userId),
-        status: "PENDING" as ClassStatus,
+        status: "APPROVED" as ClassStatus,
     };
 
     const result = await ClassModel.create(data);
