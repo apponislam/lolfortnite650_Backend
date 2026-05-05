@@ -186,9 +186,9 @@ const rescheduleOffer = catchAsync(async (req: Request, res: Response) => {
         throw new Error("User not authenticated");
     }
     const { messageId } = req.params;
-    const { slotId, price } = req.body;
+    const { slotId, slot, price } = req.body;
 
-    const result = await messageService.rescheduleOffer(userId, messageId as string, slotId, price);
+    const result = await messageService.rescheduleOffer(userId, messageId as string, slotId || slot, price);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

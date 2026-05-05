@@ -398,7 +398,7 @@ export const rejectOffer = async (userId: string, messageId: string) => {
 /**
  * Reschedule an offer
  */
-export const rescheduleOffer = async (userId: string, messageId: string, slotId: string, price?: number) => {
+export const rescheduleOffer = async (userId: string, messageId: string, slotIdOrSlot: string, price?: number) => {
     const message = await MessageModel.findById(messageId);
     if (!message || message.type !== "OFFER") {
         throw new ApiError(httpStatus.NOT_FOUND, "Offer not found");
@@ -409,7 +409,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
     // }
 
     let finalPrice = price || message.price;
-    const slotData = await Slot.findById(slotId);
+    const slotData = await Slot.findById(slotIdOrSlot);
     if (!slotData) {
         throw new ApiError(httpStatus.NOT_FOUND, "New slot not found");
     }
@@ -432,7 +432,7 @@ export const rescheduleOffer = async (userId: string, messageId: string, slotId:
         message.type = "RESCHEDULED";
     }
 
-    message.slot = new Types.ObjectId(slotId) as any;
+    message.slot = new Types.ObjectId(slotIdOrSlot) as any;
     message.price = finalPrice;
     await message.save();
 
