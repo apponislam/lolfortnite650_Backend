@@ -49,8 +49,8 @@ const getRatingById = catchAsync(async (req: Request, res: Response) => {
 
 const getRatings = catchAsync(async (req: Request, res: Response) => {
     const filter: any = {};
-    if (req.query.tutor) filter.tutor = req.query.tutor;
-    if (req.query.class) filter.class = req.query.class;
+    if (req.query.tutor || req.params.tutorId) filter.tutor = req.query.tutor || req.params.tutorId;
+    if (req.query.class || req.params.classId) filter.class = req.query.class || req.params.classId;
     if (req.query.student) filter.student = req.query.student;
 
     const options: any = {};
